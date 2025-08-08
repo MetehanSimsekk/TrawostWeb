@@ -1,4 +1,4 @@
-import trawostIcon from '../assets/logo/trawostIconHD.png';
+import trawostIcon from '../../assets/logo/trawostIconHD.png';
 
 const ThanksPage = () => {
   return (

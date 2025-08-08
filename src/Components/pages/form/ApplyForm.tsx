@@ -1,12 +1,12 @@
 import { Fragment, Key, SetStateAction, useRef, useState } from "react";
-import { supabase } from "../../services/supabase";
+import { supabase } from "../../../services/supabase";
 import { Menu, MenuButton, MenuItem, MenuItems, Transition } from '@headlessui/react';
 import { ChevronDownIcon } from '@heroicons/react/20/solid';
 import { HomeIcon } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';
 import Cleave from 'cleave.js/react';
 import 'cleave.js/dist/addons/cleave-phone.tr';
-import logo from "../../assets/logo/trawostIconHD.png";
+import logo from '../../../assets/logo/trawostIconHD.png';
 import PassportScanUpload from '../PassportScan';
 import PassportImageUpload from "../PassportImageUpload";
 import { UserCircleIcon } from '@heroicons/react/24/outline';

@@ -1,8 +1,8 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import ApplyForm from "./pages/form/ApplyForm";
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import Login from "./pages/admin/Login";
-import ThanksPage from './pages/ThanksPages';
+import ApplyForm from "./Components/pages/form/ApplyForm";
+import AdminDashboard from "./Components/pages/admin/AdminDashboard";
+import Login from "./Components/pages/admin/Login";
+import ThanksPage from './Components/pages/ThanksPages';
 import { MantineProvider ,createTheme} from '@mantine/core';
 import { useState } from "react";
 import { Notifications } from '@mantine/notifications';
@@ -10,7 +10,7 @@ import { Notifications } from '@mantine/notifications';
 import '@mantine/core/styles.css';
 import '@mantine/dates/styles.css';
 import '@mantine/notifications/styles.css';
-import ProtectedRoute from "./pages/routes/ProtectedRoute";
+import ProtectedRoute from "./Components/pages/routes/ProtectedRoute";
 
 function App() {
   const [phone, setPhone] = useState('');

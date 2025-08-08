@@ -19,7 +19,7 @@ import {
   import { IconCheck, IconPlaneTilt } from '@tabler/icons-react';
   import { DatePickerInput, DateTimePicker } from '@mantine/dates';
 import ApplicationDetailModal from './ApplicationDetailModal';
-import { supabase } from '../../services/supabase';
+import { supabase } from '../../../services/supabase';
 import { notifications } from '@mantine/notifications';
 
 export function ApplicationCard({

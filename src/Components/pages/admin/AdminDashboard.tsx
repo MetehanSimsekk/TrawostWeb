@@ -16,10 +16,10 @@ import {
 } from '@mantine/core';
 import { IconUser, IconCalendar, IconCalendarCheck, IconGlobe, IconSearch, IconEye, IconTrash } from '@tabler/icons-react';
 import { JSX, useEffect, useState } from 'react';
-import logo from "../../assets/logo/trawostIconHD.png"; 
+import logo from '../../../assets/logo/trawostIconHD.png';
 import { ApplicationCard } from '../Cards/ApplicationCard';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from "../../services/supabase";
+import { supabase } from "../../../services/supabase";
 import { Application } from '@/types/types';
 
 
