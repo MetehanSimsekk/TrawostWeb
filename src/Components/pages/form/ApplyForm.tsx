@@ -1,4 +1,4 @@
-import { Fragment, Key, SetStateAction, useRef, useState } from "react";
+import { Fragment, Key, SetStateAction, useEffect, useRef, useState } from "react";
 import { supabase } from "../../../services/supabase";
 import { Menu, MenuButton, MenuItem, MenuItems, Transition } from '@headlessui/react';
 import { ChevronDownIcon } from '@heroicons/react/20/solid';
@@ -58,14 +58,14 @@ const [lastName, setLastName] = useState<string[]>([]);
 
 const [passportLoading, setPassportLoading] = useState<boolean[]>([]);
 
-const [selectedJobTitle, setSelectedJobTitle] = useState('Meslek Unvanı Seçin');
-const [companyName, setCompanyName] = useState('');
-const [companyAddress, setCompanyAddress] = useState('');
-const [companyPhone, setCompanyPhone] = useState('');
+const [selectedJobTitle, setSelectedJobTitle]  = useState<string[]>([]);
+const [companyName, setCompanyName] = useState<string[]>([]);
+const [companyAddress, setCompanyAddress] = useState<string[]>([]);
+const [companyPhone, setCompanyPhone] = useState<string[]>([]);
 
-const [schoolName, setSchoolName] = useState('');
-const [schoolAddress, setSchoolAddress] = useState('');
-const [schoolPhone, setSchoolPhone] = useState('');
+const [schoolName, setSchoolName]= useState<string[]>([]);
+const [schoolAddress, setSchoolAddress] = useState<string[]>([]);
+const [schoolPhone, setSchoolPhone] = useState<string[]>([]);
 
 
 interface FormErrors {
@@ -134,14 +134,12 @@ const [errors, setErrors] = useState<FormErrors>({
     previous_schengen_url: any | null;   
     invitation_letter_url: any | null;   
   
-    job_title?: JobTitle;                   
-    company_name?: string;
-    company_address?: string;
-    company_phone?: string;
+               
+    company_name?: string[];
+    company_address?: string[];
+    company_phone?: string[];
   
-    school_name?: string;
-    school_address?: string;
-    school_phone?: string;
+   
   }
   type Applicant = {
     firstName: string;
@@ -153,12 +151,20 @@ const [errors, setErrors] = useState<FormErrors>({
     companyName?: string;
     companyAddress?: string;
     companyPhone?: string;
-    schoolName?: string;
-    schoolAddress?: string;
-    schoolPhone?: string;
+    school_name?: string[];   // her index için ayrı okul adı
+    school_address?: string[];
+    school_phone?: string[];
   };
-  const totalForms = parseInt(selectedPeople);
 
+  
+  const totalForms = parseInt(selectedPeople);
+  useEffect(() => {
+    setSelectedJobTitle(prev => {
+      const next = prev.slice(0, totalForms);
+      while (next.length < totalForms) next.push('');
+      return next;
+    });
+  }, [totalForms]);
   const handleInvitationUpload = (formIndex: number, e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
@@ -456,7 +462,7 @@ const [errors, setErrors] = useState<FormErrors>({
   
        
         ...(ws === 'Çalışıyor' && {
-          job_title: (selectedJobTitle || undefined),
+       
           company_name: (companyName || undefined),
           company_address: (companyAddress || undefined),
           company_phone: (companyPhone || undefined),
@@ -488,7 +494,10 @@ const [errors, setErrors] = useState<FormErrors>({
 
   return (
     
-    <div className="min-h-screen bg-black text-white font-sans px-4 py-8">
+    <div className="min-h-screen text-white font-sans px-4 py-8"
+    style={{
+      background: 'linear-gradient(to bottom, rgba(0,0,0,1), rgba(229,9,20,0.9))',
+    }}>
       <div className="max-w-4xl mx-auto bg-white text-black p-8 rounded-xl shadow-lg">
         <div className="relative flex items-center justify-center mb-6">
         <img
@@ -899,67 +908,83 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
 {workStatus[index] === 'Çalışıyor' && (
   <div
     className="p-6 mt-6 rounded-xl"
-    style={{
-      background: 'linear-gradient(to right, rgba(229, 9, 20, 0.91), rgba(34, 2, 4, 0.79))',
-    }}
+    style={{ background: 'linear-gradient(to right, rgba(229, 9, 20, 0.91), rgba(34, 2, 4, 0.79))' }}
   >
     <h3 className="text-white font-semibold mb-4">İş Bilgileri</h3>
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-     <Menu as="div" className="relative inline-block w-full">
-     <MenuButton className="h-12 inline-flex w-full justify-between items-center rounded-lg bg-white px-4 text-base text-gray-800 border border-red-500 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500">
-  {selectedJobTitle}
-  <ChevronDownIcon className="w-5 h-5 text-gray-500" aria-hidden="true" />
-</MenuButton>
 
-  <Transition
-    as={Fragment}
-    enter="transition ease-out duration-100"
-    enterFrom="transform opacity-0 scale-95"
-    enterTo="transform opacity-100 scale-100"
-    leave="transition ease-in duration-75"
-    leaveFrom="transform opacity-100 scale-100"
-    leaveTo="transform opacity-0 scale-95"
-  >
-    <MenuItems className="absolute z-10 mt-2 w-full rounded-lg bg-white text-black shadow-lg ring-1 ring-black/10 focus:outline-none">
-      <div className="py-1 max-h-60 overflow-y-auto">
-        {jobTitles.map((title) => (
-          <MenuItem key={title}>
-            {({ active }) => (
-              <button
-                onClick={() => setSelectedJobTitle(title)}
-                className={`${
-                  active ? 'bg-red-100 text-red-800' : 'text-gray-900'
-                } block w-full text-left px-4 py-2 text-base font-medium`}
-              >
-                {title}
-              </button>
-            )}
-          </MenuItem>
-        ))}
-      </div>
-    </MenuItems>
-  </Transition>
-</Menu>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <Menu as="div" className="relative inline-block w-full">
+        <MenuButton className="h-12 inline-flex w-full justify-between items-center rounded-lg bg-white px-4 text-base text-gray-800 border border-red-500 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500">
+          {selectedJobTitle[index] || 'Meslek Unvanınızı Seçin'}
+          <ChevronDownIcon className="w-5 h-5 text-gray-500" aria-hidden="true" />
+        </MenuButton>
+
+        <Transition
+          as={Fragment}
+          enter="transition ease-out duration-100"
+          enterFrom="transform opacity-0 scale-95"
+          enterTo="transform opacity-100 scale-100"
+          leave="transition ease-in duration-75"
+          leaveFrom="transform opacity-100 scale-100"
+          leaveTo="transform opacity-0 scale-95"
+        >
+          <MenuItems className="absolute z-10 mt-2 w-full rounded-lg bg-white text-black shadow-lg ring-1 ring-black/10 focus:outline-none">
+            <div className="py-1 max-h-60 overflow-y-auto">
+              {jobTitles.map((title) => (
+                <MenuItem key={title}>
+                  {({ active }) => (
+                    <button
+                      onClick={() => {
+                        setSelectedJobTitle(prev => {
+                          const next = [...prev];
+                          next[index] = title;
+                          return next;
+                        });
+                      }}
+                      className={`${active ? 'bg-red-100 text-red-800' : 'text-gray-900'} block w-full text-left px-4 py-2 text-base font-medium`}
+                    >
+                      {title}
+                    </button>
+                  )}
+                </MenuItem>
+              ))}
+            </div>
+          </MenuItems>
+        </Transition>
+      </Menu>
 <input
-  id="company-name"
-  value={companyName}
-  onChange={(e) => setCompanyName(e.target.value)}
+  id={`company-name-${index}`}
+  value={companyName[index] || ""}
+  onChange={(e) => {
+    const updated = [...companyName];
+    updated[index] = e.target.value;
+    setCompanyName(updated);
+  }}
   type="text"
   placeholder="Firma adını girin"
   className="h-12 px-4 py-3 rounded-lg w-full border border-gray-300 bg-white text-gray-800 placeholder-gray-500 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
 />
+
 <textarea
- id="company-address"
- value={companyAddress}
- onChange={(e) => setCompanyAddress(e.target.value)}
+  id={`company-address-${index}`}
+  value={companyAddress[index] || ""}
+  onChange={(e) => {
+    const updated = [...companyAddress];
+    updated[index] = e.target.value;
+    setCompanyAddress(updated);
+  }}
   placeholder="Firma adresini girin"
   className="h-12 px-4 py-3 rounded-lg w-full border border-gray-300 bg-white text-gray-800 placeholder-gray-500 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
 />
 
 <input
-id="company-phone"
-value={companyPhone}
-onChange={(e) => setCompanyPhone(e.target.value)}
+  id={`company-phone-${index}`}
+  value={companyPhone[index] || ""}
+  onChange={(e) => {
+    const updated = [...companyPhone];
+    updated[index] = e.target.value;
+    setCompanyPhone(updated);
+  }}
   type="text"
   placeholder="Firma telefon numarasını girin"
   className="h-12 px-4 py-3 rounded-lg w-full border border-gray-300 bg-white text-gray-800 placeholder-gray-500 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
@@ -968,34 +993,49 @@ onChange={(e) => setCompanyPhone(e.target.value)}
   </div>
 )}
 {workStatus[index] === 'Öğrenci' && (
-   <div
-   className="p-6 mt-6 rounded-xl"
-   style={{
-     background: 'linear-gradient(to right, rgba(229, 9, 20, 0.91), rgba(34, 2, 4, 0.79))',
-   }}
- >
+  <div
+    className="p-6 mt-6 rounded-xl"
+    style={{
+      background: 'linear-gradient(to right, rgba(229, 9, 20, 0.91), rgba(34, 2, 4, 0.79))',
+    }}
+  >
     <h3 className="text-white font-semibold mb-4">Eğitim Bilgileri</h3>
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      
       <input
-      id="school-name"
-      value={schoolName}
-      onChange={(e) => setSchoolName(e.target.value)}
+        id={`school-name-${index}`}
+        value={schoolName[index] || ""}
+        onChange={(e) => {
+          const updated = [...schoolName];
+          updated[index] = e.target.value;
+          setSchoolName(updated);
+        }}
         type="text"
         placeholder="Okul adını girin"
         className="h-12 px-4 py-3 rounded-lg w-full border border-gray-300 bg-white text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-0"
       />
-      <input      
-       id="school-phone"
-  value={schoolPhone}
-  onChange={(e) => setSchoolPhone(e.target.value)}
+
+      <input
+        id={`school-phone-${index}`}
+        value={schoolPhone[index] || ""}
+        onChange={(e) => {
+          const updated = [...schoolPhone];
+          updated[index] = e.target.value;
+          setSchoolPhone(updated);
+        }}
         type="text"
         placeholder="Okul telefon numarasını girin"
         className="h-12 px-4 py-3 rounded-lg w-full border border-gray-300 bg-white text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-0"
       />
+
       <textarea
-       id="school-address"
-       value={schoolAddress}
-       onChange={(e) => setSchoolAddress(e.target.value)}
+        id={`school-address-${index}`}
+        value={schoolAddress[index] || ""}
+        onChange={(e) => {
+          const updated = [...schoolAddress];
+          updated[index] = e.target.value;
+          setSchoolAddress(updated);
+        }}
         placeholder="Okul adresini girin"
         className="h-12 px-4 py-3 rounded-lg w-full md:col-span-2 border border-gray-300 bg-white text-gray-800 placeholder-gray-500 resize-none focus:outline-none focus:ring-0"
       />

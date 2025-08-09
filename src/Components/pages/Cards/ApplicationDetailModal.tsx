@@ -1,5 +1,5 @@
 import { Alert, Badge, Card, Divider, Group, Modal, SimpleGrid, Text, Title } from '@mantine/core';
-import { IconMapPin, IconMail, IconPhone, IconUser, IconCheck, IconEye } from '@tabler/icons-react';
+import { IconMapPin, IconMail, IconPhone, IconUser, IconCheck, IconEye, IconClock } from '@tabler/icons-react';
 import { useState } from 'react';
 
 export default function ApplicationDetailModal({ app }: { app: any }) {
@@ -10,19 +10,27 @@ export default function ApplicationDetailModal({ app }: { app: any }) {
     const [showPasaportModal, setShowPasaportModal] = useState(false);
 const [showSchengenModal, setShowSchengenModal] = useState(false);
 const [passportUrl, setPassportUrl] = useState<string | null>(null);
-const [schengenUrl, setSchengenUrl] = useState<string | null>(null);
-
+const [schengenUrl, setSchengenUrl] = useState<string[]>([]);
+const [schengenIndex, setSchengenIndex] = useState(0);
 const [hoveredInvitation, setHoveredInvitation] = useState(false);
 const [showInvitationModal, setShowInvitationModal] = useState(false);
 const [invitationUrls, setInvitationUrls] = useState<string[]>([]);
+
+function normalizeToUrls(raw: unknown): string[] {
+  if (Array.isArray(raw)) return raw.filter(Boolean) as string[];
+  if (typeof raw === 'string') {
+    const s = raw.trim();
+    if (!s) return [];
+    if (s.startsWith('[')) {
+      try { return (JSON.parse(s) as string[]).filter(Boolean); } catch { return []; }
+    }
+    return [s];
+  }
+  return [];
+}
   return (
-    <div
-  style={{
-    maxHeight: '80vh', 
-    overflowY: 'auto', 
-    padding: '1rem',   
-  }}
->
+    <div className="w-full px-0">
+    <div className="bg-white rounded-xl shadow-lg p-6">
     <Card
   withBorder
   radius="md"
@@ -30,7 +38,7 @@ const [invitationUrls, setInvitationUrls] = useState<string[]>([]);
   shadow="sm"
   bg="white"
   className="w-full"
-  style={{ maxWidth: '100%' }}
+  style={{ maxWidth: '200%' }}
 >
      
       <Group justify="space-between" mb="lg">
@@ -50,10 +58,14 @@ const [invitationUrls, setInvitationUrls] = useState<string[]>([]);
     </Badge>
 
     <Badge
-      color="green"
+      color={app.appointment_status === "Randevu Alındı" ? "green" : "red"}
+
       variant="light"
       size="xl"
-      leftSection={<IconCheck size={20} />}
+      leftSection={
+        app.appointment_status === "Randevu Alındı"
+          ? <IconCheck size={20} />
+          : <IconClock size={20} /> }
       className="px-3 py-1 text-[14px]" 
 
     >
@@ -389,7 +401,7 @@ const [invitationUrls, setInvitationUrls] = useState<string[]>([]);
     onClick={(e) => {
       e.stopPropagation();
   
-      let urls: string[] = [];
+      let urls: any[] = [];
   
       if (app.previous_schengen_url) {
         if (typeof app.previous_schengen_url === "string") {
@@ -404,8 +416,9 @@ const [invitationUrls, setInvitationUrls] = useState<string[]>([]);
         }
       }
   
-      urls = urls.filter(Boolean);
-      setSchengenUrl(urls[0] || null); 
+       urls = normalizeToUrls(app.previous_schengen_url);
+      setSchengenUrl(urls[0]); 
+      setSchengenIndex(0);
       setShowSchengenModal(true);
     }}
   >
@@ -416,27 +429,51 @@ const [invitationUrls, setInvitationUrls] = useState<string[]>([]);
 <Modal
   opened={showSchengenModal}
   onClose={() => setShowSchengenModal(false)}
-  size="68%"
+  size="75%"
   radius="md"
   centered
 >
-  {schengenUrl ? (
-    schengenUrl.endsWith(".pdf") ? (
+  {(() => {
+    const url = schengenUrl[schengenIndex];
+    if (typeof url !== 'string' || !url) {
+      return <Text c="dimmed">Schengen dosyası bulunamadı.</Text>;
+    }
+    const isPdf = url.toLowerCase().endsWith('.pdf');
+
+    return isPdf! ? (
       <iframe
-        src={schengenUrl}
+        src={url}
         title="Schengen PDF"
-        style={{ width: "100%", height: "80vh", border: "none" }}
+        style={{ width: '100%', height: '80vh', border: 'none' }}
       />
     ) : (
       <img
-        src={schengenUrl}
+        src={url}
         alt="Schengen Belgesi"
         className="max-w-[90%] max-h-[70vh] mx-auto rounded-md shadow-lg"
-
       />
-    )
-  ) : (
-    <Text c="dimmed">Schengen dosyası bulunamadı.</Text>
+    );
+  })()}
+
+  {/* İsteğe bağlı thumbnail’lar (birden fazla dosya varsa) */}
+  {schengenUrl.length > 1 && (
+    <div className="mt-4 flex gap-2 flex-wrap">
+      {schengenUrl.map((u, i) => (
+        <button
+          key={i}
+          type="button"
+          className={`border rounded p-1 ${i === schengenIndex ? 'ring-2 ring-red-500' : ''}`}
+          onClick={() => setSchengenIndex(i)}
+          title={`Dosya ${i + 1}`}
+        >
+          {u.toLowerCase().endsWith('.pdf') ? (
+            <span className="text-xs px-2">PDF</span>
+          ) : (
+            <img src={u} alt={`thumb-${i}`} className="w-16 h-16 object-cover rounded" />
+          )}
+        </button>
+      ))}
+    </div>
   )}
 </Modal>
 </Card>
@@ -466,6 +503,7 @@ const [invitationUrls, setInvitationUrls] = useState<string[]>([]);
   </Card>
 </SimpleGrid>
     </Card>
+</div>
 </div>
   );
 }
