@@ -197,10 +197,14 @@ async function handleAppointmentStatusChange(newStatus: any) {
           </div>
   
        
-          <div className="min-w-[250px] flex flex-col gap-3 mt-2">
+          <div className="min-w-[230px] flex flex-col gap-3 mt-16">
           <Button
   onClick={() => {
-    setSelectedApp(app);
+   
+    setSelectedApp({
+      ...app,
+      appointment_status: appointmentStatus // buradaki state değerini yazıyoruz
+    });
     setOpened(true);
   }}
   leftSection={<IconEye size={16} />}
@@ -246,7 +250,7 @@ async function handleAppointmentStatusChange(newStatus: any) {
       style={{
         position: "absolute",
         top: 5,
-        right: 40,
+        right: 10,
         background: "transparent",
         border: "none",
         fontSize: 20,
