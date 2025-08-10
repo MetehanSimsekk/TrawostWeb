@@ -14,7 +14,7 @@ import {
     Radio,
     Modal,
   } from '@mantine/core';
-  import { IconUser, IconCalendar, IconCalendarCheck, IconGlobe, IconSearch, IconEye, IconTrash, IconClock } from '@tabler/icons-react';
+  import { IconUser, IconCalendar, IconCalendarCheck, IconGlobe, IconSearch, IconEye, IconTrash, IconClock, IconUsers } from '@tabler/icons-react';
   import { JSX, useState } from 'react';
   import { IconCheck, IconPlaneTilt } from '@tabler/icons-react';
   import { DatePickerInput, DateTimePicker } from '@mantine/dates';
@@ -23,12 +23,16 @@ import { supabase } from '../../../services/supabase';
 import { notifications } from '@mantine/notifications';
 
 export function ApplicationCard({
-    app,
-    onDelete
-  }: {
-    app: any;
-    onDelete?: (id: string) => void;
-  }) {
+  app,
+  onDelete,
+  isFamily,
+  relatedApps = []
+}: {
+  app: any;
+  onDelete?: (id: string) => void;
+  isFamily?: boolean;
+  relatedApps?: any[];
+}) {
     
     const [appointmentStatus, setAppointmentStatus] = useState(app.appointment_status);
     const [ticketStatus, setTicketStatus] = useState<boolean>(app.flight_ticket ?? false);
@@ -147,6 +151,8 @@ async function handleAppointmentStatusChange(newStatus: any) {
   <Text fw={900} fz="xl">
     {app.full_name} {app.surname?.toUpperCase()}
   </Text>
+  {isFamily && <IconUsers size={20} stroke={2} color="#555" />}
+
 </Group>
               <Badge
   color={appointmentStatus === 'Randevu Alınacak' ? 'red' : 'green'}
@@ -203,7 +209,7 @@ async function handleAppointmentStatusChange(newStatus: any) {
    
     setSelectedApp({
       ...app,
-      appointment_status: appointmentStatus // buradaki state değerini yazıyoruz
+      appointment_status: appointmentStatus 
     });
     setOpened(true);
   }}
@@ -260,7 +266,25 @@ async function handleAppointmentStatusChange(newStatus: any) {
       ✕
     </button>
 
-    <ApplicationDetailModal app={selectedApp} />
+    <Card withBorder shadow="sm" radius="md" p="lg">
+ 
+  <ApplicationDetailModal
+    title="1. Başvuru Sahibi"
+    app={selectedApp}
+    isFamily={isFamily}
+  />
+
+  {isFamily &&
+    relatedApps.map((rel, i) => (
+      <ApplicationDetailModal
+        key={rel.id}
+        title={`${i + 2}. Başvuru Sahibi`}
+        app={rel}
+        isFamily={true}
+      />
+    ))}
+</Card>
+    
   </div>
 </Modal>
 
