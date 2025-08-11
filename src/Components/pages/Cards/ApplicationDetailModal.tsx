@@ -1,8 +1,8 @@
 import { Alert, Badge, Card, Divider, Group, Modal, SimpleGrid, Text, Title } from '@mantine/core';
-import { IconMapPin, IconMail, IconPhone, IconUser, IconCheck, IconEye, IconClock } from '@tabler/icons-react';
+import { IconMapPin, IconMail, IconPhone, IconUser, IconCheck, IconEye, IconClock, IconUsers } from '@tabler/icons-react';
 import { useState } from 'react';
 
-export default function ApplicationDetailModal({ app }: { app: any }) {
+export default function ApplicationDetailModal(props: { app: any; title: string; isFamily?: boolean }) {
 
     const [hovered, setHovered] = useState(false);
     const [hovered2, setHovered2] = useState(false);
@@ -42,9 +42,14 @@ function normalizeToUrls(raw: unknown): string[] {
 >
      
       <Group justify="space-between" mb="lg">
-  <Title order={2} className="text-red-600 flex items-center gap-2">
-    <IconUser size={28} /> Başvuru Detayları
-  </Title>
+      <Title order={2} className="text-red-600 flex items-center gap-2">
+        {props.isFamily ? (
+          <IconUsers size={28} />
+        ) : (
+          <IconUser size={28} />
+        )}
+        {props.title}
+      </Title>
   
   <Group gap="m">
     <Badge
@@ -54,28 +59,28 @@ function normalizeToUrls(raw: unknown): string[] {
         leftSection={<IconMapPin size={20} />}
         className="px-3 py-1 text-[14px]" 
     >
-      {app.country}
+      {props.app.country}
     </Badge>
 
     <Badge
-      color={app.appointment_status === "Randevu Alındı" ? "green" : "red"}
+      color={props.app.appointment_status === "Randevu Alındı" ? "green" : "red"}
 
       variant="light"
       size="xl"
       leftSection={
-        app.appointment_status === "Randevu Alındı"
+        props.app.appointment_status === "Randevu Alındı"
           ? <IconCheck size={20} />
           : <IconClock size={20} /> }
       className="px-3 py-1 text-[14px]" 
 
     >
-      {app.appointment_status}
+      {props.app.appointment_status}
     </Badge>
   </Group>
 </Group>
 
    
-      <Title order={5} mb="xs" className="text-red-600">1. Başvuru Sahibi</Title>
+   
 
       <Divider my="xs" />
       <Text size="sm" fw={900} c="dimmed" mb="xs">Kişisel Bilgiler</Text>
@@ -83,16 +88,23 @@ function normalizeToUrls(raw: unknown): string[] {
       <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md" mb="sm">
         <Card shadow="xs" withBorder radius="md" padding="xs">
           <Text size="xs" c="dimmed">Ad Soyad</Text>
-          <Text fw={900}>{app.name} {app.surname}</Text>
+          <Text fw={900}>{props.app.name} {props.app.surname}</Text>
         </Card>
         <Card shadow="xs" withBorder radius="md" padding="xs">
           <Text size="xs" c="dimmed">Cinsiyet</Text>
-          <Text fw={900} >{app.gender}</Text>
+          <Text fw={900} >{props.app.gender}</Text>
         </Card>
         <Card shadow="xs" withBorder radius="md" padding="xs">
           <Text size="xs" c="dimmed">Medeni Durum</Text>
-          <Text fw={900} >{app.marital_status}</Text>
+          <Text fw={900} >{props.app.marital_status}</Text>
         </Card>
+        
+        {props.app.gender === "Kadın" && props.app.marital_status === "Evli" && (
+    <Card shadow="xs" withBorder radius="md" padding="xs">
+      <Text size="xs" c="dimmed">Kızlık Soyadı</Text>
+      <Text fw={900}>{props.app.maiden_surname}</Text>
+    </Card>
+  )}
       </SimpleGrid>
 
       <Text size="sm" fw={600} c="dimmed" mt="sm" mb="xs">İletişim Bilgileri</Text>
@@ -100,11 +112,11 @@ function normalizeToUrls(raw: unknown): string[] {
       <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md" mb="sm">
         <Card shadow="xs" withBorder radius="md" padding="xs">
           <Text size="xs" c="dimmed">E-posta</Text>
-          <Text fw={900} >{app.email}</Text>
+          <Text fw={900} >{props.app.email}</Text>
         </Card>
         <Card shadow="xs" withBorder radius="md" padding="xs">
           <Text size="xs" c="dimmed">Telefon</Text>
-          <Text fw={900} >{app.phone}</Text>
+          <Text fw={900} >{props.app.phone}</Text>
         </Card>
       </SimpleGrid>
 
@@ -117,14 +129,14 @@ function normalizeToUrls(raw: unknown): string[] {
   className="py-3 min-h-[100px]"
 >
   <Text size="xs" c="dimmed">Ev Adresi</Text>
-  <Text fw={900} >{app.address}</Text>
+  <Text fw={900} >{props.app.address}</Text>
 </Card>
 
       <Text size="sm" fw={600} c="dimmed" mt="sm" mb="xs">Çalışma Durumu</Text>
 <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md" mb="sm">
   <Card shadow="xs" withBorder radius="md" padding="xs">
     <Text size="xs" c="dimmed">Durum</Text>
-    <Text fw={900} >{app.work_status}</Text>
+    <Text fw={900} >{props.app.work_status}</Text>
   </Card>
 </SimpleGrid>
     
@@ -144,13 +156,13 @@ function normalizeToUrls(raw: unknown): string[] {
     minHeight: 160,
     backgroundColor: (() => {
         try {
-          const urls = Array.isArray(app.passport_file_url)
-            ? app.passport_file_url.filter(Boolean)
-            : JSON.parse(app.passport_file_url || "[]").filter(Boolean);
+          const urls = Array.isArray(props.app.passport_file_url)
+            ? props.app.passport_file_url.filter(Boolean)
+            : JSON.parse(props.app.passport_file_url || "[]").filter(Boolean);
       
           return urls.length > 0 ? "#BBF7D0" : "#FCA5A5";
         } catch {
-          return app.passport_file_url ? "#BBF7D0" : "#FCA5A5";
+          return props.app.passport_file_url ? "#BBF7D0" : "#FCA5A5";
         }
       })(),
   }}
@@ -160,13 +172,13 @@ function normalizeToUrls(raw: unknown): string[] {
     <Badge color="gray" variant="light">
   {(() => {
     try {
-      const urls = Array.isArray(app.passport_file_url)
-        ? app.passport_file_url.filter(Boolean)
-        : JSON.parse(app.passport_file_url || "[]").filter(Boolean);
+      const urls = Array.isArray(props.app.passport_file_url)
+        ? props.app.passport_file_url.filter(Boolean)
+        : JSON.parse(props.app.passport_file_url || "[]").filter(Boolean);
 
       return `${urls.length} dosya`;
     } catch {
-      return app.passport_file_url ? "1 dosya" : "0 dosya";
+      return props.app.passport_file_url ? "1 dosya" : "0 dosya";
     }
   })()}
 </Badge>
@@ -174,13 +186,13 @@ function normalizeToUrls(raw: unknown): string[] {
   <Text size="sm">
   {(() => {
     try {
-      const urls = Array.isArray(app.passport_file_url)
-        ? app.passport_file_url.filter(Boolean)
-        : JSON.parse(app.passport_file_url || "[]").filter(Boolean);
+      const urls = Array.isArray(props.app.passport_file_url)
+        ? props.app.passport_file_url.filter(Boolean)
+        : JSON.parse(props.app.passport_file_url || "[]").filter(Boolean);
 
       return urls.length > 0 ? "Görsel mevcut" : "Görsel mevcut Değil";
     } catch {
-      return app.passport_file_url ? "Görsel mevcut" : "Görsel mevcut Değil";
+      return props.app.passport_file_url ? "Görsel mevcut" : "Görsel mevcut Değil";
     }
   })()}
 </Text>
@@ -190,7 +202,7 @@ function normalizeToUrls(raw: unknown): string[] {
       className="absolute inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center rounded-md"
       onClick={(e) => {
         e.stopPropagation(); 
-        setPassportUrl(app.passport_file_url || null);
+        setPassportUrl(props.app.passport_file_url || null);
         setShowPasaportModal(true);
       }}
     >
@@ -227,7 +239,7 @@ function normalizeToUrls(raw: unknown): string[] {
 
 
 
-{['Eğitim', 'Ticari'].includes(app.visa_type) ? (
+{['Eğitim', 'Ticari'].includes(props.app.visa_type) ? (
  <Card
  withBorder
  radius="md"
@@ -239,12 +251,12 @@ function normalizeToUrls(raw: unknown): string[] {
     minHeight: 160,
     backgroundColor: (() => {
       try {
-        const urls = Array.isArray(app.invitation_letter_url)
-          ? app.invitation_letter_url.filter(Boolean)
-          : JSON.parse(app.invitation_letter_url || "[]").filter(Boolean);
+        const urls = Array.isArray(props.app.invitation_letter_url)
+          ? props.app.invitation_letter_url.filter(Boolean)
+          : JSON.parse(props.app.invitation_letter_url || "[]").filter(Boolean);
           return urls.length > 0 ?  "#FCA5A5":  "#BBF7D0"; 
       } catch {
-        return app.invitation_letter_url ?  "#FCA5A5":  "#BBF7D0";
+        return props.app.invitation_letter_url ?  "#FCA5A5":  "#BBF7D0";
       }
     })(),
   }}
@@ -252,31 +264,31 @@ function normalizeToUrls(raw: unknown): string[] {
  <Group justify="space-between" mb="sm">
    <Text fw={600} size="sm">Davet Mektubu</Text>
    <Badge color="green" variant="light">
-     {(Array.isArray(app.invitation_letter_url) ? app.invitation_letter_url.length : app.invitation_letter_url ? 1 : 0) + ' dosya'}
+     {(Array.isArray(props.app.invitation_letter_url) ? props.app.invitation_letter_url.length : props.app.invitation_letter_url ? 1 : 0) + ' dosya'}
    </Badge>
  </Group>
  <Text size="sm">
-   {app.invitation_letter_url ? 'Dosya(lar) mevcut. Görüntülemek için üzerine gelin.' : 'Davet mektubu yüklenmedi'}
+   {props.app.invitation_letter_url ? 'Dosya(lar) mevcut. Görüntülemek için üzerine gelin.' : 'Davet mektubu yüklenmedi'}
  </Text>
 
- {hoveredInvitation && app.invitation_letter_url && (
+ {hoveredInvitation && props.app.invitation_letter_url && (
    <div
      className="absolute inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center rounded-md"
      onClick={(e) => {
         e.stopPropagation();
     
         let urls: string[] = [];
-    
-        if (app.invitation_letter_url) {
-          if (typeof app.invitation_letter_url === "string") {
+        if (props.app.invitation_letter_url) {
+          
+          if (typeof props.app.invitation_letter_url === "string") {
             try {
-              const parsed = JSON.parse(app.invitation_letter_url);
+              const parsed = JSON.parse(props.app.invitation_letter_url);
               urls = Array.isArray(parsed) ? parsed : [parsed];
             } catch {
-              urls = [app.invitation_letter_url];
+              urls = [props.app.invitation_letter_url];
             }
-          } else if (Array.isArray(app.invitation_letter_url)) {
-            urls = app.invitation_letter_url;
+          } else if (Array.isArray(props.app.invitation_letter_url)) {
+            urls = props.app.invitation_letter_url;
           }
         }
     
@@ -351,12 +363,12 @@ function normalizeToUrls(raw: unknown): string[] {
     minHeight: 160,
     backgroundColor: (() => {
       try {
-        const urls = Array.isArray(app.previous_schengen_url)
-          ? app.previous_schengen_url.filter(Boolean)
-          : JSON.parse(app.previous_schengen_url || "[]").filter(Boolean);
+        const urls = Array.isArray(props.app.previous_schengen_url)
+          ? props.app.previous_schengen_url.filter(Boolean)
+          : JSON.parse(props.app.previous_schengen_url || "[]").filter(Boolean);
         return urls.length > 0 ?   "#BBF7D0" : "#FCA5A5"; 
       } catch {
-        return app.previous_schengen_url ? "#BBF7D0" : "#FCA5A5";
+        return props.app.previous_schengen_url ? "#BBF7D0" : "#FCA5A5";
       }
     })(),
   }}
@@ -368,15 +380,15 @@ function normalizeToUrls(raw: unknown): string[] {
   {(() => {
     try {
      
-      const urls = Array.isArray(app.previous_schengen_url)
-        ? app.previous_schengen_url.filter(Boolean)
+      const urls = Array.isArray(props.app.previous_schengen_url)
+        ? props.app.previous_schengen_url.filter(Boolean)
       
-        : JSON.parse(app.previous_schengen_url || "[]").filter(Boolean);
+        : JSON.parse(props.app.previous_schengen_url || "[]").filter(Boolean);
 
       return `${urls.length} dosya`;
     } catch {
    
-      return app.previous_schengen_url ? "1 dosya" : "0 dosya";
+      return props.app.previous_schengen_url ? "1 dosya" : "0 dosya";
     }
   })()}
 </Badge>
@@ -384,13 +396,13 @@ function normalizeToUrls(raw: unknown): string[] {
   <Text size="sm">
   {(() => {
     try {
-      const urls = Array.isArray(app.previous_schengen_url)
-        ? app.previous_schengen_url.filter(Boolean)
-        : JSON.parse(app.previous_schengen_url || "[]").filter(Boolean);
+      const urls = Array.isArray(props.app.previous_schengen_url)
+        ? props.app.previous_schengen_url.filter(Boolean)
+        : JSON.parse(props.app.previous_schengen_url || "[]").filter(Boolean);
 
       return urls.length > 0 ? "Görsel mevcut" : "Görsel mevcut Değil";
     } catch {
-      return app.previous_schengen_url ? "Görsel mevcut" : "Görsel mevcut Değil";
+      return props.app.previous_schengen_url ? "Görsel mevcut" : "Görsel mevcut Değil";
     }
   })()}
 </Text>
@@ -403,20 +415,20 @@ function normalizeToUrls(raw: unknown): string[] {
   
       let urls: any[] = [];
   
-      if (app.previous_schengen_url) {
-        if (typeof app.previous_schengen_url === "string") {
+      if (props.app.previous_schengen_url) {
+        if (typeof props.app.previous_schengen_url === "string") {
           try {
-            const parsed = JSON.parse(app.previous_schengen_url);
+            const parsed = JSON.parse(props.app.previous_schengen_url);
             urls = Array.isArray(parsed) ? parsed : [parsed];
           } catch {
-            urls = [app.previous_schengen_url];
+            urls = [props.app.previous_schengen_url];
           }
-        } else if (Array.isArray(app.previous_schengen_url)) {
-          urls = app.previous_schengen_url;
+        } else if (Array.isArray(props.app.previous_schengen_url)) {
+          urls = props.app.previous_schengen_url;
         }
       }
   
-       urls = normalizeToUrls(app.previous_schengen_url);
+       urls = normalizeToUrls(props.app.previous_schengen_url);
       setSchengenUrl(urls[0]); 
       setSchengenIndex(0);
       setShowSchengenModal(true);
@@ -455,7 +467,7 @@ function normalizeToUrls(raw: unknown): string[] {
     );
   })()}
 
-  {/* İsteğe bağlı thumbnail’lar (birden fazla dosya varsa) */}
+ 
   {schengenUrl.length > 1 && (
     <div className="mt-4 flex gap-2 flex-wrap">
       {schengenUrl.map((u, i) => (

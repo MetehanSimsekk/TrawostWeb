@@ -15,7 +15,7 @@ import {
   Radio,
 } from '@mantine/core';
 import { IconUser, IconCalendar, IconCalendarCheck, IconGlobe, IconSearch, IconEye, IconTrash } from '@tabler/icons-react';
-import { JSX, useEffect, useState } from 'react';
+import { JSX, useEffect, useMemo, useState } from 'react';
 import logo from '../../../assets/logo/trawostIconHD.png';
 import { ApplicationCard } from '../Cards/ApplicationCard';
 import { useNavigate } from 'react-router-dom';
@@ -72,23 +72,65 @@ export default function AdminDashboard() {
     navigate("/login");
   };
 
-  const filteredApplications = applications.filter((app:any) => {
-  
-    const matchName =
-    search.trim() === '' ||
-    (app.full_name || '').toLowerCase().includes(search.toLowerCase()) ||
-    (app.surname || '').toLowerCase().includes(search.toLowerCase());
-  
-  
-    const matchStatus =
-      status === '' || status === 'Tümü' || app.appointment_status === status;
+
+  const groupedByCode = useMemo(() => {
+    const m = new Map<string, any[]>();
+    applications.forEach(a => {
+      const k = a.basvuru_grup_kodu || '';
+      if (!k) return;
+      if (!m.has(k)) m.set(k, []);
+      m.get(k)!.push(a);
+    });
+    return m;
+  }, [applications]);
   
 
-    const matchCountry =
-      country === '' || country === 'Tüm Ülkeler' || app.country === country;
+  const groupCounts = useMemo(() => {
+    const m = new Map<string, number>();
+    applications.forEach((a: any) => {
+      const k = a.basvuru_grup_kodu ?? "";
+      if (!k) return;
+      m.set(k, (m.get(k) || 0) + 1);
+    });
+    return m;
+  }, [applications]);
   
-    return matchName && matchStatus && matchCountry;
-  });
+  const filteredApplications = useMemo(() => {
+    return applications.filter((app: any) => {
+      const matchName =
+        search.trim() === '' ||
+        (app.full_name || '').toLowerCase().includes(search.toLowerCase()) ||
+        (app.surname || '').toLowerCase().includes(search.toLowerCase());
+  
+      const matchStatus =
+        status === '' || status === 'Tümü' || app.appointment_status === status;
+  
+      const matchCountry =
+        country === '' || country === 'Tüm Ülkeler' || app.country === country;
+  
+      return matchName && matchStatus && matchCountry;
+    });
+  }, [applications, search, status, country]);
+  
+
+  
+  // const filteredApplications = applications.filter((app:any) => {
+  
+  //   const matchName =
+  //   search.trim() === '' ||
+  //   (app.full_name || '').toLowerCase().includes(search.toLowerCase()) ||
+  //   (app.surname || '').toLowerCase().includes(search.toLowerCase());
+  
+  
+  //   const matchStatus =
+  //     status === '' || status === 'Tümü' || app.appointment_status === status;
+  
+
+  //   const matchCountry =
+  //     country === '' || country === 'Tüm Ülkeler' || app.country === country;
+  
+  //   return matchName && matchStatus && matchCountry;
+  // });
 
   const handleRemoveFromList = (id: string) => {
     setApplications((prev) => prev.filter((app) => app.id !== id));
@@ -216,10 +258,19 @@ export default function AdminDashboard() {
   <IconUser size={20} /> Başvurular ({filteredApplications.length})
 </Title>
 
-{filteredApplications.map((app) => (
-  <ApplicationCard key={app.id} app={app} onDelete={handleRemoveFromList}
-/>
-))}
+{filteredApplications.map((app: any) => {
+  const list = groupedByCode.get(app.basvuru_grup_kodu) || [];
+  const relatedApps = list.filter(x => x.id !== app.id); // diğerleri
+  return (
+    <ApplicationCard
+      key={app.id}
+      app={app}
+      isFamily={relatedApps.length > 0}
+      relatedApps={relatedApps}   // <<< ekledik
+      onDelete={handleRemoveFromList}
+    />
+  );
+})}
     </Container>
     </div>
   );

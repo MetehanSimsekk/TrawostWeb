@@ -23,6 +23,8 @@ export default function ApplyForm({ value, onChange }: { value: string; onChange
   const [workStatus, setWorkStatus] = useState<WorkStatus[]>([])
   const [passportImage, setPassportImage] = useState<string[]>([]);
 
+  const [capturedPhotos, setCapturedPhotos] = useState<(string | null)[]>([]);
+
   const [passportFileName, setPassportFileName] = useState<string[]>([]);
   const [maritalStatuse, setMaritalStatuse] = useState<MaritalStatus[]>([]);
   const [schengenImages, setSchengenImages] = useState<string[][]>([]);
@@ -38,6 +40,8 @@ const [showTooltip, setShowTooltip] = useState(false);
 const [showScanner, setShowScanner] = useState(false);
 const [phone, setPhone] = useState<string[]>([]);
 
+
+const [maidenNames, setMaidenNames] = useState<string[]>([]);
 const [passportError, setPassportError]= useState<string[]>([]);
 const [genders, setGenders] = useState<Gender[]>([]);
 
@@ -77,6 +81,7 @@ interface FormErrors {
   address: string[];
   email: string[];
   phone: string[];
+  maidenName:string[]
 }
 
 const [errors, setErrors] = useState<FormErrors>({
@@ -88,6 +93,7 @@ const [errors, setErrors] = useState<FormErrors>({
   address: [],
   email: [],
   phone: [],
+  maidenName:[]
 });
   const [form, setForm] = useState({
     name: "",
@@ -129,7 +135,7 @@ const [errors, setErrors] = useState<FormErrors>({
     address: string;
     email: string;
     phone: string;
-  
+    maiden_surname:string
     passport_file_url: string | null;
     previous_schengen_url: any | null;   
     invitation_letter_url: any | null;   
@@ -151,7 +157,7 @@ const [errors, setErrors] = useState<FormErrors>({
     companyName?: string;
     companyAddress?: string;
     companyPhone?: string;
-    school_name?: string[];   // her index için ayrı okul adı
+    school_name?: string[];  
     school_address?: string[];
     school_phone?: string[];
   };
@@ -192,6 +198,32 @@ const [errors, setErrors] = useState<FormErrors>({
       return next;
     });
   };
+
+  const pickAt = <T,>(val: T | T[] | undefined, i: number, fallback: T): T => {
+    if (Array.isArray(val)) return (val[i] ?? fallback) as T;
+    return (val ?? fallback) as T;
+  };
+  
+
+
+  const handlePhotoCapture = (index: number) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+  
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const next = [...capturedPhotos];
+      next[index] = reader.result as string;
+      setCapturedPhotos(next);
+    };
+    reader.readAsDataURL(file);
+  };
+
+
+
+  
+
+
   const toggleHasInvitation = (index: number, checked: boolean) => {
     setHasInvitation(prev => {
       const next = [...prev];
@@ -323,6 +355,7 @@ const [errors, setErrors] = useState<FormErrors>({
       firstName: Array<string>(totalForms).fill(''),
       lastName: Array<string>(totalForms).fill(''),
       gender: Array<string>(totalForms).fill(''),
+      maidenName: Array<string>(totalForms).fill(''),
       maritalStatus: Array<string>(totalForms).fill(''),
       workStatus: Array<string>(totalForms).fill(''),
       address: Array<string>(totalForms).fill(''),
@@ -399,7 +432,7 @@ const [errors, setErrors] = useState<FormErrors>({
       setLoading(false);
       return;
     }
-  
+     
     
     if (!passportImage || (Array.isArray(passportImage) && passportImage.length === 0)) {
       
@@ -408,7 +441,8 @@ const [errors, setErrors] = useState<FormErrors>({
       return;
     }
   
-    if (!validateForm()) {
+    if (validateForm()) {
+     
       setIsSubmitting(false);
       setLoading(false);
       return;
@@ -449,12 +483,13 @@ const [errors, setErrors] = useState<FormErrors>({
         full_name: pickAt(firstName as any, i, '').trim(),
         surname: pickAt(lastName as any, i, '').trim(),
         gender: pickAt(genders as any, i, '') as Gender,
+        maiden_surname: pickAt(maidenNames as any, i, '').trim(),
         marital_status: pickAt(maritalStatuse as any, i, '') as MaritalStatus,
         work_status: ws,
         address: pickAt(address as any, i, ''),
         email: pickAt(email as any, i, ''),
         phone: pickAt(phone as any, i, ''),
-  
+         
      
         passport_file_url: Array.isArray(passportImage)
           ? (passportImage[i] ?? null)
@@ -468,7 +503,7 @@ const [errors, setErrors] = useState<FormErrors>({
           company_phone: (companyPhone || undefined),
         }),
         ...(ws === 'Öğrenci' && {
-          school_name: (schoolName || undefined),
+          school_name: (schoolName || undefined), 
           school_address: (schoolAddress || undefined),
           school_phone: (schoolPhone || undefined),
         }),
@@ -491,14 +526,14 @@ const [errors, setErrors] = useState<FormErrors>({
       setIsSubmitting(false);
     }
   };
-
+  
   return (
     
-    <div className="min-h-screen text-white font-sans px-4 py-8"
+    <div className="min-h-screen text-white font-sans px-0 sm:px-4 py-8"
     style={{
-      background: 'linear-gradient(to bottom, rgba(0,0,0,1), rgba(229,9,20,0.9))',
+      background: 'linear-gradient(to bottom, rgb(255, 255, 255), rgba(210, 210, 210, 0.9))',
     }}>
-      <div className="max-w-4xl mx-auto bg-white text-black p-8 rounded-xl shadow-lg">
+      <div className="max-w-4xl mx-auto bg-white text-black p-3 rounded-xl shadow-lg">
         <div className="relative flex items-center justify-center mb-6">
         <img
   src={logo}
@@ -512,8 +547,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
           </div>
         </div>
        
-      
-        <div className="mt-10 max-w-4xl mx-auto bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+        <div className="mt-10 max-w-4xl mx-auto bg-white p-4 rounded-xl border-2 border-gray-100">
   <div className="flex items-center gap-3 mb-6">
     <DocumentTextIcon className="w-8 h-8 text-gray-400" />
     <h2
@@ -576,49 +610,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
           </Transition>
         </Menu>
       </div>
-
-    
-      <div>
-      <label className="block mb-2 text-m font-semibold text-gray-600">
-          Kaç Kişi Başvuruyor? <span className="text-red-600">*</span>
-      </label>
-        <Menu as="div" className="relative inline-block w-full">
-  <MenuButton className="inline-flex w-full justify-between items-center rounded-lg bg-white px-4 py-3 text-base text-gray-800 border border-gray-300 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500">
-    {selectedPeople}
-    <ChevronDownIcon className="w-5 h-5 text-gray-500" aria-hidden="true" />
-  </MenuButton>
-
-  <Transition
-    as={Fragment}
-    enter="transition ease-out duration-100"
-    enterFrom="transform opacity-0 scale-95"
-    enterTo="transform opacity-100 scale-100"
-    leave="transition ease-in duration-75"
-    leaveFrom="transform opacity-100 scale-100"
-    leaveTo="transform opacity-0 scale-95"
-  >
-    <MenuItems className="absolute z-10 mt-2 w-full rounded-lg bg-white text-black shadow-lg ring-1 ring-black/10 focus:outline-none">
-      <div className="py-1">
-        {['1 Kişi', '2 Kişi','3 Kişi', '4 Kişi','5 Kişi', '6 Kişi',].map((option) => (
-          <MenuItem key={option}>
-            {({ active }) => (
-              <button
-                onClick={() => setSelectedPeople(option)}
-                className={`${
-                  active ? 'bg-red-100 text-red-800' : 'text-gray-900'
-                } block w-full text-left px-4 py-2 text-base font-medium`}
-              >
-                {option}
-              </button>
-            )}
-          </MenuItem>
-        ))}
-      </div>
-    </MenuItems>
-  </Transition>
-</Menu>
-      </div>
-      <div id="visa-type-wrap" className="mt-6">
+      <div id="visa-type-wrap" className="mt-0">
   <label className="block mb-2 text-m font-semibold text-gray-600">
     Vize Tipi <span className="text-red-600">*</span>
   </label>
@@ -670,56 +662,103 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
     <p className="mt-2 text-sm text-red-600">{visaError}</p>
   )}
 </div>
+    
+      <div>
+      <label className="block mb-2 text-m font-semibold text-gray-600">
+          Kaç Kişi Başvuruyor? <span className="text-red-600">*</span>
+      </label>
+        <Menu as="div" className="relative inline-block w-full">
+  <MenuButton className="inline-flex w-full justify-between items-center rounded-lg bg-white px-4 py-3 text-base text-gray-800 border border-gray-300 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500">
+    {selectedPeople}
+    <ChevronDownIcon className="w-5 h-5 text-gray-500" aria-hidden="true" />
+  </MenuButton>
+
+  <Transition
+    as={Fragment}
+    enter="transition ease-out duration-100"
+    enterFrom="transform opacity-0 scale-95"
+    enterTo="transform opacity-100 scale-100"
+    leave="transition ease-in duration-75"
+    leaveFrom="transform opacity-100 scale-100"
+    leaveTo="transform opacity-0 scale-95"
+  >
+    <MenuItems className="absolute z-10 mt-2 w-full rounded-lg bg-white text-black shadow-lg ring-1 ring-black/10 focus:outline-none">
+      <div className="py-1">
+        {['1 Kişi', '2 Kişi','3 Kişi', '4 Kişi','5 Kişi', '6 Kişi',].map((option) => (
+          <MenuItem key={option}>
+            {({ active }) => (
+              <button
+                onClick={() => setSelectedPeople(option)}
+                className={`${
+                  active ? 'bg-red-100 text-red-800' : 'text-gray-900'
+                } block w-full text-left px-4 py-2 text-base font-medium`}
+              >
+                {option}
+              </button>
+            )}
+          </MenuItem>
+        ))}
+      </div>
+    </MenuItems>
+  </Transition>
+</Menu>
+      </div>
+    
     </div>
     </div>
 
-     
+  
+
         {Array.from({ length: totalForms }).map((_, index) => (
-  <div key={index} className="mt-10 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+  <div key={index} className="mt-10 max-w-4xl mx-auto bg-white p-4 rounded-xl border-2 border-gray-100" >
    <h2 className="text-2xl font-bold bg-gradient-to-r from-[#E50914] to-black text-transparent bg-clip-text text-[#E50914] sm:truncate sm:text-3xl sm:tracking-tight mb-6 flex items-center gap-2">
 
    <PaperAirplaneIcon className="w-9 h-9 text-gray-400 rotate-45" />
   {totalForms > 1 ? `${index + 1}.` : ''} Başvuru 
 </h2>
 
-        <div className="mt-10 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-        <div className="flex items-center gap-3 mb-6">
+<div   className="mt-8 rounded-xl bg-white p-0 shadow-sm"
+  style={{ border: "none" }}
+>
+        <div className="flex items-center gap-3 mb-6" >
     <UserCircleIcon className="w-8 h-8 text-gray-400" />
     
     <h2 className="text-2xl font-bold bg-gradient-to-r from-[#E50914] to-black text-transparent bg-clip-text text-[#E50914] sm:truncate sm:text-2xl sm:tracking-tight"  style={{ backgroundSize: '500% 100%', backgroundPosition: 'left center' }}>
     Başvuru Sahibi
     </h2>
   </div>
-  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-6" >
 
   <div className="sm:col-span-1">
   <label htmlFor={`first-name-${index}`} className="block text-m font-semibold text-gray-600">
     Ad <span className="text-red-500">*</span>
   </label>
   <div className="mt-2">
-    <input
-      id={`first-name-${index}`}
-      value={firstName[index] ?? ''}
-      onChange={(e) => {
-        const newFirstNames = [...firstName];
-        newFirstNames[index] = e.target.value;
-        setFirstName(newFirstNames);
+    
+  <input
+  id={`first-name-${index}`}
+  value={firstName[index] ?? ''}
+  onChange={(e) => {
+    const newFirstNames = [...firstName];
+    newFirstNames[index] = e.target.value;
+    setFirstName(newFirstNames);
 
-        if (errors.firstName[index]) {
-          setErrors(prev => {
-            const next = { ...prev };
-            next.firstName = [...next.firstName];
-            next.firstName[index] = '';
-            return next;
-          });
-        }
-      }}
-      placeholder="Ad giriniz"
-      className={`block w-full rounded-lg px-4 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset
-        ${errors.firstName?.[index]
-          ? 'border-red-500 ring-red-500 bg-red-50 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500 focus:ring-offset-0'
-          : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500 focus:ring-offset-0'}`}
-    />
+    if (errors.firstName[index]) {
+      setErrors(prev => {
+        const next = { ...prev };
+        next.firstName = [...next.firstName];
+        next.firstName[index] = '';
+        return next;
+      });
+    }
+  }}
+  placeholder="Ad giriniz"
+  className={`block w-full rounded-lg px-4 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset
+    ${!!firstName[index]?.trim()
+      ? 'border-red-500 ring-red-500 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500 focus:ring-offset-0'
+      : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:border-gray-300 focus:ring-2 focus:ring-gray-300 focus:ring-offset-0'
+    }`}
+/>
     {errors.firstName[index] && (
       <p className="mt-1 text-sm text-red-600">{errors.firstName[index]}</p>
     )}
@@ -771,21 +810,21 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
   <p className="mt-1 text-sm/6 text-gray-600">Lütfen cinsiyetinizi seçiniz.</p>
 
   <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3 p-2 rounded-lg">
-    {['Erkek', 'Kadın'].map((genderOption:any) => (
+    {['Erkek', 'Kadın'].map((genderOption: any) => (
       <div key={genderOption} className="flex items-center gap-x-2">
-       <input
-  id={`gender-${index}-${genderOption}`}
-  type="radio"
-  name={`gender-${index}`}           
-  value={genderOption}
-  checked={genders[index] === genderOption}
-  onChange={() =>
-    setGenders(prev => {
-      const next = [...prev];
-      next[index] = genderOption as Gender;
-      return next;
-    })
-  }
+        <input
+          id={`gender-${index}-${genderOption}`}
+          type="radio"
+          name={`gender-${index}`}
+          value={genderOption}
+          checked={genders[index] === genderOption}
+          onChange={() =>
+            setGenders((prev) => {
+              const next = [...prev];
+              next[index] = genderOption as Gender;
+              return next;
+            })
+          }
           className="relative size-4 appearance-none rounded-full border border-gray-300 bg-white
             checked:border-red-600 checked:bg-white
             before:absolute before:inset-1 before:rounded-full
@@ -794,7 +833,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
             focus:outline-none focus:ring-2 focus:ring-red-600"
         />
         <label
-          htmlFor={`gender-${genderOption}`}
+          htmlFor={`gender-${index}-${genderOption}`}
           className="block text-sm/6 font-medium text-gray-900"
         >
           {genderOption}
@@ -803,14 +842,19 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
     ))}
   </div>
 
-  {errors.gender && <p className="mt-1 text-sm text-red-600">{errors.gender}</p>}
+  {errors.gender && (
+    <p className="mt-1 text-sm text-red-600">{errors.gender}</p>
+  )}
 </fieldset>
+
+
+
 <fieldset className="mt-6">
   <legend className="text-m font-semibold text-gray-600 mb-2">
     Medeni Durum <span className="text-red-500">*</span>
   </legend>
-
-  <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
+ 
+  <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3 p-2 rounded-lg">
     {(['Bekar','Evli','Boşanmış','Dul'] as MaritalStatus[]).map((status) => (
       <label key={status} className="inline-flex items-center gap-2 text-sm text-gray-700">
         <input
@@ -850,7 +894,33 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
     <p className="mt-1 text-sm text-red-600">{errors.maritalStatus}</p>
   )}
 </fieldset>
-
+{genders[index] === "Kadın" && maritalStatuse[index]=== "Evli"  &&(
+  <fieldset className="mt-4 w-full md:w-1/2">
+    <label className="block mb-2 text-m font-semibold text-gray-600">
+      Kızlık Soyadı <span className="text-red-500">*</span>
+    </label>
+    <input
+      type="text"
+      value={maidenNames[index] || ""}
+      onChange={(e) => {
+        setMaidenNames((prev) => {
+          const next = [...prev];
+          next[index] = e.target.value;
+          return next;
+        });
+      }}
+      placeholder="Kızlık soyadınızı girin"
+      className={`block w-full rounded-lg px-4 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset
+        ${!!maidenNames[index]?.trim()
+          ? 'border-red-500 ring-red-500 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500 focus:ring-offset-0'
+          : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:border-gray-300 focus:ring-2 focus:ring-gray-300 focus:ring-offset-0'
+        }`}
+    />
+    {errors.maidenName && (
+      <p className="mt-1 text-sm text-red-600">{errors.maidenName}</p>
+    )}
+  </fieldset>
+)}
 <fieldset className="mt-6">
   <legend className="text-m font-semibold text-gray-600">
     Çalışma Durumu <span className="text-red-500">*</span>
@@ -859,7 +929,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
     Lütfen mevcut çalışma durumunuzu seçiniz.
   </p>
 
-  <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
+  <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3 p-2 rounded-lg">
     {(['Çalışıyor', 'Emekli', 'Öğrenci', 'Çalışmıyor'] as WorkStatus[]).map((status) => (
       <div key={status} className="flex items-center gap-x-3">
         <input
@@ -913,9 +983,22 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
     <h3 className="text-white font-semibold mb-4">İş Bilgileri</h3>
 
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <Menu as="div" className="relative inline-block w-full">
+    <input
+  type="text"
+  value={selectedJobTitle[index] || ''}
+  onChange={(e) => {
+    setSelectedJobTitle(prev => {
+      const next = [...prev];
+      next[index] = e.target.value;
+      return next;
+    });
+  }}
+  placeholder="Lütfen çalıştığınız pozisyonu girin"
+  className="h-12 w-full rounded-lg bg-white px-4 text-base text-gray-800 border border-red-500 shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+/>
+      {/* <Menu as="div" className="relative inline-block w-full">
         <MenuButton className="h-12 inline-flex w-full justify-between items-center rounded-lg bg-white px-4 text-base text-gray-800 border border-red-500 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500">
-          {selectedJobTitle[index] || 'Meslek Unvanınızı Seçin'}
+        {selectedJobTitle[index] || 'Lütfen çalıştığınız pozisyonu seçin'}
           <ChevronDownIcon className="w-5 h-5 text-gray-500" aria-hidden="true" />
         </MenuButton>
 
@@ -951,7 +1034,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
             </div>
           </MenuItems>
         </Transition>
-      </Menu>
+      </Menu> */}
 <input
   id={`company-name-${index}`}
   value={companyName[index] || ""}
@@ -1044,9 +1127,8 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
 )}
 </div>
 
-        <div className="mt-10 rounded-xl border border-gray-300 p-6 shadow-sm">
-
-       <div className="flex items-center gap-1 mb-6">
+<div className="mt-8 rounded-xl  bg-white p-0 shadow-sm">
+<div className="flex items-center gap-3 mb-6">
   <HomeIcon className="w-8 h-8 text-gray-400" />
   <h2 className="text-2xl font-bold bg-gradient-to-r from-[#E50914] to-black text-transparent bg-clip-text text-[#E50914] sm:truncate sm:text-2xl sm:tracking-tight"  style={{ backgroundSize: '500% 100%', backgroundPosition: 'left center' }}>
     İletişim Bilgileri
@@ -1075,11 +1157,11 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
           });
         }
       }}
-      className={`block w-full rounded-lg px-4 py-3 border shadow-sm ring-1 ring-inset
-        ${errors.address?.[index]
-          ? 'border-red-500 ring-red-500 bg-red-50'
-          : 'border-gray-300 ring-gray-300 bg-white hover:bg-gray-50'}
-        focus:outline-none focus:ring-2 focus:ring-red-500`}
+      className={`block w-full rounded-lg px-4 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset
+        ${!!address[index]?.trim()
+          ? 'border-red-500 ring-red-500 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500 focus:ring-offset-0'
+          : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:border-gray-300 focus:ring-2 focus:ring-gray-300 focus:ring-offset-0'
+        }`}
     />
     {errors.address?.[index] && (
       <p className="mt-1 text-sm text-red-600">{errors.address[index]}</p>
@@ -1110,11 +1192,11 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
             }
           }}
           placeholder="ornek@eposta.com"
-          className={`block w-full rounded-lg px-4 py-3 border shadow-sm ring-1 ring-inset
-            ${errors.email?.[index]
-              ? 'border-red-500 ring-red-500 bg-red-50'
-              : 'border-gray-300 ring-gray-300 bg-white hover:bg-gray-50'}
-            focus:outline-none focus:ring-2 focus:ring-red-500`}
+          className={`block w-full rounded-lg px-4 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset
+            ${!!email[index]?.trim()
+              ? 'border-red-500 ring-red-500 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500 focus:ring-offset-0'
+              : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:border-gray-300 focus:ring-2 focus:ring-gray-300 focus:ring-offset-0'
+            }`}
         />
         {errors.email?.[index] && (
           <p className="mt-1 text-sm text-red-600">{errors.email[index]}</p>
@@ -1142,11 +1224,11 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
             }
           }}
           placeholder="(+90) 5xx xxx xx xx"
-          className={`block w-full rounded-lg px-4 py-3 border shadow-sm ring-1 ring-inset
-            ${errors.phone?.[index]
-              ? 'border-red-500 ring-red-500 bg-red-50'
-              : 'border-gray-300 ring-gray-300 bg-white hover:bg-gray-50'}
-            focus:outline-none focus:ring-2 focus:ring-red-500`}
+          className={`block w-full rounded-lg px-4 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset
+            ${!!phone[index]?.trim()
+              ? 'border-red-500 ring-red-500 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500 focus:ring-offset-0'
+              : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:border-gray-300 focus:ring-2 focus:ring-gray-300 focus:ring-offset-0'
+            }`}
         />
         {errors.phone?.[index] && (
           <p className="mt-1 text-sm text-red-600">{errors.phone[index]}</p>
@@ -1246,59 +1328,88 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
   </div>
 )}
 
-  {/* Pasaport Ön Yüzü */}
 
 
-  <div className="mb-6">
-  <label className="block text-sm font-semibold text-gray-900 mb-2">
-    Pasaport Görseli <span className="text-red-500">*</span>
-  </label>
 
-  <div className="relative">
-    <label
-      htmlFor={`passport-${index}`}
-      className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition block
-        ${passportLoading[index] ? 'pointer-events-none opacity-60' : ''}
-        ${passportError ? 'border-red-500 bg-red-50 hover:bg-red-100' : 'border-blue-400 hover:bg-blue-50'}`}
-    >
-      <svg className={`mx-auto mb-2 h-6 w-6 ${passportError ? 'text-red-500' : 'text-blue-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-          d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M12 12v9m0 0l-3-3m3 3l3-3M12 3v9" />
-      </svg>
+  <div className="mb-6 flex flex-col md:flex-row gap-4">
 
-      <p className={`text-sm ${passportError ? 'text-red-600' : 'text-gray-600'}`}>
-        Dosya seçmek için tıklayın
-      </p>
-      <p className={`text-xs mt-1 ${passportError ? 'text-red-500' : 'text-gray-400'}`}>JPG, PNG veya PDF</p>
-
-      <input
-        type="file"
-        id={`passport-${index}`}
-        name={`passport-${index}`}
-        className="hidden"
-        accept=".jpg,.jpeg,.png,.pdf"
-        onChange={handleFileUpload(index)}
-        disabled={passportLoading[index]}
-      />
+  <div className="w-full md:w-1/2">
+    <label className="block text-sm font-semibold text-gray-900 mb-2">
+      Pasaport Görseli <span className="text-red-500">*</span>
     </label>
 
- 
-    {passportLoading[index] && (
-      <div className="absolute inset-0 rounded-lg bg-white/60 backdrop-blur-[2px] grid place-items-center">
-     
-        <Loader size="sm" color="red" />
-        
-      </div>
+    <div className="relative">
+      <label
+        htmlFor={`passport-${index}`}
+        className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition block
+          ${passportLoading[index] ? 'pointer-events-none opacity-60' : ''}
+          ${passportError ? 'border-red-500 bg-red-50 hover:bg-red-100' : 'border-blue-400 hover:bg-blue-50'}`}
+      >
+        <svg className={`mx-auto mb-2 h-6 w-6 ${passportError ? 'text-red-500' : 'text-blue-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+            d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M12 12v9m0 0l-3-3m3 3l3-3M12 3v9" />
+        </svg>
+
+        <p className={`text-sm ${passportError ? 'text-red-600' : 'text-gray-600'}`}>
+          Dosya seçmek için tıklayın
+        </p>
+        <p className={`text-xs mt-1 ${passportError ? 'text-red-500' : 'text-gray-400'}`}>JPG, PNG veya PDF</p>
+
+        <input
+          type="file"
+          id={`passport-${index}`}
+          name={`passport-${index}`}
+          className="hidden"
+          accept=".jpg,.jpeg,.png,.pdf"
+          onChange={handleFileUpload(index)}
+          disabled={passportLoading[index]}
+        />
+      </label>
+
+      {passportLoading[index] && (
+        <div className="absolute inset-0 rounded-lg bg-white/60 backdrop-blur-[2px] grid place-items-center">
+          <Loader size="sm" color="red" />
+        </div>
+      )}
+    </div>
+
+    {passportFileName[index] && !passportLoading[index] && (
+      <p className="text-sm text-gray-700 mt-2">
+        Yüklenen Dosya: {passportFileName[index]}
+      </p>
     )}
+
+    {passportError && <p className="mt-2 text-sm text-red-600">{passportError}</p>}
   </div>
 
-  {passportFileName[index] && !passportLoading[index] && (
-    <p className="text-sm text-gray-700 mt-2">
-      Yüklenen Dosya: {passportFileName[index]}
-    </p>
-  )}
 
-  {passportError && <p className="mt-2 text-sm text-red-600">{passportError}</p>}
+  <div className="w-full md:w-1/2">
+    <label className="block text-sm font-semibold text-gray-900 mb-2">
+      Fotoğraf Yükle <span className="text-red-500">*</span>
+    </label>
+
+    <input
+      type="file"
+      accept="image/*"
+      capture="environment"
+      className="hidden"
+      id={`photo-${index}`}
+      onChange={handlePhotoCapture(index)}
+    />
+
+    <label
+      htmlFor={`photo-${index}`}
+      className="border-2 border-dashed border-blue-400 rounded-lg p-6 text-center cursor-pointer hover:bg-blue-50 transition block"
+    >
+      <svg className="mx-auto mb-2 h-6 w-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+          d="M3 7h2l1-2h12l1 2h2v13H3V7z" />
+        <circle cx="12" cy="13" r="3" />
+      </svg>
+      <p className="text-sm text-gray-600">Fotoğraf çekmek için tıklayın</p>
+      <p className="text-xs mt-1 text-gray-400">Kamera ile anında çekim</p>
+    </label>
+  </div>
 </div>
     
       {hasSchengen[index] && (
