@@ -17,12 +17,19 @@ const [showInvitationModal, setShowInvitationModal] = useState(false);
 const [invitationUrls, setInvitationUrls] = useState<string[]>([]);
 
 function normalizeToUrls(raw: unknown): string[] {
+  if (!raw) return [];
   if (Array.isArray(raw)) return raw.filter(Boolean) as string[];
+
   if (typeof raw === 'string') {
     const s = raw.trim();
     if (!s) return [];
     if (s.startsWith('[')) {
-      try { return (JSON.parse(s) as string[]).filter(Boolean); } catch { return []; }
+      try {
+        const parsed = JSON.parse(s);
+        return Array.isArray(parsed) ? (parsed.filter(Boolean) as string[]) : [];
+      } catch {
+        return [s];
+      }
     }
     return [s];
   }
@@ -429,7 +436,11 @@ function normalizeToUrls(raw: unknown): string[] {
       }
   
        urls = normalizeToUrls(props.app.previous_schengen_url);
-      setSchengenUrl(urls[0]); 
+       if (urls.length > 0) {
+        setSchengenUrl(urls[0]); // tüm listeyi state'e at
+      } else {
+        setSchengenUrl([]);   // boş liste
+      }
       setSchengenIndex(0);
       setShowSchengenModal(true);
     }}

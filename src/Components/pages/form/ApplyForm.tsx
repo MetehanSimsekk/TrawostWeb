@@ -336,13 +336,14 @@ const [errors, setErrors] = useState<FormErrors>({
     setShowTooltip(!isValid);
   };
   const validateForm = () => {
+    // basit yardımcılar
     const get = (arr: string[] | undefined, i: number) =>
       Array.isArray(arr) && typeof arr[i] === 'string' ? arr[i] : '';
-
+  
     const at = <T,>(arr: T[] | undefined, i: number, fallback: any = ''): T | any =>
       Array.isArray(arr) && i in arr ? arr[i] : fallback;
-
-    const nextErrors:any = {
+  
+    const nextErrors: any = {
       firstName: Array<string>(totalForms).fill(''),
       lastName: Array<string>(totalForms).fill(''),
       gender: Array<string>(totalForms).fill(''),
@@ -352,41 +353,43 @@ const [errors, setErrors] = useState<FormErrors>({
       address: Array<string>(totalForms).fill(''),
       email: Array<string>(totalForms).fill(''),
       phone: Array<string>(totalForms).fill(''),
-      passport: Array(totalForms).fill(''),
-      schengen: Array(totalForms).fill(''),
+      passport: Array<string>(totalForms).fill(''),
+      schengen: Array<string>(totalForms).fill(''),
     };
-    
+  
     let isValid = true;
-
-    
-   
-    
+  
     for (let i = 0; i < totalForms; i++) {
+      // Ad / Soyad
       nextErrors.firstName[i] = get(firstName, i).trim() ? '' : 'Ad zorunludur.';
       if (nextErrors.firstName[i]) isValid = false;
   
       nextErrors.lastName[i] = get(lastName, i).trim() ? '' : 'Soyad zorunludur.';
       if (nextErrors.lastName[i]) isValid = false;
   
-      nextErrors.maidenName[i] = get(maidenNames, i).trim() ? '' : 'Kızlık soyadı zorunludur';
-      if (nextErrors.maidenName[i]) isValid = false;
-
+      // Cinsiyet / Medeni / Çalışma
       nextErrors.gender[i] = get(genders as unknown as string[], i) ? '' : 'Cinsiyet seçimi zorunludur.';
       if (nextErrors.gender[i]) isValid = false;
   
-      nextErrors.maritalStatus[i] = get(maritalStatuse as unknown as string[], i)
-        ? ''
-        : 'Medeni durum seçimi zorunludur.';
+      nextErrors.maritalStatus[i] = get(maritalStatuse as unknown as string[], i) ? '' : 'Medeni durum seçimi zorunludur.';
       if (nextErrors.maritalStatus[i]) isValid = false;
   
-      nextErrors.workStatus[i] = get(workStatus as unknown as string[], i)
-        ? ''
-        : 'Çalışma durumu seçimi zorunludur.';
+      nextErrors.workStatus[i] = get(workStatus as unknown as string[], i) ? '' : 'Çalışma durumu seçimi zorunludur.';
       if (nextErrors.workStatus[i]) isValid = false;
   
+      // Kızlık soyadı (SADECE Kadın + Evli ise zorunlu)
+      const isFemaleMarried =
+        (genders?.[i] === 'Kadın') && (maritalStatuse?.[i] === 'Evli');
+      nextErrors.maidenName[i] = isFemaleMarried
+        ? (get(maidenNames, i).trim() ? '' : 'Kızlık soyadı zorunludur.')
+        : '';
+      if (nextErrors.maidenName[i]) isValid = false;
+  
+      // Adres
       nextErrors.address[i] = get(address, i).trim() ? '' : 'Adres zorunludur.';
       if (nextErrors.address[i]) isValid = false;
   
+      // E-posta
       const em = get(email, i).trim();
       if (!em) {
         nextErrors.email[i] = 'E-posta zorunludur.';
@@ -397,35 +400,36 @@ const [errors, setErrors] = useState<FormErrors>({
       } else {
         nextErrors.email[i] = '';
       }
+  
+      // Telefon (Cleave TR -> genelde 12 rakam: 90 + 10 hane)
       const ph = get(phone, i);
-    const digits = ph.replace(/\D/g, '');
-    if (!ph.trim()) {
-      nextErrors.phone[i] = 'Telefon numarası zorunludur.';
-      isValid = false;
-    } else if (digits.length !== 12) {
-      nextErrors.phone[i] = 'Geçerli bir telefon numarası giriniz.';
-      isValid = false;
-    } else {
-      nextErrors.phone[i] = '';
+      const digits = ph.replace(/\D/g, '');
+      if (!ph.trim()) {
+        nextErrors.phone[i] = 'Telefon numarası zorunludur.';
+        isValid = false;
+      } else if (digits.length !== 12) {
+        nextErrors.phone[i] = 'Geçerli bir telefon numarası giriniz.';
+        isValid = false;
+      } else {
+        nextErrors.phone[i] = '';
+      }
+  
+      // Schengen (işaretliyse en az 1 dosya)
+      const wantsSchengen = Boolean(at(hasSchengen as boolean[] | undefined, i, false));
+      const imgs = at(schengenImages as string[][] | undefined, i, []) as string[];
+      nextErrors.schengen[i] = wantsSchengen
+        ? (imgs.length > 0 ? '' : 'Schengen vizesi dosyası zorunludur.')
+        : '';
+      if (nextErrors.schengen[i]) isValid = false;
+  
+      // Pasaport — string[] veya string olabilir
+      const hasPassport = Array.isArray(passportImage)
+        ? Boolean(passportImage[i])
+        : Boolean(passportImage);
+      nextErrors.passport[i] = hasPassport ? '' : 'Pasaport görseli zorunludur.';
+      if (nextErrors.passport[i]) isValid = false;
     }
-
-    const wantsSchengen = Boolean(at(hasSchengen as boolean[] | undefined, i, false));
-    const imgs = at(schengenImages as string[][] | undefined, i, []) as string[];
   
-    nextErrors.schengen[i] = wantsSchengen
-      ? (imgs.length > 0 ? '' : 'Schengen vizesi dosyası zorunludur.')
-      : '';
-  
-    if (nextErrors.schengen[i]) isValid = false;
-
-    const p = get(passportImage, i); 
-    const hasPassport =
-      Array.isArray(p) ? p.filter(Boolean).length > 0 : Boolean(p);
-  
-    nextErrors.passport[i] = hasPassport ? '' : 'Pasaport görseli zorunludur.';
-    if (nextErrors.passport[i]) isValid = false;
-
-  }
     setErrors(nextErrors);
     return isValid;
   };
