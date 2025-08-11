@@ -231,55 +231,38 @@ const [errors, setErrors] = useState<FormErrors>({
     const file = e.target.files?.[0];
     if (!file) return;
   
-    setPassportLoading(prev => {
-      const next = [...prev];
-      next[i] = true;
-      return next;
-    });
+    setPassportLoading(prev => { const next=[...prev]; next[i]=true; return next; });
   
     try {
       const ext = file.name.split('.').pop();
       const fileName = `${Date.now()}.${ext}`;
       const filePath = `passports/${fileName}`;
   
-      const { error: upErr } = await supabase.storage
-        .from('passports')
-        .upload(filePath, file);
-  
+      const { error: upErr } = await supabase.storage.from('passports').upload(filePath, file);
       if (upErr) throw upErr;
   
       const { data: pub } = supabase.storage.from('passports').getPublicUrl(filePath);
       const url = pub?.publicUrl;
       if (!url) throw new Error('Public URL alınamadı');
   
-      setPassportFileName(prev => {
-        const next = [...prev];
-        next[i] = file.name;
-        return next;
-      });
-  
-      setPassportImage(prev => {
-        const next = Array.isArray(prev) ? [...prev] : [];
-        next[i] = url;
-        return next;
-      });
-
+      setPassportFileName(prev => { const n=[...prev]; n[i]=file.name; return n; });
+      setPassportImage(prev => { const n=Array.isArray(prev)?[...prev]:[]; n[i]=url; return n; });
       setErrors(prev => {
-        const next = { ...prev };
-        next.passport = [...(next.passport || [])];
+        const next = { ...prev, passport: [...(prev.passport || [])] };
         next.passport[i] = '';
         return next;
       });
-   
-    } catch (err: any) {
+    } catch (err:any) {
       console.error(err);
-      alert('❌ Dosya yüklenemedi: ' + (err?.message || 'Bilinmeyen hata'));
-    } finally {
-      setPassportLoading(prev => {
-        const next = [...prev];
-        next[i] = false;
+      setErrors(prev => {
+        const next = { ...prev, passport: [...(prev.passport || [])] };
+        next.passport[i] = err?.message || 'Dosya yüklenemedi';
         return next;
       });
+    } finally {
+      setPassportLoading(prev => { const n=[...prev]; n[i]=false; return n; });
+   
+      e.target.value = '';
     }
   };
   
@@ -1410,32 +1393,26 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
     </label>
 
     <div className="relative">
-      <label
-        htmlFor={`passport-${index}`}
-        className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition block
-          ${passportLoading[index] ? 'pointer-events-none opacity-60' : ''}
-          ${passportError ? 'border-red-500 bg-red-50 hover:bg-red-100' : 'border-blue-400 hover:bg-blue-50'}`}
-      >
-        <svg className={`mx-auto mb-2 h-6 w-6 ${passportError ? 'text-red-500' : 'text-blue-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-            d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M12 12v9m0 0l-3-3m3 3l3-3M12 3v9" />
-        </svg>
-
-        <p className={`text-sm ${passportError ? 'text-red-600' : 'text-gray-600'}`}>
-          Dosya seçmek için tıklayın
-        </p>
-        <p className={`text-xs mt-1 ${passportError ? 'text-red-500' : 'text-gray-400'}`}>JPG, PNG veya PDF</p>
-
-        <input
-          type="file"
-          id={`passport-${index}`}
-          name={`passport-${index}`}
-          className="hidden"
-          accept=".jpg,.jpeg,.png,.pdf"
-          onChange={handleFileUpload(index)}
-          disabled={passportLoading[index]}
-        />
-      </label>
+    <label
+    htmlFor={`passport-${index}`}
+    className={`rounded-lg p-6 text-center cursor-pointer transition block border-2 border-dashed
+      ${passportLoading[index] ? 'pointer-events-none opacity-60' : 'border-blue-400 hover:bg-blue-50'}`}
+  >
+    <svg className="mx-auto mb-2 h-6 w-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+        d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M12 12v9m0 0l-3-3m3 3l3-3M12 3v9" />
+    </svg>
+    <p className="text-sm text-gray-600">Dosya seç (JPG/PNG/PDF)</p>
+    <input
+      type="file"
+      id={`passport-${index}`}
+      name={`passport-${index}`}
+      className="hidden"
+      accept=".jpg,.jpeg,.png,.pdf"
+      onChange={handleFileUpload(index)}
+      disabled={passportLoading[index]}
+    />
+  </label>
 
       {passportLoading[index] && (
         <div className="absolute inset-0 rounded-lg bg-white/60 backdrop-blur-[2px] grid place-items-center">
@@ -1457,32 +1434,39 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
 
 
   <div className="w-full md:w-1/2">
-    <label className="block text-sm font-semibold text-gray-900 mb-2">
-      Fotoğraf Yükle <span className="text-red-500">*</span>
+  <label className="block text-sm font-semibold text-gray-900 mb-2">
+    <span className="text-white">*</span>
     </label>
-
+  <label
+    htmlFor={`passportCam-${index}`}
+    className={`rounded-lg p-6 text-center cursor-pointer transition block border-2 border-dashed
+      ${passportLoading[index] ? 'pointer-events-none opacity-60' : 'border-green-400 hover:bg-green-50'}`}
+  >
+    <svg className="mx-auto mb-2 h-6 w-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+        d="M3 7h2l1-2h12l1 2h2v13H3V7z" />
+      <circle cx="12" cy="13" r="3" />
+    </svg>
+    <p className="text-sm text-gray-600">Kameradan çek </p>
     <input
       type="file"
+      id={`passportCam-${index}`}
+      name={`passportCam-${index}`}
+      className="hidden"
       accept="image/*"
       capture="environment"
-      className="hidden"
-      id={`photo-${index}`}
-      onChange={handlePhotoCapture(index)}
+      onChange={handleFileUpload(index)}
+      disabled={passportLoading[index]}
     />
+  </label>
+  
+  {passportLoading[index] && (
+    <div className="absolute inset-0 rounded-lg bg-white/60 backdrop-blur-[2px] grid place-items-center">
+      <Loader size="sm" color="red" />
+    </div>
+  )}
+</div>
 
-    <label
-      htmlFor={`photo-${index}`}
-      className="border-2 border-dashed border-blue-400 rounded-lg p-6 text-center cursor-pointer hover:bg-blue-50 transition block"
-    >
-      <svg className="mx-auto mb-2 h-6 w-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-          d="M3 7h2l1-2h12l1 2h2v13H3V7z" />
-        <circle cx="12" cy="13" r="3" />
-      </svg>
-      <p className="text-sm text-gray-600">Fotoğraf çekmek için tıklayın</p>
-      <p className="text-xs mt-1 text-gray-400">Kamera ile anında çekim</p>
-    </label>
-  </div>
 </div>
     
       {hasSchengen[index] && (
