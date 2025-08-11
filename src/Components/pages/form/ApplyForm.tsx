@@ -1402,7 +1402,8 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
         d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M12 12v9m0 0l-3-3m3 3l3-3M12 3v9" />
     </svg>
-    <p className="text-sm text-gray-600">Dosya seç (JPG/PNG/PDF)</p>
+    <p className="text-sm text-gray-600">Dosya seçmek için tıklayın</p>
+    <p className="text-xs text-gray-400 mt-1">JPG, PNG veya PDF • 10MB'a kadar</p>
     <input
       type="file"
       id={`passport-${index}`}
@@ -1448,6 +1449,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
       <circle cx="12" cy="13" r="3" />
     </svg>
     <p className="text-sm text-gray-600">Kameradan çek </p>
+    <p className="text-xs text-gray-400 mt-1">JPG, PNG • 10MB'a kadar</p>
     <input
       type="file"
       id={`passportCam-${index}`}
