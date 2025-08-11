@@ -135,7 +135,7 @@ const [errors, setErrors] = useState<FormErrors>({
     address: string;
     email: string;
     phone: string;
-  
+    maiden_surname:string
     passport_file_url: string | null;
     previous_schengen_url: any | null;   
     invitation_letter_url: any | null;   
@@ -199,6 +199,12 @@ const [errors, setErrors] = useState<FormErrors>({
     });
   };
 
+  const pickAt = <T,>(val: T | T[] | undefined, i: number, fallback: T): T => {
+    if (Array.isArray(val)) return (val[i] ?? fallback) as T;
+    return (val ?? fallback) as T;
+  };
+  
+
 
   const handlePhotoCapture = (index: number) => (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -212,6 +218,11 @@ const [errors, setErrors] = useState<FormErrors>({
     };
     reader.readAsDataURL(file);
   };
+
+
+
+  
+
 
   const toggleHasInvitation = (index: number, checked: boolean) => {
     setHasInvitation(prev => {
@@ -344,6 +355,7 @@ const [errors, setErrors] = useState<FormErrors>({
       firstName: Array<string>(totalForms).fill(''),
       lastName: Array<string>(totalForms).fill(''),
       gender: Array<string>(totalForms).fill(''),
+      maidenName: Array<string>(totalForms).fill(''),
       maritalStatus: Array<string>(totalForms).fill(''),
       workStatus: Array<string>(totalForms).fill(''),
       address: Array<string>(totalForms).fill(''),
@@ -420,7 +432,7 @@ const [errors, setErrors] = useState<FormErrors>({
       setLoading(false);
       return;
     }
-  
+     
     
     if (!passportImage || (Array.isArray(passportImage) && passportImage.length === 0)) {
       
@@ -429,7 +441,8 @@ const [errors, setErrors] = useState<FormErrors>({
       return;
     }
   
-    if (!validateForm()) {
+    if (validateForm()) {
+     
       setIsSubmitting(false);
       setLoading(false);
       return;
@@ -470,12 +483,13 @@ const [errors, setErrors] = useState<FormErrors>({
         full_name: pickAt(firstName as any, i, '').trim(),
         surname: pickAt(lastName as any, i, '').trim(),
         gender: pickAt(genders as any, i, '') as Gender,
+        maiden_surname: pickAt(maidenNames as any, i, '').trim(),
         marital_status: pickAt(maritalStatuse as any, i, '') as MaritalStatus,
         work_status: ws,
         address: pickAt(address as any, i, ''),
         email: pickAt(email as any, i, ''),
         phone: pickAt(phone as any, i, ''),
-  
+         
      
         passport_file_url: Array.isArray(passportImage)
           ? (passportImage[i] ?? null)
@@ -489,7 +503,7 @@ const [errors, setErrors] = useState<FormErrors>({
           company_phone: (companyPhone || undefined),
         }),
         ...(ws === 'Öğrenci' && {
-          school_name: (schoolName || undefined),
+          school_name: (schoolName || undefined), 
           school_address: (schoolAddress || undefined),
           school_phone: (schoolPhone || undefined),
         }),
@@ -512,7 +526,7 @@ const [errors, setErrors] = useState<FormErrors>({
       setIsSubmitting(false);
     }
   };
-
+  
   return (
     
     <div className="min-h-screen text-white font-sans px-0 sm:px-4 py-8"
@@ -720,29 +734,31 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
     Ad <span className="text-red-500">*</span>
   </label>
   <div className="mt-2">
-    <input
-      id={`first-name-${index}`}
-      value={firstName[index] ?? ''}
-      onChange={(e) => {
-        const newFirstNames = [...firstName];
-        newFirstNames[index] = e.target.value;
-        setFirstName(newFirstNames);
+    
+  <input
+  id={`first-name-${index}`}
+  value={firstName[index] ?? ''}
+  onChange={(e) => {
+    const newFirstNames = [...firstName];
+    newFirstNames[index] = e.target.value;
+    setFirstName(newFirstNames);
 
-        if (errors.firstName[index]) {
-          setErrors(prev => {
-            const next = { ...prev };
-            next.firstName = [...next.firstName];
-            next.firstName[index] = '';
-            return next;
-          });
-        }
-      }}
-      placeholder="Ad giriniz"
-      className={`block w-full rounded-lg px-4 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset
-        ${errors.firstName?.[index]
-          ? 'border-red-500 ring-red-500 bg-red-50 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500 focus:ring-offset-0'
-          : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500 focus:ring-offset-0'}`}
-    />
+    if (errors.firstName[index]) {
+      setErrors(prev => {
+        const next = { ...prev };
+        next.firstName = [...next.firstName];
+        next.firstName[index] = '';
+        return next;
+      });
+    }
+  }}
+  placeholder="Ad giriniz"
+  className={`block w-full rounded-lg px-4 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset
+    ${!!firstName[index]?.trim()
+      ? 'border-red-500 ring-red-500 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500 focus:ring-offset-0'
+      : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:border-gray-300 focus:ring-2 focus:ring-gray-300 focus:ring-offset-0'
+    }`}
+/>
     {errors.firstName[index] && (
       <p className="mt-1 text-sm text-red-600">{errors.firstName[index]}</p>
     )}
@@ -832,32 +848,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
 </fieldset>
 
 
-{genders[index] === "Kadın" && (
-  <fieldset className="mt-4 w-full md:w-1/2">
-    <label className="block mb-2 text-m font-semibold text-gray-600">
-      Kızlık Soyadı <span className="text-red-500">*</span>
-    </label>
-    <input
-      type="text"
-      value={maidenNames[index] || ""}
-      onChange={(e) => {
-        setMaidenNames((prev) => {
-          const next = [...prev];
-          next[index] = e.target.value;
-          return next;
-        });
-      }}
-      placeholder="Kızlık soyadınızı girin"
-      className={`block w-full rounded-lg px-4 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset
-        ${errors.maidenName?.[index]
-          ? 'border-red-500 ring-red-500 bg-red-50 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500 focus:ring-offset-0'
-          : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500 focus:ring-offset-0'}`}
-    />
-    {errors.maidenName && (
-      <p className="mt-1 text-sm text-red-600">{errors.maidenName}</p>
-    )}
-  </fieldset>
-)}
+
 <fieldset className="mt-6">
   <legend className="text-m font-semibold text-gray-600 mb-2">
     Medeni Durum <span className="text-red-500">*</span>
@@ -903,7 +894,33 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
     <p className="mt-1 text-sm text-red-600">{errors.maritalStatus}</p>
   )}
 </fieldset>
-
+{genders[index] === "Kadın" && maritalStatuse[index]=== "Evli"  &&(
+  <fieldset className="mt-4 w-full md:w-1/2">
+    <label className="block mb-2 text-m font-semibold text-gray-600">
+      Kızlık Soyadı <span className="text-red-500">*</span>
+    </label>
+    <input
+      type="text"
+      value={maidenNames[index] || ""}
+      onChange={(e) => {
+        setMaidenNames((prev) => {
+          const next = [...prev];
+          next[index] = e.target.value;
+          return next;
+        });
+      }}
+      placeholder="Kızlık soyadınızı girin"
+      className={`block w-full rounded-lg px-4 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset
+        ${!!maidenNames[index]?.trim()
+          ? 'border-red-500 ring-red-500 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500 focus:ring-offset-0'
+          : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:border-gray-300 focus:ring-2 focus:ring-gray-300 focus:ring-offset-0'
+        }`}
+    />
+    {errors.maidenName && (
+      <p className="mt-1 text-sm text-red-600">{errors.maidenName}</p>
+    )}
+  </fieldset>
+)}
 <fieldset className="mt-6">
   <legend className="text-m font-semibold text-gray-600">
     Çalışma Durumu <span className="text-red-500">*</span>
@@ -1140,11 +1157,11 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
           });
         }
       }}
-      className={`block w-full rounded-lg px-4 py-3 border shadow-sm ring-1 ring-inset
-        ${errors.address?.[index]
-          ? 'border-red-500 ring-red-500 bg-red-50'
-          : 'border-gray-300 ring-gray-300 bg-white hover:bg-gray-50'}
-        focus:outline-none focus:ring-2 focus:ring-red-500`}
+      className={`block w-full rounded-lg px-4 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset
+        ${!!address[index]?.trim()
+          ? 'border-red-500 ring-red-500 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500 focus:ring-offset-0'
+          : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:border-gray-300 focus:ring-2 focus:ring-gray-300 focus:ring-offset-0'
+        }`}
     />
     {errors.address?.[index] && (
       <p className="mt-1 text-sm text-red-600">{errors.address[index]}</p>
@@ -1175,11 +1192,11 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
             }
           }}
           placeholder="ornek@eposta.com"
-          className={`block w-full rounded-lg px-4 py-3 border shadow-sm ring-1 ring-inset
-            ${errors.email?.[index]
-              ? 'border-red-500 ring-red-500 bg-red-50'
-              : 'border-gray-300 ring-gray-300 bg-white hover:bg-gray-50'}
-            focus:outline-none focus:ring-2 focus:ring-red-500`}
+          className={`block w-full rounded-lg px-4 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset
+            ${!!email[index]?.trim()
+              ? 'border-red-500 ring-red-500 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500 focus:ring-offset-0'
+              : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:border-gray-300 focus:ring-2 focus:ring-gray-300 focus:ring-offset-0'
+            }`}
         />
         {errors.email?.[index] && (
           <p className="mt-1 text-sm text-red-600">{errors.email[index]}</p>
@@ -1207,11 +1224,11 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
             }
           }}
           placeholder="(+90) 5xx xxx xx xx"
-          className={`block w-full rounded-lg px-4 py-3 border shadow-sm ring-1 ring-inset
-            ${errors.phone?.[index]
-              ? 'border-red-500 ring-red-500 bg-red-50'
-              : 'border-gray-300 ring-gray-300 bg-white hover:bg-gray-50'}
-            focus:outline-none focus:ring-2 focus:ring-red-500`}
+          className={`block w-full rounded-lg px-4 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset
+            ${!!phone[index]?.trim()
+              ? 'border-red-500 ring-red-500 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500 focus:ring-offset-0'
+              : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:border-gray-300 focus:ring-2 focus:ring-gray-300 focus:ring-offset-0'
+            }`}
         />
         {errors.phone?.[index] && (
           <p className="mt-1 text-sm text-red-600">{errors.phone[index]}</p>
