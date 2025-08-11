@@ -72,7 +72,7 @@ const [schoolAddress, setSchoolAddress] = useState<string[]>([]);
 const [schoolPhone, setSchoolPhone] = useState<string[]>([]);
 
 
-interface FormErrors {
+type FormErrors =  {
   firstName: string[];
   lastName: string[];
   gender: string[];
@@ -82,7 +82,14 @@ interface FormErrors {
   email: string[];
   phone: string[];
   maidenName:string[]
+  passport: string[];
+  schengen?: string[];
 }
+
+
+  
+
+  const navigate = useNavigate();
 
 const [errors, setErrors] = useState<FormErrors>({
   firstName: [],
@@ -93,32 +100,24 @@ const [errors, setErrors] = useState<FormErrors>({
   address: [],
   email: [],
   phone: [],
-  maidenName:[]
+  maidenName:[],
+  passport: [],
+  schengen: []
 });
-  const [form, setForm] = useState({
-    name: "",
-    surname: "",
-    email: "",
-    phone: "",
-    country: "",
-  });
-
-  const navigate = useNavigate();
-
-  const jobTitles = [
-    'Yazılım Mühendisi',
-    'Doktor',
-    'Avukat',
-    'Öğretmen',
-    'Mimar',
-    'Muhasebeci',
-    'Polis',
-    'Hemşire',
-    'Mühendis',
-    'Teknisyen',
-  ];
+  // const jobTitles = [
+  //   'Yazılım Mühendisi',
+  //   'Doktor',
+  //   'Avukat',
+  //   'Öğretmen',
+  //   'Mimar',
+  //   'Muhasebeci',
+  //   'Polis',
+  //   'Hemşire',
+  //   'Mühendis',
+  //   'Teknisyen',
+  // ];
   
-  type JobTitle = typeof jobTitles[number];
+  // type JobTitle = typeof jobTitles[number];
   type Gender = 'Erkek' | 'Kadın';
   type MaritalStatus = 'Bekar' | 'Evli' | 'Boşanmış' | 'Dul';
   type WorkStatus = 'Çalışıyor' | 'Emekli' | 'Öğrenci' | 'Çalışmıyor';
@@ -147,20 +146,20 @@ const [errors, setErrors] = useState<FormErrors>({
   
    
   }
-  type Applicant = {
-    firstName: string;
-    lastName: string;
-    gender: Gender | '';
-    maritalStatus: MaritalStatus | '';
-    workStatus: WorkStatus | '';
-    jobTitle?: JobTitle | '';
-    companyName?: string;
-    companyAddress?: string;
-    companyPhone?: string;
-    school_name?: string[];  
-    school_address?: string[];
-    school_phone?: string[];
-  };
+  // type Applicant = {
+  //   firstName: string;
+  //   lastName: string;
+  //   gender: Gender | '';
+  //   maritalStatus: MaritalStatus | '';
+  //   workStatus: WorkStatus | '';
+  //   // jobTitle?: JobTitle | '';
+  //   companyName?: string;
+  //   companyAddress?: string;
+  //   companyPhone?: string;
+  //   school_name?: string[];  
+  //   school_address?: string[];
+  //   school_phone?: string[];
+  // };
 
   
   const totalForms = parseInt(selectedPeople);
@@ -199,10 +198,7 @@ const [errors, setErrors] = useState<FormErrors>({
     });
   };
 
-  const pickAt = <T,>(val: T | T[] | undefined, i: number, fallback: T): T => {
-    if (Array.isArray(val)) return (val[i] ?? fallback) as T;
-    return (val ?? fallback) as T;
-  };
+
   
 
 
@@ -267,7 +263,13 @@ const [errors, setErrors] = useState<FormErrors>({
         next[i] = url;
         return next;
       });
-  
+
+      setErrors(prev => {
+        const next = { ...prev };
+        next.passport = [...(next.passport || [])];
+        next.passport[i] = '';
+        return next;
+      });
    
     } catch (err: any) {
       console.error(err);
@@ -351,6 +353,12 @@ const [errors, setErrors] = useState<FormErrors>({
     setShowTooltip(!isValid);
   };
   const validateForm = () => {
+    const get = (arr: string[] | undefined, i: number) =>
+      Array.isArray(arr) && typeof arr[i] === 'string' ? arr[i] : '';
+
+    const at = <T,>(arr: T[] | undefined, i: number, fallback: any = ''): T | any =>
+      Array.isArray(arr) && i in arr ? arr[i] : fallback;
+
     const nextErrors:any = {
       firstName: Array<string>(totalForms).fill(''),
       lastName: Array<string>(totalForms).fill(''),
@@ -361,33 +369,42 @@ const [errors, setErrors] = useState<FormErrors>({
       address: Array<string>(totalForms).fill(''),
       email: Array<string>(totalForms).fill(''),
       phone: Array<string>(totalForms).fill(''),
+      passport: Array(totalForms).fill(''),
+      schengen: Array(totalForms).fill(''),
     };
     
     let isValid = true;
 
     
-    const at = (arr: unknown[] | undefined, i: number) =>
-      (Array.isArray(arr) && typeof arr[i] !== 'undefined' ? (arr[i] as any) : '') as string;
+   
     
     for (let i = 0; i < totalForms; i++) {
-      
-      nextErrors.gender[i] = at(genders as any, i) ? '' : 'Cinsiyet seçimi zorunludur.';
+      nextErrors.firstName[i] = get(firstName, i).trim() ? '' : 'Ad zorunludur.';
+      if (nextErrors.firstName[i]) isValid = false;
+  
+      nextErrors.lastName[i] = get(lastName, i).trim() ? '' : 'Soyad zorunludur.';
+      if (nextErrors.lastName[i]) isValid = false;
+  
+      nextErrors.maidenName[i] = get(maidenNames, i).trim() ? '' : 'Kızlık soyadı zorunludur';
+      if (nextErrors.maidenName[i]) isValid = false;
+
+      nextErrors.gender[i] = get(genders as unknown as string[], i) ? '' : 'Cinsiyet seçimi zorunludur.';
       if (nextErrors.gender[i]) isValid = false;
-    
-   
-      nextErrors.maritalStatus[i] = at(maritalStatuse as any, i) ? '' : 'Medeni durum seçimi zorunludur.';
+  
+      nextErrors.maritalStatus[i] = get(maritalStatuse as unknown as string[], i)
+        ? ''
+        : 'Medeni durum seçimi zorunludur.';
       if (nextErrors.maritalStatus[i]) isValid = false;
-    
-    
-      nextErrors.workStatus[i] = at(workStatus as any, i) ? '' : 'Çalışma durumu seçimi zorunludur.';
+  
+      nextErrors.workStatus[i] = get(workStatus as unknown as string[], i)
+        ? ''
+        : 'Çalışma durumu seçimi zorunludur.';
       if (nextErrors.workStatus[i]) isValid = false;
-    
-     
-      nextErrors.address[i] = at(address, i).trim() ? '' : 'Adres zorunludur.';
+  
+      nextErrors.address[i] = get(address, i).trim() ? '' : 'Adres zorunludur.';
       if (nextErrors.address[i]) isValid = false;
-    
-    
-      const em = at(email, i).trim();
+  
+      const em = get(email, i).trim();
       if (!em) {
         nextErrors.email[i] = 'E-posta zorunludur.';
         isValid = false;
@@ -397,22 +414,35 @@ const [errors, setErrors] = useState<FormErrors>({
       } else {
         nextErrors.email[i] = '';
       }
-    
-     
-      const ph = phone?.at(i) ?? '';  
-      const digits = ph.replace(/\D/g, '');
-      
-      if (!ph.trim()) {
-        nextErrors.phone[i] = 'Telefon numarası zorunludur.';
-        isValid = false;
-      } else if (digits.length !== 12) {
-        nextErrors.phone[i] = 'Geçerli bir telefon numarası giriniz.';
-        isValid = false;
-      } else {
-        nextErrors.phone[i] = '';
-      }
+      const ph = get(phone, i);
+    const digits = ph.replace(/\D/g, '');
+    if (!ph.trim()) {
+      nextErrors.phone[i] = 'Telefon numarası zorunludur.';
+      isValid = false;
+    } else if (digits.length !== 12) {
+      nextErrors.phone[i] = 'Geçerli bir telefon numarası giriniz.';
+      isValid = false;
+    } else {
+      nextErrors.phone[i] = '';
     }
-    
+
+    const wantsSchengen = Boolean(at(hasSchengen as boolean[] | undefined, i, false));
+    const imgs = at(schengenImages as string[][] | undefined, i, []) as string[];
+  
+    nextErrors.schengen[i] = wantsSchengen
+      ? (imgs.length > 0 ? '' : 'Schengen vizesi dosyası zorunludur.')
+      : '';
+  
+    if (nextErrors.schengen[i]) isValid = false;
+
+    const p = get(passportImage, i); 
+    const hasPassport =
+      Array.isArray(p) ? p.filter(Boolean).length > 0 : Boolean(p);
+  
+    nextErrors.passport[i] = hasPassport ? '' : 'Pasaport görseli zorunludur.';
+    if (nextErrors.passport[i]) isValid = false;
+
+  }
     setErrors(nextErrors);
     return isValid;
   };
@@ -434,20 +464,20 @@ const [errors, setErrors] = useState<FormErrors>({
     }
      
     
+  
+  
+    if (!validateForm()) {
+     
+      setIsSubmitting(false);
+      setLoading(false);
+      return;
+    }
     if (!passportImage || (Array.isArray(passportImage) && passportImage.length === 0)) {
       
       setIsSubmitting(false);
       setLoading(false);
       return;
     }
-  
-    if (validateForm()) {
-     
-      setIsSubmitting(false);
-      setLoading(false);
-      return;
-    }
-  
     
     const schengenUrls = Array.isArray(schengenImages) && schengenImages.length
       ? (schengenImages.filter(Boolean) as unknown as string[])
@@ -739,29 +769,29 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
   id={`first-name-${index}`}
   value={firstName[index] ?? ''}
   onChange={(e) => {
-    const newFirstNames = [...firstName];
-    newFirstNames[index] = e.target.value;
-    setFirstName(newFirstNames);
+    const next = [...firstName];
+    next[index] = e.target.value;
+    setFirstName(next);
 
-    if (errors.firstName[index]) {
+    if (errors.firstName?.[index]) {
       setErrors(prev => {
-        const next = { ...prev };
-        next.firstName = [...next.firstName];
-        next.firstName[index] = '';
-        return next;
+        const n = { ...prev, firstName: [...prev.firstName] };
+        n.firstName[index] = '';
+        return n;
       });
     }
   }}
   placeholder="Ad giriniz"
+  aria-invalid={!!errors.firstName?.[index]}
   className={`block w-full rounded-lg px-4 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset
-    ${!!firstName[index]?.trim()
-      ? 'border-red-500 ring-red-500 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500 focus:ring-offset-0'
-      : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:border-gray-300 focus:ring-2 focus:ring-gray-300 focus:ring-offset-0'
+    ${errors.firstName?.[index]
+      ? 'border-red-500 ring-red-500 bg-red-50 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500 focus:ring-offset-0'
+      : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500 focus:ring-offset-0'
     }`}
 />
-    {errors.firstName[index] && (
-      <p className="mt-1 text-sm text-red-600">{errors.firstName[index]}</p>
-    )}
+{errors.firstName?.[index] && (
+  <p className="mt-1 text-sm text-red-600">{errors.firstName[index]}</p>
+)}
   </div>
 </div>
 
@@ -818,13 +848,22 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
           name={`gender-${index}`}
           value={genderOption}
           checked={genders[index] === genderOption}
-          onChange={() =>
-            setGenders((prev) => {
+          onChange={() => {
+           
+            setGenders(prev => {
               const next = [...prev];
               next[index] = genderOption as Gender;
               return next;
-            })
-          }
+            });
+           
+            if (errors.gender?.[index]) {
+              setErrors(prev => {
+                const arr = [...(prev.gender || [])];
+                arr[index] = '';
+                return { ...prev, gender: arr };
+              });
+            }
+          }}
           className="relative size-4 appearance-none rounded-full border border-gray-300 bg-white
             checked:border-red-600 checked:bg-white
             before:absolute before:inset-1 before:rounded-full
@@ -842,8 +881,9 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
     ))}
   </div>
 
-  {errors.gender && (
-    <p className="mt-1 text-sm text-red-600">{errors.gender}</p>
+
+  {errors.gender[index] && (
+    <p className="mt-1 text-sm text-red-600">{errors.gender[index]}</p>
   )}
 </fieldset>
 
@@ -890,8 +930,9 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
     ))}
   </div>
 
-  {errors.maritalStatus && (
-    <p className="mt-1 text-sm text-red-600">{errors.maritalStatus}</p>
+  {errors.maritalStatus[index] && (
+    <p className="mt-1 text-sm text-red-600">{errors.maritalStatus[index]}</p>
+
   )}
 </fieldset>
 {genders[index] === "Kadın" && maritalStatuse[index]=== "Evli"  &&(
@@ -900,25 +941,32 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
       Kızlık Soyadı <span className="text-red-500">*</span>
     </label>
     <input
-      type="text"
-      value={maidenNames[index] || ""}
-      onChange={(e) => {
-        setMaidenNames((prev) => {
-          const next = [...prev];
-          next[index] = e.target.value;
-          return next;
-        });
-      }}
-      placeholder="Kızlık soyadınızı girin"
-      className={`block w-full rounded-lg px-4 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset
-        ${!!maidenNames[index]?.trim()
-          ? 'border-red-500 ring-red-500 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500 focus:ring-offset-0'
-          : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:border-gray-300 focus:ring-2 focus:ring-gray-300 focus:ring-offset-0'
-        }`}
-    />
-    {errors.maidenName && (
-      <p className="mt-1 text-sm text-red-600">{errors.maidenName}</p>
-    )}
+  type="text"
+  value={maidenNames[index] || ""}
+  onChange={(e) => {
+    setMaidenNames((prev) => {
+      const next = [...prev];
+      next[index] = e.target.value;
+      return next;
+    });
+    if (errors.maidenName?.[index]) {
+      setErrors((prev) => {
+        const next = { ...prev, maidenName: [...(prev.maidenName || [])] };
+        next.maidenName[index] = '';
+        return next;
+      });
+    }
+  }}
+  placeholder="Kızlık soyadınızı girin"
+  className={`block w-full rounded-lg px-4 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset
+    ${errors.maidenName?.[index]
+      ? 'border-red-500 ring-red-500 bg-red-50'
+      : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500'}`}
+/>
+
+{errors.maidenName?.[index] && (
+  <p className="mt-1 text-sm text-red-600">{errors.maidenName[index]}</p>
+)}
   </fieldset>
 )}
 <fieldset className="mt-6">
@@ -971,8 +1019,8 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
     ))}
   </div>
 
-  {errors.workStatus && (
-    <p className="mt-1 text-sm text-red-600">{errors.workStatus}</p>
+  {errors.workStatus[index] && (
+    <p className="mt-1 text-sm text-red-600">{errors.workStatus[index]}</p>
   )}
 </fieldset>
 {workStatus[index] === 'Çalışıyor' && (
@@ -1142,30 +1190,37 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
   </label>
 
   <div className="mt-2">
-    <textarea
-      id={`address-${index}`}
-      name={`address-${index}`}
-      placeholder="Adresinizi girin"
-      rows={4}
-      value={address[index] ?? ''}
-      onChange={(e) => {
-        const v = e.target.value;
-        setAddress(prev => { const n = [...prev]; n[index] = v; return n; });
-        if (errors.address?.[index]) {
-          setErrors(p => {
-            const arr = [...(p.address || [])]; arr[index] = ''; return { ...p, address: arr };
-          });
-        }
-      }}
-      className={`block w-full rounded-lg px-4 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset
-        ${!!address[index]?.trim()
-          ? 'border-red-500 ring-red-500 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500 focus:ring-offset-0'
-          : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:border-gray-300 focus:ring-2 focus:ring-gray-300 focus:ring-offset-0'
-        }`}
-    />
-    {errors.address?.[index] && (
-      <p className="mt-1 text-sm text-red-600">{errors.address[index]}</p>
-    )}
+  <textarea
+  id={`address-${index}`}
+  name={`address-${index}`}
+  placeholder="Adresinizi girin"
+  rows={4}
+  value={address[index] ?? ''}
+  onChange={(e) => {
+    const v = e.target.value;
+    setAddress(prev => {
+      const n = [...prev];
+      n[index] = v;
+      return n;
+    });
+    if (errors.address?.[index]) {
+      setErrors(p => {
+        const arr = [...(p.address || [])];
+        arr[index] = '';
+        return { ...p, address: arr };
+      });
+    }
+  }}
+  aria-invalid={!!errors.address?.[index]}
+  className={`block w-full rounded-lg px-4 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset
+    ${errors.address?.[index]
+      ? 'border-red-500 ring-red-500 bg-red-50 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500 focus:ring-offset-0'
+      : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:border-gray-300 focus:ring-2 focus:ring-gray-300 focus:ring-offset-0'
+    }`}
+/>
+{errors.address?.[index] && (
+  <p className="mt-1 text-sm text-red-600">{errors.address[index]}</p>
+)}
   </div>
 
   {/* Email ve Telefon */}
@@ -1177,30 +1232,37 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
         E-posta <span className="text-red-500">*</span>
       </label>
       <div className="mt-2 relative">
-        <input
-          id={`email-${index}`}
-          name={`email-${index}`}
-          type="email"
-          value={email[index] ?? ''}
-          onChange={(e) => {
-            const v = e.target.value;
-            setEmail(prev => { const n = [...prev]; n[index] = v; return n; });
-            if (errors.email?.[index]) {
-              setErrors(p => {
-                const arr = [...(p.email || [])]; arr[index] = ''; return { ...p, email: arr };
-              });
-            }
-          }}
-          placeholder="ornek@eposta.com"
-          className={`block w-full rounded-lg px-4 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset
-            ${!!email[index]?.trim()
-              ? 'border-red-500 ring-red-500 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500 focus:ring-offset-0'
-              : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:border-gray-300 focus:ring-2 focus:ring-gray-300 focus:ring-offset-0'
-            }`}
-        />
-        {errors.email?.[index] && (
-          <p className="mt-1 text-sm text-red-600">{errors.email[index]}</p>
-        )}
+      <input
+  id={`email-${index}`}
+  name={`email-${index}`}
+  type="email"
+  value={email[index] ?? ''}
+  onChange={(e) => {
+    const v = e.target.value;
+    setEmail(prev => {
+      const n = [...prev];
+      n[index] = v;
+      return n;
+    });
+    if (errors.email?.[index]) {
+      setErrors(p => {
+        const arr = [...(p.email || [])];
+        arr[index] = '';
+        return { ...p, email: arr };
+      });
+    }
+  }}
+  placeholder="ornek@eposta.com"
+  aria-invalid={!!errors.email?.[index]}
+  className={`block w-full rounded-lg px-4 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset
+    ${errors.email?.[index]
+      ? 'border-red-500 ring-red-500 bg-red-50 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500 focus:ring-offset-0'
+      : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:border-gray-300 focus:ring-2 focus:ring-gray-300 focus:ring-offset-0'
+    }`}
+/>
+{errors.email?.[index] && (
+  <p className="mt-1 text-sm text-red-600">{errors.email[index]}</p>
+)}
       </div>
     </div>
 
@@ -1210,29 +1272,38 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
         Telefon <span className="text-red-500">*</span>
       </label>
       <div className="mt-2">
-        <Cleave
-          id={`phone-${index}`}
-          options={{ phone: true, phoneRegionCode: 'TR' }}
-          value={phone[index] ?? ''}
-          onChange={(e: any) => {
-            const v = e.target.value as string;
-            setPhone(prev => { const n = [...prev]; n[index] = v; return n; });
-            if (errors.phone?.[index]) {
-              setErrors(p => {
-                const arr = [...(p.phone || [])]; arr[index] = ''; return { ...p, phone: arr };
-              });
-            }
-          }}
-          placeholder="(+90) 5xx xxx xx xx"
-          className={`block w-full rounded-lg px-4 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset
-            ${!!phone[index]?.trim()
-              ? 'border-red-500 ring-red-500 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500 focus:ring-offset-0'
-              : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:border-gray-300 focus:ring-2 focus:ring-gray-300 focus:ring-offset-0'
-            }`}
-        />
-        {errors.phone?.[index] && (
-          <p className="mt-1 text-sm text-red-600">{errors.phone[index]}</p>
-        )}
+      <Cleave
+  id={`phone-${index}`}
+  options={{ phone: true, phoneRegionCode: 'TR' }}
+  value={phone[index] ?? ''}
+  onChange={(e: any) => {
+    const v = (e.target as HTMLInputElement).value;
+    setPhone(prev => {
+      const n = [...prev];
+      n[index] = v;
+      return n;
+    });
+    if (errors.phone?.[index]) {
+      setErrors(p => {
+        const arr = [...(p.phone || [])];
+        arr[index] = '';
+        return { ...p, phone: arr };
+      });
+    }
+  }}
+  placeholder="(+90) 5xx xxx xx xx"
+  aria-invalid={!!errors.phone?.[index]}
+  inputMode="tel"
+  className={`block w-full rounded-lg px-4 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset
+    ${errors.phone?.[index]
+      ? 'border-red-500 ring-red-500 bg-red-50 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500 focus:ring-offset-0'
+      : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:border-gray-300 focus:ring-2 focus:ring-gray-300 focus:ring-offset-0'
+    }`}
+/>
+
+{errors.phone?.[index] && (
+  <p className="mt-1 text-sm text-red-600">{errors.phone[index]}</p>
+)}
       </div>
     </div>
 
@@ -1379,7 +1450,9 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
       </p>
     )}
 
-    {passportError && <p className="mt-2 text-sm text-red-600">{passportError}</p>}
+{errors.passport?.[index] && (
+  <p className="mt-2 text-sm text-red-600">{errors.passport[index]}</p>
+)}
   </div>
 
 
@@ -1441,7 +1514,9 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
        disabled={schengenLoading[index]}
      />
    </label>
-
+{errors.schengen?.[index] && (
+  <p className="mt-2 text-sm text-red-600">{errors.schengen[index]}</p>
+)}
    {schengenLoading[index] && (
      <div className="absolute inset-0 rounded-lg bg-white/60 backdrop-blur-[2px] grid place-items-center">
        <Loader size="sm" color="red" />
