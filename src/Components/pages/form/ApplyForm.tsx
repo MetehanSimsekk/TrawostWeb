@@ -1099,11 +1099,29 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
   id={`company-phone-${index}`}
   value={companyPhone[index] || ""}
   onChange={(e) => {
+    let v = e.target.value;
+
+  
+    v = v.replace(/[^0-9+ ]+/g, "");
+
+  
+    const plusFirst = v.indexOf("+");
+    if (plusFirst !== -1) {
+    
+      v = v.slice(0, plusFirst + 1) + v.slice(plusFirst + 1).replace(/\+/g, "");
+    }
+
+  
+    if (plusFirst > 0) {
+      v = v.replace(/\+/g, ""); 
+    }
+
     const updated = [...companyPhone];
-    updated[index] = e.target.value;
+    updated[index] = v;
     setCompanyPhone(updated);
   }}
   type="text"
+  inputMode="tel"
   placeholder="Firma telefon numarasını girin"
   className="h-12 px-4 py-3 rounded-lg w-full border border-gray-300 bg-white text-gray-800 placeholder-gray-500 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
 />
@@ -1133,19 +1151,26 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
         className="h-12 px-4 py-3 rounded-lg w-full border border-gray-300 bg-white text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-0"
       />
 
-      <input
-        id={`school-phone-${index}`}
-        value={schoolPhone[index] || ""}
-        onChange={(e) => {
-          const updated = [...schoolPhone];
-          updated[index] = e.target.value;
-          setSchoolPhone(updated);
-        }}
-        type="text"
-        placeholder="Okul telefon numarasını girin"
-        className="h-12 px-4 py-3 rounded-lg w-full border border-gray-300 bg-white text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-0"
-      />
+<Cleave
+  id={`school-phone-${index}`}
+  options={{ phone: true, phoneRegionCode: 'TR' }}
+  value={schoolPhone[index] || ''}
+  onChange={(e: any) => {
+    let v = e.target.value as string;
 
+
+    if (v && !v.startsWith('0')) {
+      v = '0' + v;
+    }
+
+    const updated = [...schoolPhone];
+    updated[index] = v;
+    setSchoolPhone(updated);
+  }}
+  inputMode="tel"
+  placeholder="(xxx) xxx xx xx"
+  className="h-12 px-4 py-3 rounded-lg w-full border border-gray-300 bg-white text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-0"
+/>
       <textarea
         id={`school-address-${index}`}
         value={schoolAddress[index] || ""}
