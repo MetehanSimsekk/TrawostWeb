@@ -95,7 +95,7 @@ function normalizeToUrls(raw: unknown): string[] {
       <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md" mb="sm">
         <Card shadow="xs" withBorder radius="md" padding="xs">
           <Text size="xs" c="dimmed">Ad Soyad</Text>
-          <Text fw={900}>{props.app.name} {props.app.surname}</Text>
+          <Text fw={900}>{props.app.full_name} {props.app.surname}</Text>
         </Card>
         <Card shadow="xs" withBorder radius="md" padding="xs">
           <Text size="xs" c="dimmed">Cinsiyet</Text>
@@ -437,9 +437,9 @@ function normalizeToUrls(raw: unknown): string[] {
   
        urls = normalizeToUrls(props.app.previous_schengen_url);
        if (urls.length > 0) {
-        setSchengenUrl(urls[0]); // tüm listeyi state'e at
+        setSchengenUrl(urls[0]);
       } else {
-        setSchengenUrl([]);   // boş liste
+        setSchengenUrl([]); 
       }
       setSchengenIndex(0);
       setShowSchengenModal(true);

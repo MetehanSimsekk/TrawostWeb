@@ -31,7 +31,9 @@ export default function AdminDashboard() {
   const [country, setCountry] = useState('Tüm Ülkeler');
   const [applications, setApplications] = useState<Application[]>([]);
   const navigate = useNavigate();
- 
+  const [statusById, setStatusById] = useState<Record<string, string>>({});
+  const [opened, setOpened] = useState(false);
+  const [selectedApp, setSelectedApp] = useState<any>(null);
 
   const stats = {
     total: applications.length, 
@@ -112,7 +114,15 @@ export default function AdminDashboard() {
     });
   }, [applications, search, status, country]);
   
-
+  useEffect(() => {
+    setStatusById(prev => {
+      const next = { ...prev };
+      applications.forEach(a => {
+        if (!next[a.id]) next[a.id] = a.appointment_status ?? 'Randevu Alınacak';
+      });
+      return next;
+    });
+  }, [filteredApplications]);
   
   // const filteredApplications = applications.filter((app:any) => {
   
@@ -263,12 +273,21 @@ export default function AdminDashboard() {
   const relatedApps = list.filter(x => x.id !== app.id); // diğerleri
   return (
     <ApplicationCard
-      key={app.id}
-      app={app}
-      isFamily={relatedApps.length > 0}
-      relatedApps={relatedApps}   // <<< ekledik
-      onDelete={handleRemoveFromList}
-    />
+    key={app.id}
+    app={app}
+    isFamily={relatedApps.length > 0}
+    relatedApps={relatedApps}
+    onDelete={handleRemoveFromList}
+
+    status={statusById[app.id] ?? 'Randevu Alınacak'}
+    setStatus={(v) =>
+      setStatusById(s => ({ ...s, [app.id]: v }))
+    }
+    onOpen={(payload) => {
+      setSelectedApp({ ...payload, appointment_status: statusById[app.id] ?? payload.appointment_status });
+      setOpened(true);
+    }}
+  />
   );
 })}
     </Container>

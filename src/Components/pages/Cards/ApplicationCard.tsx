@@ -26,13 +26,20 @@ export function ApplicationCard({
   app,
   onDelete,
   isFamily,
-  relatedApps = []
+  relatedApps = [],
+  status,                      
+  setStatus,                 
+  onOpen,                      
 }: {
   app: any;
   onDelete?: (id: string) => void;
   isFamily?: boolean;
   relatedApps?: any[];
-}) {
+  status: string;
+  setStatus: (v: string) => void;
+  onOpen?: (payload: any) => void;
+})
+{
     
     const [appointmentStatus, setAppointmentStatus] = useState(app.appointment_status);
     const [ticketStatus, setTicketStatus] = useState<boolean>(app.flight_ticket ?? false);
@@ -41,8 +48,10 @@ export function ApplicationCard({
     const [appointmentDate, setAppointmentDate] = useState<Date | any>(app.appointment_date);
 
     const [opened, setOpened] = useState(false);
-const [selectedApp, setSelectedApp] = useState(null);
+    const [selectedApp, setSelectedApp] = useState<any>(null);
+// const [selectedApp, setSelectedApp] = useState(null);
 
+const [statusById, setStatusById] = useState<Record<string, string>>({});
 
 
 
@@ -72,7 +81,7 @@ async function handleAppointmentStatusChange(newStatus: any) {
     }
  
   }
-
+ 
 
   async function handleAppointmentDateChange(newDate: Date | null) {
   
@@ -154,19 +163,15 @@ async function handleAppointmentStatusChange(newStatus: any) {
   {isFamily && <IconUsers size={20} stroke={2} color="#555" />}
 
 </Group>
-              <Badge
-  color={appointmentStatus === 'Randevu Alınacak' ? 'red' : 'green'}
-  size="lg"
-  variant="light"
-  radius="xl"
-  leftSection={
-    appointmentStatus === 'Randevu Alınacak' 
-      ? <IconClock size={14} /> 
-      : <IconCheck size={14} />
-  }
->
-  {appointmentStatus}
-</Badge>
+<Badge
+        color={status === 'Randevu Alınacak' ? 'red' : 'green'}
+        variant="light"
+        size="lg"
+        radius="xl"
+        leftSection={status === 'Randevu Alınacak' ? <IconClock size={14}/> : <IconCheck size={14}/>}
+      >
+        {status}
+      </Badge>
             </Group>
   
             <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md">
@@ -209,7 +214,7 @@ async function handleAppointmentStatusChange(newStatus: any) {
    
     setSelectedApp({
       ...app,
-      appointment_status: appointmentStatus 
+      appointment_status: status 
     });
     setOpened(true);
   }}
