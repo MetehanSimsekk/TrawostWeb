@@ -11,6 +11,7 @@ import '@mantine/core/styles.css';
 import '@mantine/dates/styles.css';
 import '@mantine/notifications/styles.css';
 import ProtectedRoute from "./Components/pages/routes/ProtectedRoute";
+import { ModalsProvider } from "@mantine/modals";
 
 function App() {
   const [phone, setPhone] = useState('');
@@ -26,6 +27,7 @@ function App() {
 
   return (
     <MantineProvider theme={theme}>
+        <ModalsProvider>
   <Notifications position="bottom-left" />
     <BrowserRouter>
       <Routes>
@@ -41,6 +43,7 @@ function App() {
         <Route path="/thanks" element={<ThanksPage />} />
       </Routes>
     </BrowserRouter>
+    </ModalsProvider>
     </MantineProvider>
   );
 }

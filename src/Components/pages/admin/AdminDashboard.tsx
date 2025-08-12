@@ -142,6 +142,8 @@ export default function AdminDashboard() {
   //   return matchName && matchStatus && matchCountry;
   // });
 
+
+  
   const handleRemoveFromList = (id: string) => {
     setApplications((prev) => prev.filter((app) => app.id !== id));
   };

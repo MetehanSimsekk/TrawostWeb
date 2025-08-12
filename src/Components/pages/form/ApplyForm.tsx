@@ -170,24 +170,48 @@ const [errors, setErrors] = useState<FormErrors>({
       return next;
     });
   }, [totalForms]);
-  const handleInvitationUpload = (formIndex: number, e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files) return;
   
-    const urls = Array.from(files).map(file => URL.createObjectURL(file));
-    const names = Array.from(files).map(file => file.name);
+  const handleInvitationUpload = async (formIndex: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    if (files.length === 0) return;
   
-    setInvitationFiles(prev => {
-      const next = [...prev];
-      next[formIndex] = urls;
-      return next;
-    });
+    try {
+      const uploaded = await Promise.all(files.map(async (file) => {
+        const ext = file.name.split('.').pop()?.toLowerCase() || 'bin';
+        const path = `invitations/${Date.now()}-${crypto.randomUUID()}.${ext}`;
   
-    setInvitationFileNames(prev => {
-      const next = [...prev];
-      next[formIndex] = names;
-      return next;
-    });
+        const { error: upErr } = await supabase.storage.from('invitations').upload(path, file);
+        if (upErr) throw upErr;
+  
+        const { data: pub } = supabase.storage.from('invitations').getPublicUrl(path);
+        if (!pub?.publicUrl) throw new Error('Public URL alınamadı');
+  
+        return { name: file.name, url: pub.publicUrl, mime: file.type };
+      }));
+  
+      const urls  = uploaded.map(x => x.url);
+      const names = uploaded.map(x => x.name);
+  
+      
+      setInvitationFiles(prev => {
+        const next = [...prev];
+        const cur  = next[formIndex] ?? [];
+        next[formIndex] = [...cur, ...urls];  
+        return next;
+      });
+  
+      setInvitationFileNames(prev => {
+        const next = [...prev];
+        const cur  = next[formIndex] ?? [];
+        next[formIndex] = [...cur, ...names]; 
+        return next;
+      });
+  
+    } catch (err) {
+      console.error(err);
+    } finally {
+      if (e.target) e.target.value = '';
+    }
   };
 
   const toggleHasSchengen = (index: number, checked: boolean) => {
@@ -414,7 +438,7 @@ const [errors, setErrors] = useState<FormErrors>({
         nextErrors.phone[i] = '';
       }
   
-      // Schengen (işaretliyse en az 1 dosya)
+   
       const wantsSchengen = Boolean(at(hasSchengen as boolean[] | undefined, i, false));
       const imgs = at(schengenImages as string[][] | undefined, i, []) as string[];
       nextErrors.schengen[i] = wantsSchengen
@@ -422,7 +446,7 @@ const [errors, setErrors] = useState<FormErrors>({
         : '';
       if (nextErrors.schengen[i]) isValid = false;
   
-      // Pasaport — string[] veya string olabilir
+   
       const hasPassport = Array.isArray(passportImage)
         ? Boolean(passportImage[i])
         : Boolean(passportImage);
@@ -470,10 +494,23 @@ const [errors, setErrors] = useState<FormErrors>({
       ? (schengenImages.filter(Boolean) as unknown as string[])
       : null;
   
-    const invitationUrls = Array.isArray(invitationFileNames) && invitationFileNames.length
-      ? (invitationFileNames.filter(Boolean) as unknown as string[])
-      : null;
-  
+    
+
+    const raw: unknown = invitationFiles;
+
+    const invitationUrls: string[] = Array.isArray(raw)
+      ? raw
+          .flat()
+          .filter((v): v is string => typeof v === "string") 
+          .map(s => s.trim())
+          .filter(s => s.length > 0)
+      : [];
+    
+    const firstUrlLower = invitationUrls[0]?.toLowerCase(); 
+
+
+
+
   
     const pickAt = <T,>(val: T | T[] | undefined, i: number, fallback: T): T => {
       if (Array.isArray(val)) return (val[i] ?? fallback) as T;
@@ -486,7 +523,7 @@ const [errors, setErrors] = useState<FormErrors>({
       country: selectedCountry,
       visa_type: selectedVisaType as VisaType,
       previous_schengen_url: schengenUrls,     
-      invitation_letter_url: invitationUrls,   
+      invitation_letter_url: firstUrlLower,   
     };
   
     const kisiSayisi = parseInt(selectedPeople.split(' ')[0] || '1', 10);
@@ -1594,8 +1631,8 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
             key={i}
             className="border border-gray-300 rounded p-2 bg-white shadow-sm"
           >
-            <p className="text-xs text-gray-600 mb-1">{invitationFileNames[index][i]}</p>
-            <img src={img} alt={`Davet Mektubu ${i}`} className="rounded w-full" />
+           <p className="text-xs text-gray-600 mb-1">{invitationFileNames[index][i]}</p>
+            <iframe src={img}  className="rounded w-full" />
           </div>
         ))}
       </div>

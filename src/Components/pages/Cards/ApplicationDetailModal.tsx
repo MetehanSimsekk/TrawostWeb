@@ -1,6 +1,8 @@
+import { supabase } from "../../../services/supabase";
 import { Alert, Badge, Card, Divider, Group, Modal, SimpleGrid, Text, Title } from '@mantine/core';
 import { IconMapPin, IconMail, IconPhone, IconUser, IconCheck, IconEye, IconClock, IconUsers } from '@tabler/icons-react';
-import { useState } from 'react';
+import dayjs from 'dayjs';
+import { useEffect, useState } from 'react';
 
 export default function ApplicationDetailModal(props: { app: any; title: string; isFamily?: boolean }) {
 
@@ -16,6 +18,54 @@ const [hoveredInvitation, setHoveredInvitation] = useState(false);
 const [showInvitationModal, setShowInvitationModal] = useState(false);
 const [invitationUrls, setInvitationUrls] = useState<string[]>([]);
 
+const [kisiSayisi, setKisiSayisi] = useState<number>(0);
+const isStringNonEmpty = (v: unknown): v is string =>
+  typeof v === "string" && v.trim().length > 0;
+
+
+const toArray = (v: unknown): string[] => {
+  if (!v) return [];
+  if (Array.isArray(v)) return v.filter(Boolean) as string[];
+  if (typeof v === 'string') {
+    try { const p = JSON.parse(v); return toArray(p); } catch { return [v]; }
+  }
+  return [];
+};
+
+const inviteUrls = toArray(props.app.invitation_letter_url);
+const inviteNames = toArray((props.app as any).invitation_letter_names); 
+
+
+
+useEffect(() => {
+  const fetchKisiSayisi = async () => {
+    const { data, error } = await supabase
+      .from("applications")
+      .select("id")
+      .eq("basvuru_grup_kodu", props.app.basvuru_grup_kodu);
+
+    if (!error) {
+      setKisiSayisi(data?.length || 0);
+    }
+  };
+
+  fetchKisiSayisi();
+}, [props.app.basvuru_grup_kodu]);
+
+const toUrlArray = (input: unknown): string[] => {
+  if (!input) return [];
+  if (Array.isArray(input)) return input.filter(isStringNonEmpty);
+  if (typeof input === "string") {
+   
+    try {
+      const parsed = JSON.parse(input);
+      return toUrlArray(parsed);
+    } catch {
+      return isStringNonEmpty(input) ? [input] : [];
+    }
+  }
+  return [];
+};
 function normalizeToUrls(raw: unknown): string[] {
   if (!raw) return [];
   if (Array.isArray(raw)) return raw.filter(Boolean) as string[];
@@ -175,7 +225,7 @@ function normalizeToUrls(raw: unknown): string[] {
   }}
 >
   <Group justify="space-between" mb="sm">
-    <Text fw={600} size="sm">Pasaport Fotoğrafı</Text>
+    <Text fw={600} size="sm">Pasaport Görseli</Text>
     <Badge color="gray" variant="light">
   {(() => {
     try {
@@ -197,9 +247,13 @@ function normalizeToUrls(raw: unknown): string[] {
         ? props.app.passport_file_url.filter(Boolean)
         : JSON.parse(props.app.passport_file_url || "[]").filter(Boolean);
 
-      return urls.length > 0 ? "Görsel mevcut" : "Görsel mevcut Değil";
+      return urls.length > 0 ? "Görsel mevcut" : "Dosya mevcut Değil";
     } catch {
-      return props.app.passport_file_url ? "Görsel mevcut" : "Görsel mevcut Değil";
+      return props.app.passport_file_url
+  ? (props.app.passport_file_url.toLowerCase().endsWith(".pdf")
+      ? "PDF mevcut"
+      : "Görsel mevcut")
+  : "Dosya mevcut Değil";
     }
   })()}
 </Text>
@@ -268,92 +322,73 @@ function normalizeToUrls(raw: unknown): string[] {
     })(),
   }}
 >
- <Group justify="space-between" mb="sm">
-   <Text fw={600} size="sm">Davet Mektubu</Text>
-   <Badge color="green" variant="light">
-     {(Array.isArray(props.app.invitation_letter_url) ? props.app.invitation_letter_url.length : props.app.invitation_letter_url ? 1 : 0) + ' dosya'}
-   </Badge>
- </Group>
- <Text size="sm">
-   {props.app.invitation_letter_url ? 'Dosya(lar) mevcut. Görüntülemek için üzerine gelin.' : 'Davet mektubu yüklenmedi'}
- </Text>
 
- {hoveredInvitation && props.app.invitation_letter_url && (
-   <div
-     className="absolute inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center rounded-md"
-     onClick={(e) => {
+
+<Group justify="space-between" mb="sm">
+  <Text fw={600} size="sm">Davet Mektubu</Text>
+  <Badge color="green" variant="light">{inviteUrls.length} dosya</Badge>
+</Group>
+
+
+
+<div
+
+  onMouseEnter={() => setHoveredInvitation(true)}
+  onMouseLeave={() => setHoveredInvitation(false)}
+>
+  {hoveredInvitation && inviteUrls.length > 0 && (
+    <div
+          className="absolute inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center rounded-md"
+      onClick={(e) => {
         e.stopPropagation();
-    
-        let urls: string[] = [];
-        if (props.app.invitation_letter_url) {
-          
-          if (typeof props.app.invitation_letter_url === "string") {
-            try {
-              const parsed = JSON.parse(props.app.invitation_letter_url);
-              urls = Array.isArray(parsed) ? parsed : [parsed];
-            } catch {
-              urls = [props.app.invitation_letter_url];
-            }
-          } else if (Array.isArray(props.app.invitation_letter_url)) {
-            urls = props.app.invitation_letter_url;
-          }
-        }
-    
-        urls = urls.filter(Boolean);
-    
-        setInvitationUrls(urls);
+        setInvitationUrls(inviteUrls);
         setShowInvitationModal(true);
       }}
-   >
-     <IconEye size={32} className="text-white cursor-pointer" />
-   </div>
- )}
+      
+    >
+      <IconEye size={32} className="text-white cursor-pointer" />
 
- <Modal
-   opened={showInvitationModal}
-   onClose={() => setShowInvitationModal(false)}
-     size="68%"
-   radius="md"
-   centered
- >
-   {invitationUrls.length === 0 ? (
-     <Text c="dimmed">Davet mektubu bulunamadı.</Text>
-   ) : invitationUrls.length === 1 ? (
-     invitationUrls[0].toLowerCase().endsWith('.pdf') ? (
-       <iframe
-         src={invitationUrls[0]}
-         title="Davet Mektubu"
-         style={{ width: '100%', height: '80vh', border: 'none' }}
-       />
-     ) : (
-       <img
-         src={invitationUrls[0]}
-         alt="Davet Mektubu"
-         className="max-w-full max-h-[80vh] mx-auto rounded-md shadow"
-       />
-     )
-   ) : (
-     <div className="grid grid-cols-1 sm:grid-cols-2 gap-12 max-h-[80vh] overflow-auto p-2">
-       {invitationUrls.map((url, i) =>
-         url.toLowerCase().endsWith('.pdf') ? (
-           <iframe
-             key={i}
-             src={url}
-             title={`Davet Mektubu ${i + 1}`}
-             style={{ width: '100%', height: '70vh', border: 'none' }}
-           />
-         ) : (
-           <img
-             key={i}
-             src={url}
-             alt={`Davet Mektubu ${i + 1}`}
-             className="w-full h-auto rounded-md shadow"
-           />
-         )
-       )}
-     </div>
-   )}
- </Modal>
+    </div>
+  )}
+</div>
+
+{inviteUrls.length === 0 ? (
+  <Text size="sm">Davet mektubu yüklenmedi</Text>
+) : (
+  <Text size="sm">Dosya(lar) mevcut. Görüntülemek için üzerine gelin.</Text>
+)}
+
+<Modal opened={showInvitationModal} onClose={() => setShowInvitationModal(false)} size="68%" radius="md" centered>
+{inviteUrls.length > 0 ? (
+  <div className="space-y-4">
+    {inviteUrls.map((url, i) => {
+      const name = typeof (inviteNames[i] ?? url) === "string" 
+        ? (inviteNames[i] ?? url).toLowerCase() 
+        : String(inviteNames[i] ?? url).toLowerCase();
+
+      const isPdf = name.endsWith(".pdf") || String(url).toLowerCase().endsWith(".pdf");
+
+      return isPdf ? (
+        <iframe
+          key={url}
+          src={url}
+          title={`Davet Mektubu PDF ${i}`}
+          style={{ width: "100%", height: "80vh", border: "none" }}
+        />
+      ) : (
+        <img
+          key={url}
+          src={url}
+          alt={`Davet Mektubu ${i}`}
+          className="max-w-full max-h-[80vh] mx-auto rounded-md shadow"
+        />
+      );
+    })}
+  </div>
+) : (
+  <Text c="dimmed">Davet mektubu bulunamadı.</Text>
+)}
+</Modal>
 </Card>
 
 ) : (
@@ -407,9 +442,9 @@ function normalizeToUrls(raw: unknown): string[] {
         ? props.app.previous_schengen_url.filter(Boolean)
         : JSON.parse(props.app.previous_schengen_url || "[]").filter(Boolean);
 
-      return urls.length > 0 ? "Görsel mevcut" : "Görsel mevcut Değil";
+      return urls.length > 0 ? "Dosya(lar) mevcut görüntüleyebilirsiniz" : "Dosya(lar) mevcut Değil";
     } catch {
-      return props.app.previous_schengen_url ? "Görsel mevcut" : "Görsel mevcut Değil";
+      return props.app.previous_schengen_url ? "Dosya(lar) mevcut görüntüleyebilirsiniz" : "Dosya(lar) mevcut Değil";
     }
   })()}
 </Text>
@@ -514,15 +549,17 @@ function normalizeToUrls(raw: unknown): string[] {
 <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md">
   <Card shadow="xs" withBorder radius="md" padding="xs">
     <Text size="xs" c="dimmed">Başvuru Tarihi</Text>
-    <Text fw={900} >07.08.2025 17:28</Text>
+    <Text fw={900}>
+  {dayjs(props.app.created_at).format("DD.MM.YYYY HH:mm:ss")}
+</Text>
   </Card>
   <Card shadow="xs" withBorder radius="md" padding="xs">
     <Text size="xs" c="dimmed">Başvuru Sayısı</Text>
-    <Text fw={900} >2 Kişi</Text>
+    <Text fw={900} >{kisiSayisi}</Text>
   </Card>
   <Card shadow="xs" withBorder radius="md" padding="xs">
     <Text size="xs" c="dimmed">Hedef Ülke</Text>
-    <Text fw={900} >Danimarka</Text>
+    <Text fw={900} >{props.app.country}</Text>
   </Card>
 </SimpleGrid>
     </Card>

@@ -21,7 +21,7 @@ import {
 import ApplicationDetailModal from './ApplicationDetailModal';
 import { supabase } from '../../../services/supabase';
 import { notifications } from '@mantine/notifications';
-
+import { modals } from '@mantine/modals';
 export function ApplicationCard({
   app,
   onDelete,
@@ -103,9 +103,21 @@ async function handleAppointmentStatusChange(newStatus: any) {
       setAppointmentDate(prevDate); 
     }
   }
-
+  function confirm(title: string, body: React.ReactNode) {
+    return new Promise<boolean>((resolve) => {
+      modals.openConfirmModal({
+        title, centered: true, children: body,
+        labels: { confirm: "Evet", cancel: "Vazgeç" },
+        confirmProps: { color: "red" },
+        onConfirm: () => resolve(true),
+        onCancel: () => resolve(false),
+      });
+    });
+  }
   async function handleDeleteApplication(id: string) {
-    
+    const ok = await confirm("Başvuru Sil", <Text size="sm">Geri alınamaz. Emin misiniz?</Text>);
+    if (!ok) return;
+  
   
     const { error } = await supabase
       .from('applications')
@@ -208,7 +220,7 @@ async function handleAppointmentStatusChange(newStatus: any) {
           </div>
   
        
-          <div className="min-w-[230px] flex flex-col gap-3 mt-16">
+          <div className="min-w-[210px] flex flex-col gap-3 mt-16">
           <Button
   onClick={() => {
    
