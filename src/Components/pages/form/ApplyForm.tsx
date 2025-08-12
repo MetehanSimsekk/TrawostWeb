@@ -480,7 +480,7 @@ const [errors, setErrors] = useState<FormErrors>({
       return (val ?? fallback) as T;
     };
   
-  
+
     const baseData: Pick<ApplicationData, 'basvuru_grup_kodu' | 'country' | 'visa_type' | 'previous_schengen_url' | 'invitation_letter_url'> = {
       basvuru_grup_kodu: groupId,
       country: selectedCountry,
