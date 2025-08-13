@@ -70,8 +70,8 @@ const [companyPhone, setCompanyPhone] = useState<string[]>([]);
 const [schoolName, setSchoolName]= useState<string[]>([]);
 const [schoolAddress, setSchoolAddress] = useState<string[]>([]);
 const [schoolPhone, setSchoolPhone] = useState<string[]>([]);
-
-
+const [schengenPaths, setSchengenPaths] = useState<string[][]>([]); 
+const [invitationPaths, setInvitationPaths] = useState<string[][]>([]); 
 type FormErrors =  {
   firstName: string[];
   lastName: string[];
@@ -186,12 +186,14 @@ const [errors, setErrors] = useState<FormErrors>({
         const { data: pub } = supabase.storage.from('invitations').getPublicUrl(path);
         if (!pub?.publicUrl) throw new Error('Public URL alınamadı');
   
-        return { name: file.name, url: pub.publicUrl, mime: file.type };
+        return { name: file.name, url: pub.publicUrl, mime: file.type, path };
+
       }));
   
       const urls  = uploaded.map(x => x.url);
       const names = uploaded.map(x => x.name);
-  
+      const paths = uploaded.map(x => x.path); 
+
       
       setInvitationFiles(prev => {
         const next = [...prev];
@@ -207,12 +209,47 @@ const [errors, setErrors] = useState<FormErrors>({
         return next;
       });
   
+      setInvitationPaths(prev => {
+        const next = [...prev];
+        next[formIndex] = [...(next[formIndex] ?? []), ...paths]; 
+        return next;
+      });
+
     } catch (err) {
       console.error(err);
     } finally {
       if (e.target) e.target.value = '';
     }
   };
+
+  const handleDeleteInvitation = async (formIndex: number, fileIndex: number) => {
+    const path = invitationPaths[formIndex]?.[fileIndex]; 
+  
+    try {
+      if (path) {
+        const { error } = await supabase.storage.from('invitations').remove([path]);
+        if (error) console.error('Remove error:', error);
+      }
+    } finally {
+     
+      setInvitationFiles(prev => {
+        const n = [...prev];
+        n[formIndex] = (n[formIndex] ?? []).filter((_, i) => i !== fileIndex);
+        return n;
+      });
+      setInvitationFileNames(prev => {
+        const n = [...prev];
+        n[formIndex] = (n[formIndex] ?? []).filter((_, i) => i !== fileIndex);
+        return n;
+      });
+      setInvitationPaths(prev => {
+        const n = [...prev];
+        n[formIndex] = (n[formIndex] ?? []).filter((_, i) => i !== fileIndex);
+        return n;
+      });
+    }
+  };
+
 
   const toggleHasSchengen = (index: number, checked: boolean) => {
     setHasSchengen(prev => {
@@ -274,12 +311,46 @@ const [errors, setErrors] = useState<FormErrors>({
   const hasInvitationFiles = (invitationFiles[0]?.length ?? 0) > 0;
 
 
+
+  const handleDeleteSchengen = async (formIndex: number, fileIndex: number) => {
+    const path = schengenPaths[formIndex]?.[fileIndex];
+    setSchengenLoading(p => { const n=[...p]; n[formIndex]=true; return n; });
+  
+  
+    try {
+      if (path) {
+        await supabase.storage.from('schengen').remove([path]); 
+      }
+    } catch (e) {
+      console.error('Silme hatası:', e);
+    } finally {
+    
+      setSchengenImages(prev => {
+        const n = prev.map(a => [...(a||[])]);
+        n[formIndex] = (n[formIndex] || []).filter((_, i) => i !== fileIndex);
+        return n;
+      });
+      setSchengenFileNames(prev => {
+        const n = prev.map(a => [...(a||[])]);
+        n[formIndex] = (n[formIndex] || []).filter((_, i) => i !== fileIndex);
+        return n;
+      });
+      setSchengenPaths(prev => {
+        const n = prev.map(a => [...(a||[])]);
+        n[formIndex] = (n[formIndex] || []).filter((_, i) => i !== fileIndex);
+        return n;
+      });
+      setSchengenLoading(p => { const n=[...p]; n[formIndex]=false; return n; });
+    }
+  };
+
+
   const handleSchengenUpload = (idx: number, e: React.ChangeEvent<HTMLInputElement>) => {
     (async () => {
       const files = e.target.files;
       if (!files || files.length === 0) return;
   
-      // loading ON
+     
       setSchengenLoading(prev => {
         const next = [...prev];
         next[idx] = true;
@@ -289,7 +360,7 @@ const [errors, setErrors] = useState<FormErrors>({
       try {
         const urls: string[] = [];
         const names: string[] = [];
-  
+        const paths: string[] = [];
         for (const file of Array.from(files)) {
           const ext = file.name.split('.').pop();
           const fileName = `${crypto.randomUUID()}.${ext}`;
@@ -307,6 +378,7 @@ const [errors, setErrors] = useState<FormErrors>({
   
           urls.push(url);
           names.push(file.name);
+          paths.push(filePath);
         }
   
   
@@ -321,6 +393,12 @@ const [errors, setErrors] = useState<FormErrors>({
           next[idx] = [...(next[idx] || []), ...names];
           return next;
         });
+        setSchengenPaths(prev => {
+          const next = prev.map(a => [...a]);
+          next[idx] = [...(next[idx] || []), ...paths];     
+          return next;
+        });
+  
       } catch (err: any) {
         console.error(err);
         alert('❌ Schengen dosyası yüklenemedi: ' + (err?.message || 'Bilinmeyen hata'));
@@ -1575,8 +1653,16 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
 </div> */}
 
 </div>
+<Transition
+  show={hasSchengen[index] }
+  enter="transition-all duration-600 ease-out"
+  enterFrom="opacity-0 -translate-y-2 scale-y-95"
+  enterTo="opacity-100 translate-y-0 scale-y-100"
+  leave="transition-all duration-600 ease-in"
+  leaveFrom="opacity-100 translate-y-0 scale-y-100"
+  leaveTo="opacity-0 -translate-y-2 scale-y-95"
+>
     
-      {hasSchengen[index] && (
  <div className="mb-6">
  <label htmlFor={`schengen-${index}`} className="block text-sm font-semibold text-gray-900 mb-2">
    Son Schengen Vizesi <span className="text-red-500">*</span>
@@ -1661,19 +1747,49 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
  </div>
 
  {schengenImages[index]?.length > 0 && (
-   <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-     {schengenImages[index].map((img, i) => (
-       <div key={i} className="border border-gray-300 rounded p-2 bg-white shadow-sm">
-         <p className="text-xs text-gray-600 mb-1">{schengenFileNames[index]?.[i]}</p>
-         <img src={img} alt={`Schengen ${i}`} className="rounded w-full" />
-       </div>
-     ))}
-   </div>
- )}
-</div>
-)}
+  <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+    {schengenImages[index].map((img, i) => (
+      <div key={i} className="relative border border-gray-300 rounded p-2 bg-white shadow-sm">
+        <p className="text-xs text-gray-600 mb-1 pr-8 truncate">
+          {schengenFileNames[index]?.[i]}
+        </p>
 
-{['Eğitim', 'Ticari'].includes(selectedVisaType) && hasInvitation[index] && (
+     
+        {img.endsWith('.pdf') ? (
+          <iframe src={img} className="rounded w-full h-48" />
+        ) : (
+          <img src={img} alt={`Schengen ${i}`} className="rounded w-full max-h-48 object-contain" />
+        )}
+
+     
+        <button
+          type="button"
+          onClick={() => handleDeleteSchengen(index, i)}
+          className="absolute top-2 right-2 inline-flex items-center justify-center
+          w-7 h-7 rounded-md border border-red-600 bg-red-600 text-white 
+          hover:bg-red-700 text-xs"
+          disabled={schengenLoading[index]}
+          aria-label="Dosyayı sil"
+        >
+          Sil
+        </button>
+      </div>
+    ))}
+  </div>
+)}
+</div>
+
+</Transition>
+<Transition
+  show={['Eğitim','Ticari'].includes(selectedVisaType) && !!hasInvitation[index]}
+  enter="transition-all duration-600 ease-out"
+  enterFrom="opacity-0 -translate-y-2 scale-y-95"
+  enterTo="opacity-100 translate-y-0 scale-y-100"
+  leave="transition-all duration-600 ease-in"
+  leaveFrom="opacity-100 translate-y-0 scale-y-100"
+  leaveTo="opacity-0 -translate-y-2 scale-y-95"
+>
+
   <div className="mb-6">
   <label htmlFor={`invitation-${index}`} className="block text-sm font-semibold text-gray-900 mb-2">
     Davet Mektubu <span className="text-red-500">*</span>
@@ -1694,6 +1810,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
         viewBox="0 0 24 24"
       >
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+        
       </svg>
     ) : (
      
@@ -1738,17 +1855,30 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
       {invitationFiles[index].map((img, i) => (
         <div
           key={i}
-          className="border border-green-300 rounded p-2 bg-white shadow-sm"
+          className="relative border border-green-300 rounded p-2 bg-white shadow-sm"
         >
           <p className="text-xs text-gray-600 mb-1">{invitationFileNames[index][i]}</p>
           <iframe src={img} className="rounded w-full" />
+          
+          <button
+          type="button"
+          onClick={() => handleDeleteInvitation(index, i)}
+          className="absolute top-0 right-2 inline-flex items-center justify-center
+                     w-7 h-7 rounded-md border border-red-600 bg-red-600 text-white
+                     hover:bg-red-700 text-xs"
+        >
+          Sil
+        </button>
+      
         </div>
       ))}
+      
     </div>
   )}
+  
 </div>
-)}
 
+</Transition>
 </div>
 </div>
 
@@ -1765,7 +1895,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
   className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#E50914] px-6 py-3 text-base font-semibold text-white shadow-sm transition-all hover:bg-[#c40811] hover:shadow-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 disabled:opacity-60 disabled:cursor-not-allowed"
 >
   {loading ? (
-    <Loader size="sm" color="white" /> // Loading animasyonu
+    <Loader size="sm" color="white" /> 
   ) : (
     <>
       <svg
