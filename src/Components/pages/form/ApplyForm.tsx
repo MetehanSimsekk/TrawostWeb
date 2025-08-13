@@ -222,26 +222,7 @@ const [errors, setErrors] = useState<FormErrors>({
     });
   };
 
-
-  
-
-
-  const handlePhotoCapture = (index: number) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-  
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const next = [...capturedPhotos];
-      next[index] = reader.result as string;
-      setCapturedPhotos(next);
-    };
-    reader.readAsDataURL(file);
-  };
-
-
-
-  
+ 
   const hasFiles = (schengenImages[0]?.length ?? 0) > 0;
   const total = schengenImages[0]?.length ?? 0;
   
@@ -1365,17 +1346,17 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
   onChange={(e: any) => {
     let v = (e.target as HTMLInputElement).value;
 
-    // İlk tuş 0 ise tek başına 0 boşluk ekle
+ 
     if (v === '0') {
       v = '0 ';
     }
 
-    // İlk karakter 5 ise otomatik 05 yap
+   
     if (v.length === 1 && v === '5') {
       v = '05';
     }
 
-    // İlk karakter 0 değilse ekle
+   
     if (!v.startsWith('0')) {
       v = '0' + v;
     }
@@ -1544,10 +1525,13 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
     </div>
 
     {passportFileName[index] && !passportLoading[index] && (
-      <p className="text-sm text-gray-700 mt-2">
-        Yüklenen Dosya: {passportFileName[index]}
-      </p>
-    )}
+  <div className="flex items-center justify-between mt-2 bg-gray-50 border rounded px-3 py-2">
+    <p className="text-sm text-gray-700 truncate">
+      Yüklenen Dosya: {passportFileName[index]}
+    </p>
+   
+  </div>
+)}
 
 {errors.passport?.[index] && (
   <p className="mt-2 text-sm text-red-600">{errors.passport[index]}</p>
