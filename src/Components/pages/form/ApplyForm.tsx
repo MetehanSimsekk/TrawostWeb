@@ -941,14 +941,20 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
               });
             }
           }}
-          className={`relative size-4 appearance-none rounded-full border 
-            ${errors.maritalStatus ? 'border-red-500' : 'border-gray-300'} bg-white
+          className={`relative size-4 appearance-none rounded-full border border-gray-300 bg-white
+          
             checked:border-red-600 checked:bg-white
             before:absolute before:inset-1 before:rounded-full
             before:bg-red-600 before:scale-0 checked:before:scale-100
             transition-all duration-200 ease-in-out
             focus:outline-none focus:ring-2 focus:ring-red-600`}
         />
+          
+           
+           
+         
+           
+        
         {status}
       </label>
     ))}
@@ -1025,8 +1031,8 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
               });
             }
           }}
-          className={`relative size-4 appearance-none rounded-full border 
-            ${errors.workStatus ? 'border-red-500' : 'border-gray-300'} bg-white
+          className={`relative size-4 appearance-none rounded-full border border-gray-300 bg-white
+          
             checked:border-red-600 checked:bg-white
             before:absolute before:inset-1 before:rounded-full
             before:bg-red-600 before:scale-0 checked:before:scale-100
