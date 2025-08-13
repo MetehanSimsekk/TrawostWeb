@@ -176,13 +176,13 @@ async function handleAppointmentStatusChange(newStatus: any) {
 
 </Group>
 <Badge
-        color={status === 'Randevu Alınacak' ? 'red' : 'green'}
+        color={appointmentStatus === 'Randevu Alınacak' ? 'red' : 'green'}
         variant="light"
         size="lg"
         radius="xl"
-        leftSection={status === 'Randevu Alınacak' ? <IconClock size={14}/> : <IconCheck size={14}/>}
+        leftSection={appointmentStatus === 'Randevu Alınacak' ? <IconClock size={14}/> : <IconCheck size={14}/>}
       >
-        {status}
+        {appointmentStatus}
       </Badge>
             </Group>
   
@@ -226,7 +226,7 @@ async function handleAppointmentStatusChange(newStatus: any) {
    
     setSelectedApp({
       ...app,
-      appointment_status: status 
+      appointment_status: appointmentStatus 
     });
     setOpened(true);
   }}

@@ -87,15 +87,6 @@ export default function AdminDashboard() {
   }, [applications]);
   
 
-  const groupCounts = useMemo(() => {
-    const m = new Map<string, number>();
-    applications.forEach((a: any) => {
-      const k = a.basvuru_grup_kodu ?? "";
-      if (!k) return;
-      m.set(k, (m.get(k) || 0) + 1);
-    });
-    return m;
-  }, [applications]);
   
   const filteredApplications = useMemo(() => {
     return applications.filter((app: any) => {
@@ -142,7 +133,17 @@ export default function AdminDashboard() {
   //   return matchName && matchStatus && matchCountry;
   // });
 
+  const leaderIdByGroup = new Map<string, string>();
 
+  groupedByCode.forEach((arr: any[], code: string) => {
+    const sorted = [...arr].sort((a, b) => {
+      const ta = new Date(a.created_at ?? 0).getTime();
+      const tb = new Date(b.created_at ?? 0).getTime();
+      if (ta !== tb) return ta - tb;        
+      return String(a.id).localeCompare(String(b.id)); 
+    });
+    leaderIdByGroup.set(code, sorted[0]?.id);
+  });
   
   const handleRemoveFromList = (id: string) => {
     setApplications((prev) => prev.filter((app) => app.id !== id));
@@ -270,28 +271,39 @@ export default function AdminDashboard() {
   <IconUser size={20} /> Başvurular ({filteredApplications.length})
 </Title>
 
-{filteredApplications.map((app: any) => {
-  const list = groupedByCode.get(app.basvuru_grup_kodu) || [];
-  const relatedApps = list.filter(x => x.id !== app.id); // diğerleri
-  return (
-    <ApplicationCard
-    key={app.id}
-    app={app}
-    isFamily={relatedApps.length > 0}
-    relatedApps={relatedApps}
-    onDelete={handleRemoveFromList}
 
-    status={statusById[app.id] ?? 'Randevu Alınacak'}
-    setStatus={(v) =>
-      setStatusById(s => ({ ...s, [app.id]: v }))
-    }
-    onOpen={(payload) => {
-      setSelectedApp({ ...payload, appointment_status: statusById[app.id] ?? payload.appointment_status });
-      setOpened(true);
-    }}
-  />
-  );
-})}
+
+{filteredApplications
+  .filter((app: any) => {
+    if (!app.basvuru_grup_kodu) return true; 
+    const leaderId = leaderIdByGroup.get(app.basvuru_grup_kodu);
+    return app.id === leaderId;            
+  })
+  .map((app: any) => {
+    const group = groupedByCode.get(app.basvuru_grup_kodu) || [];
+    const leaderId = leaderIdByGroup.get(app.basvuru_grup_kodu);
+    const relatedApps = group.filter((x: any) => x.id !== leaderId);
+
+    return (
+      <ApplicationCard
+        key={app.id}
+        app={app}
+        isFamily={relatedApps.length > 0}
+        relatedApps={relatedApps}
+        onDelete={handleRemoveFromList}
+        status={statusById[app.id] ?? 'Randevu Alınacak'}
+        setStatus={(v) => setStatusById(s => ({ ...s, [app.id]: v }))}
+        onOpen={(payload) => {
+          setSelectedApp({
+            ...payload,
+            appointment_status:
+              statusById[app.id] ?? payload.appointment_status
+          });
+          setOpened(true);
+        }}
+      />
+    );
+  })}
     </Container>
     </div>
   );

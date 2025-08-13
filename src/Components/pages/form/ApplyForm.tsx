@@ -121,13 +121,13 @@ const [errors, setErrors] = useState<FormErrors>({
   type Gender = 'Erkek' | 'Kadın';
   type MaritalStatus = 'Bekar' | 'Evli' | 'Boşanmış' | 'Dul';
   type WorkStatus = 'Çalışıyor' | 'Emekli' | 'Öğrenci' | 'Çalışmıyor';
-  type VisaType = 'Schengen' | 'Eğitim' | 'Ticari';
+  type VisaType = 'Turistik' | 'Eğitim' | 'Ticari';
    interface ApplicationData {
     full_name: string;
     surname: string;
     basvuru_grup_kodu: string;
     country: string;
-    visa_type: 'Schengen' | 'Eğitim' | 'Ticari';
+    visa_type: 'Turistik' | 'Eğitim' | 'Ticari';
     gender: Gender;
     marital_status: MaritalStatus;
     work_status: WorkStatus;
@@ -242,8 +242,9 @@ const [errors, setErrors] = useState<FormErrors>({
 
 
   
-
-
+  const hasFiles = (schengenImages[0]?.length ?? 0) > 0;
+  const total = schengenImages[0]?.length ?? 0;
+  
   const toggleHasInvitation = (index: number, checked: boolean) => {
     setHasInvitation(prev => {
       const next = [...prev];
@@ -289,7 +290,7 @@ const [errors, setErrors] = useState<FormErrors>({
       e.target.value = '';
     }
   };
-  
+  const hasInvitationFiles = (invitationFiles[0]?.length ?? 0) > 0;
 
 
   const handleSchengenUpload = (idx: number, e: React.ChangeEvent<HTMLInputElement>) => {
@@ -359,8 +360,43 @@ const [errors, setErrors] = useState<FormErrors>({
     setEmailError(isValid ? '' : 'Geçerli bir e-posta girin');
     setShowTooltip(!isValid);
   };
+
+
+
+  const countriesWithFlags = [
+    { name: 'Almanya', flag: '🇩🇪' },
+    { name: 'Avusturya', flag: '🇦🇹' },
+    { name: 'Belçika', flag: '🇧🇪' },
+    { name: 'Çekya', flag: '🇨🇿' },
+    { name: 'Danimarka', flag: '🇩🇰' },
+    { name: 'Estonya', flag: '🇪🇪' },
+    { name: 'Finlandiya', flag: '🇫🇮' },
+    { name: 'Fransa', flag: '🇫🇷' },
+    { name: 'Hollanda', flag: '🇳🇱' },
+    { name: 'Hırvatistan', flag: '🇭🇷' },
+    { name: 'İspanya', flag: '🇪🇸' },
+    { name: 'İsveç', flag: '🇸🇪' },
+    { name: 'İtalya', flag: '🇮🇹' },
+    { name: 'Letonya', flag: '🇱🇻' },
+    { name: 'Litvanya', flag: '🇱🇹' },
+    { name: 'Lüksemburg', flag: '🇱🇺' },
+    { name: 'Macaristan', flag: '🇭🇺' },
+    { name: 'Malta', flag: '🇲🇹' },
+    { name: 'Polonya', flag: '🇵🇱' },
+    { name: 'Portekiz', flag: '🇵🇹' },
+    { name: 'Slovakya', flag: '🇸🇰' },
+    { name: 'Slovenya', flag: '🇸🇮' },
+    { name: 'Yunanistan', flag: '🇬🇷' },
+    { name: 'İzlanda', flag: '🇮🇸' },
+    { name: 'Lihtenştayn', flag: '🇱🇮' },
+    { name: 'Norveç', flag: '🇳🇴' },
+    { name: 'İsviçre', flag: '🇨🇭' },
+    { name: 'İngiltere', flag: '🇬🇧' },
+  ];
+
+
   const validateForm = () => {
-    // basit yardımcılar
+    
     const get = (arr: string[] | undefined, i: number) =>
       Array.isArray(arr) && typeof arr[i] === 'string' ? arr[i] : '';
   
@@ -431,7 +467,7 @@ const [errors, setErrors] = useState<FormErrors>({
       if (!ph.trim()) {
         nextErrors.phone[i] = 'Telefon numarası zorunludur.';
         isValid = false;
-      } else if (digits.length !== 12) {
+      } else if (digits.length !== 11) {
         nextErrors.phone[i] = 'Geçerli bir telefon numarası giriniz.';
         isValid = false;
       } else {
@@ -517,6 +553,8 @@ const [errors, setErrors] = useState<FormErrors>({
       return (val ?? fallback) as T;
     };
   
+
+
 
     const baseData: Pick<ApplicationData, 'basvuru_grup_kodu' | 'country' | 'visa_type' | 'previous_schengen_url' | 'invitation_letter_url'> = {
       basvuru_grup_kodu: groupId,
@@ -633,34 +671,27 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
     leaveFrom="transform opacity-100 scale-100"
     leaveTo="transform opacity-0 scale-95"
   >
-          <MenuItems className="absolute z-10 mt-2 w-full rounded-lg bg-white text-black shadow-lg ring-1 ring-black/10 focus:outline-none">
-            <div className="py-1">
-              {[
-  'Danimarka',
-  'Almanya',
-  'Fransa',
-  'İtalya',
-  'İspanya',
-  'Hollanda',
-  'Belçika',
-  'Avusturya',
-  'İsviçre',
-].map((country) => (
-                <MenuItem key={country}>
-                  {({ active }) => (
-                    <button
-                      onClick={() => setSelectedCountry(country)}
-                      className={`${
-                        active ? 'bg-red-100 text-red-800' : 'text-gray-900'
-                      } block w-full text-left px-4 py-2 text-base font-medium`}
-                    >
-                      {country}
-                    </button>
-                  )}
-                </MenuItem>
-              ))}
-            </div>
-          </MenuItems>
+        <MenuItems
+  className="absolute z-10 mt-2 w-full rounded-lg bg-white text-black shadow-lg ring-1 ring-black/10 focus:outline-none max-h-64 overflow-y-auto"
+>
+  <div className="py-1">
+    {countriesWithFlags.map(({ name, flag }) => (
+      <MenuItem key={name}>
+        {({ active }) => (
+          <button
+            onClick={() => setSelectedCountry(name)}
+            className={`${
+              active ? 'bg-red-100 text-red-800' : 'text-gray-900'
+            } flex items-center gap-2 w-full text-left px-4 py-2 text-base font-medium`}
+          >
+            <span className="text-lg">{flag}</span>
+            {name}
+          </button>
+        )}
+      </MenuItem>
+    ))}
+  </div>
+</MenuItems>
           </Transition>
         </Menu>
       </div>
@@ -692,7 +723,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
     >
       <MenuItems className="absolute z-10 mt-2 w-full rounded-lg bg-white text-black shadow-lg ring-1 ring-black/10 focus:outline-none">
         <div className="py-1">
-          {['Schengen', 'Eğitim', 'Ticari'].map((type:any) => (
+          {['Turistik', 'Eğitim', 'Ticari'].map((type:any) => (
             <MenuItem key={type}>
               {({ active }) => (
                 <button
@@ -1327,17 +1358,34 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
         Telefon <span className="text-red-500">*</span>
       </label>
       <div className="mt-2">
-      <Cleave
+     <Cleave
   id={`phone-${index}`}
   options={{ phone: true, phoneRegionCode: 'TR' }}
   value={phone[index] ?? ''}
   onChange={(e: any) => {
-    const v = (e.target as HTMLInputElement).value;
+    let v = (e.target as HTMLInputElement).value;
+
+    // İlk tuş 0 ise tek başına 0 boşluk ekle
+    if (v === '0') {
+      v = '0 ';
+    }
+
+    // İlk karakter 5 ise otomatik 05 yap
+    if (v.length === 1 && v === '5') {
+      v = '05';
+    }
+
+    // İlk karakter 0 değilse ekle
+    if (!v.startsWith('0')) {
+      v = '0' + v;
+    }
+
     setPhone(prev => {
       const n = [...prev];
       n[index] = v;
       return n;
     });
+
     if (errors.phone?.[index]) {
       setErrors(p => {
         const arr = [...(p.phone || [])];
@@ -1346,7 +1394,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
       });
     }
   }}
-  placeholder="(+90) 5xx xxx xx xx"
+  placeholder="05xx xxx xx xx"
   aria-invalid={!!errors.phone?.[index]}
   inputMode="tel"
   className={`block w-full rounded-lg px-4 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset
@@ -1355,6 +1403,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
       : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:border-gray-300 focus:ring-2 focus:ring-gray-300 focus:ring-offset-0'
     }`}
 />
+
 
 {errors.phone?.[index] && (
   <p className="mt-1 text-sm text-red-600">{errors.phone[index]}</p>
@@ -1376,7 +1425,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
   </h2>
 </div>
   {/* Schengen Sorusu */}
-  {selectedVisaType === 'Schengen' && (
+  {selectedVisaType === 'Turistik' && (
   <div className="mb-6">
     <label className="block text-m font-semibold text-gray-900 mb-2">
       Daha önce Schengen vizesi aldınız mı?
@@ -1459,7 +1508,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
 
   <div className="mb-6 flex flex-col md:flex-row gap-4">
 
-  <div className="w-full md:w-1/2">
+  <div className="w-full">
     <label className="block text-sm font-semibold text-gray-900 mb-2">
       Pasaport Görseli <span className="text-red-500">*</span>
     </label>
@@ -1505,7 +1554,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
 )}
   </div>
 
-
+{/* 
   <div className="w-full md:w-1/2">
   <label className="block text-sm font-semibold text-gray-900 mb-2">
     <span className="text-white">*</span>
@@ -1539,7 +1588,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
       <Loader size="sm" color="red" />
     </div>
   )}
-</div>
+</div> */}
 
 </div>
     
@@ -1553,15 +1602,60 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
    <label
      htmlFor={`schengen-${index}`}
      className={`border-2 border-dashed border-red-400 rounded-lg p-6 text-center cursor-pointer transition block
-       ${schengenLoading[index] ? 'pointer-events-none opacity-60' : 'hover:bg-red-50'}`}
+       ${schengenLoading[index] ? 'pointer-events-none opacity-60' : 'hover:bg-red-50'}
+        ${hasFiles ? 'border-gray-300' : 'border-red-400'}
+       `}
    >
-     <svg className="mx-auto mb-2 h-6 w-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-         d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M12 12v9m0 0l-3-3m3 3l3-3M12 3v9" />
-     </svg>
-     <p className="text-sm text-gray-600">Dosya(lar) seçmek için tıklayın</p>
-     <p className="text-xs text-gray-400 mt-1">JPG, PNG veya PDF</p>
+  {hasFiles ? (
+ 
+    <svg
+      className="mx-auto mb-2 h-6 w-6 text-red-500"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M12 4v16m8-8H4"
+      />
+    </svg>
+  ) : (
+    
+    <svg
+      className="mx-auto mb-2 h-6 w-6 text-red-500"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M12 12v9m0 0l-3-3m3 3l3-3M12 3v9"
+      />
+    </svg>
+  )}
+     
+   
+  <p className="text-sm font-medium">
+    {hasFiles ? 'Yeni dosya ekle' : 'Dosya(lar) seçmek için tıklayın'}
+  </p>
 
+
+  <p className="text-xs text-gray-500 mt-1">
+    JPG, PNG veya PDF {hasFiles && `• Yüklü: ${total}`}
+  </p>
+
+
+  {hasFiles && (
+    <p className="text-xs text-gray-400 mt-1">
+      Daha fazla dosya eklemek için bu kutuya tekrar tıklayın.
+    </p>
+  )}
      <input
        type="file"
        id={`schengen-${index}`}
@@ -1597,14 +1691,28 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
 
 {['Eğitim', 'Ticari'].includes(selectedVisaType) && hasInvitation[index] && (
   <div className="mb-6">
-    <label htmlFor={`invitation-${index}`} className="block text-sm font-semibold text-gray-900 mb-2">
-      Davet Mektubu <span className="text-red-500">*</span>
-    </label>
+  <label htmlFor={`invitation-${index}`} className="block text-sm font-semibold text-gray-900 mb-2">
+    Davet Mektubu <span className="text-red-500">*</span>
+  </label>
 
-    <label
-      htmlFor={`invitation-${index}`}
-      className="border-2 border-dashed border-red-400 rounded-lg p-6 text-center cursor-pointer hover:bg-red-50 transition block"
-    >
+  <label
+    htmlFor={`invitation-${index}`}
+    className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition block
+      ${hasInvitationFiles ? 'border-red-300 hover:bg-red-50' : 'border-red-400 hover:bg-red-50'}
+    `}
+  >
+    {hasInvitationFiles ? (
+    
+      <svg
+        className="mx-auto mb-2 h-6 w-6 text-red-500"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+      </svg>
+    ) : (
+     
       <svg
         className="mx-auto mb-2 h-6 w-6 text-red-500"
         fill="none"
@@ -1618,32 +1726,43 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
           d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M12 12v9m0 0l-3-3m3 3l3-3M12 3v9"
         />
       </svg>
-      <p className="text-sm text-gray-600">Dosya(lar) seçmek için tıklayın</p>
-      <p className="text-xs text-gray-400 mt-1">JPG, PNG veya PDF</p>
-      <input
-        type="file"
-        id={`invitation-${index}`}
-        multiple
-        className="hidden"
-        accept=".jpg,.jpeg,.png,.pdf"
-        onChange={(e) => handleInvitationUpload(index, e)}
-      />
-    </label>
-
-    {invitationFiles[index]?.length > 0 && (
-      <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {invitationFiles[index].map((img, i) => (
-          <div
-            key={i}
-            className="border border-gray-300 rounded p-2 bg-white shadow-sm"
-          >
-           <p className="text-xs text-gray-600 mb-1">{invitationFileNames[index][i]}</p>
-            <iframe src={img}  className="rounded w-full" />
-          </div>
-        ))}
-      </div>
     )}
-  </div>
+
+    <p className="text-sm text-gray-600">
+      {hasInvitationFiles ? 'Yeni dosya ekle' : 'Dosya(lar) seçmek için tıklayın'}
+    </p>
+    <p className="text-xs text-gray-400 mt-1">
+      JPG, PNG veya PDF {hasInvitationFiles && `• Yüklü: ${(invitationFiles[index]?.length ?? 0)}`}
+    </p>
+    {hasInvitationFiles && (
+    <p className="text-xs text-gray-400 mt-1">
+      Daha fazla dosya eklemek için bu kutuya tekrar tıklayın.
+    </p>
+  )}
+    <input
+      type="file"
+      id={`invitation-${index}`}
+      multiple
+      className="hidden"
+      accept=".jpg,.jpeg,.png,.pdf"
+      onChange={(e) => handleInvitationUpload(index, e)}
+    />
+  </label>
+
+  {hasInvitationFiles && (
+    <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+      {invitationFiles[index].map((img, i) => (
+        <div
+          key={i}
+          className="border border-green-300 rounded p-2 bg-white shadow-sm"
+        >
+          <p className="text-xs text-gray-600 mb-1">{invitationFileNames[index][i]}</p>
+          <iframe src={img} className="rounded w-full" />
+        </div>
+      ))}
+    </div>
+  )}
+</div>
 )}
 
 </div>
