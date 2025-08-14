@@ -1654,7 +1654,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
 
 </div>
 <Transition
-  show={hasSchengen[index] }
+   show={!!hasSchengen?.[index]}
   enter="transition-all duration-600 ease-out"
   enterFrom="opacity-0 -translate-y-2 scale-y-95"
   enterTo="opacity-100 translate-y-0 scale-y-100"
@@ -1780,6 +1780,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
 </div>
 
 </Transition>
+
 <Transition
   show={['Eğitim','Ticari'].includes(selectedVisaType) && !!hasInvitation[index]}
   enter="transition-all duration-600 ease-out"
