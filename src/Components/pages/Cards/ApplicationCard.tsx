@@ -15,7 +15,7 @@ import {
     Modal,
   } from '@mantine/core';
   import { IconUser, IconCalendar, IconCalendarCheck, IconGlobe, IconSearch, IconEye, IconTrash, IconClock, IconUsers } from '@tabler/icons-react';
-  import { JSX, useState } from 'react';
+  import { JSX, useEffect, useState } from 'react';
   import { IconCheck, IconPlaneTilt } from '@tabler/icons-react';
   import { DatePickerInput, DateTimePicker } from '@mantine/dates';
 import ApplicationDetailModal from './ApplicationDetailModal';
@@ -43,6 +43,7 @@ export function ApplicationCard({
     
     const [appointmentStatus, setAppointmentStatus] = useState(app.appointment_status);
     const [ticketStatus, setTicketStatus] = useState<boolean>(app.flight_ticket ?? false);
+    const [kisiSayisi, setKisiSayisi] = useState<number>(0);
 
     
     const [appointmentDate, setAppointmentDate] = useState<Date | any>(app.appointment_date);
@@ -56,6 +57,7 @@ const [statusById, setStatusById] = useState<Record<string, string>>({});
 
 
 async function handleAppointmentStatusChange(newStatus: any) {
+  
     if (!newStatus) return;
   
     const prevStatus = appointmentStatus;
@@ -81,7 +83,14 @@ async function handleAppointmentStatusChange(newStatus: any) {
     }
  
   }
- 
+
+
+
+
+  useEffect(() => {
+    const kisiSayisiCount = isFamily ? (relatedApps.length + 1) : 1;
+    setKisiSayisi(kisiSayisiCount);
+  }, [isFamily, relatedApps]);
 
   async function handleAppointmentDateChange(newDate: Date | null) {
   
@@ -212,7 +221,7 @@ async function handleAppointmentStatusChange(newStatus: any) {
                   <IconUser size={16} color="violet" />
                   <div>
                     <Text size="xs" c="dimmed">Başvuru Sayısı</Text>
-                    <Text fw={500} c="violet">1</Text>
+                    <Text fw={500} c="violet">{kisiSayisi}</Text>
                   </div>
                 </Group>
               </Card>

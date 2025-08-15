@@ -3,6 +3,7 @@ import { Alert, Badge, Card, Divider, Group, Modal, SimpleGrid, Text, Title } fr
 import { IconMapPin, IconMail, IconPhone, IconUser, IconCheck, IconEye, IconClock, IconUsers } from '@tabler/icons-react';
 import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
+import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 
 export default function ApplicationDetailModal(props: { app: any; title: string; isFamily?: boolean }) {
 
@@ -270,26 +271,63 @@ function normalizeToUrls(raw: unknown): string[] {
       <IconEye size={32} className="text-white cursor-pointer" />
     </div>
   )}
+
+
+
 <Modal
   opened={showPasaportModal}
   onClose={() => setShowPasaportModal(false)}
-    size="68%"
+  size="68%"
   radius="md"
   centered
+  
 >
   {passportUrl ? (
     passportUrl.endsWith(".pdf") ? (
+     
       <iframe
         src={passportUrl}
         title="Pasaport PDF"
         style={{ width: "100%", height: "80vh", border: "none" }}
       />
     ) : (
-      <img
-        src={passportUrl}
-        alt="Pasaport Görseli"
-        className="max-w-full max-h-[80vh] mx-auto rounded-md shadow"
-      />
+      <TransformWrapper
+        initialScale={1}
+        minScale={1}
+        maxScale={10}
+        wheel={{ step: 0.15 }}
+        doubleClick={{ disabled: false, step: 1.3 }}
+        pinch={{ step: 5 }}
+        limitToBounds={true}
+        
+      >
+        {({ zoomIn, zoomOut, resetTransform }) => (
+          <>
+        
+        <div className="flex gap-2 justify-end">
+  <button onClick={() => zoomOut()} className="px-3 py-1 rounded bg-gray-200">−</button>
+  <button onClick={() => zoomIn()} className="px-3 py-1 rounded bg-gray-200">+</button>
+  <button onClick={() => resetTransform()} className="px-3 py-1 rounded bg-gray-200">Sıfırla</button>
+</div>
+
+            <TransformComponent
+                wrapperStyle={{ width:'100%', height:'80vh', background:'#000' }}  
+                contentStyle={{
+                  width:'100%', height:'100%',
+                  display:'flex', alignItems:'center', justifyContent:'center',
+                  background:'white'
+                }}
+            >
+              <img
+                src={passportUrl}
+                alt="Pasaport Görseli"
+                className="max-w-full max-h-[80vh] mx-auto rounded-md shadow select-none"
+                draggable={false}
+              />
+            </TransformComponent>
+          </>
+        )}
+      </TransformWrapper>
     )
   ) : (
     <Text c="dimmed">Pasaport dosyası bulunamadı.</Text>
@@ -496,24 +534,55 @@ function normalizeToUrls(raw: unknown): string[] {
     if (typeof url !== 'string' || !url) {
       return <Text c="dimmed">Schengen dosyası bulunamadı.</Text>;
     }
+
     const isPdf = url.toLowerCase().endsWith('.pdf');
 
-    return isPdf! ? (
+    return isPdf ? (
       <iframe
         src={url}
         title="Schengen PDF"
         style={{ width: '100%', height: '80vh', border: 'none' }}
       />
     ) : (
-      <img
-        src={url}
-        alt="Schengen Belgesi"
-        className="max-w-[90%] max-h-[70vh] mx-auto rounded-md shadow-lg"
-      />
+      <TransformWrapper
+        initialScale={1}
+        minScale={1}
+        maxScale={5}
+        wheel={{ step: 0.15 }}
+        doubleClick={{ disabled: false, step: 1.3 }}
+        pinch={{ step: 5 }}
+        limitToBounds={true}
+        centerOnInit={true}
+      >
+        {({ zoomIn, zoomOut, resetTransform }) => (
+          <>
+            <div className="flex gap-2 justify-end mb-2">
+            <button onClick={() => zoomOut()} className="px-3 py-1 rounded bg-gray-200">−</button>
+  <button onClick={() => zoomIn()} className="px-3 py-1 rounded bg-gray-200">+</button>
+  <button onClick={() => resetTransform()} className="px-3 py-1 rounded bg-gray-200">Sıfırla</button>
+            </div>
+
+            <TransformComponent
+              wrapperStyle={{ width:'100%', height:'80vh', background:'#000' }}  
+              contentStyle={{
+                width:'100%', height:'100%',
+                display:'flex', alignItems:'center', justifyContent:'center',
+                background:'white'
+              }}
+            >
+              <img
+                src={url}
+                alt="Schengen Belgesi"
+                className="max-w-full max-h-[70vh] mx-auto rounded-md shadow-lg select-none"
+                draggable={false}
+              />
+            </TransformComponent>
+          </>
+        )}
+      </TransformWrapper>
     );
   })()}
 
- 
   {schengenUrl.length > 1 && (
     <div className="mt-4 flex gap-2 flex-wrap">
       {schengenUrl.map((u, i) => (
