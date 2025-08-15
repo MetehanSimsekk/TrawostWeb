@@ -87,8 +87,8 @@ function normalizeToUrls(raw: unknown): string[] {
   return [];
 }
   return (
-    <div className="w-full px-0">
-    <div className="bg-white rounded-xl shadow-lg p-6">
+<div className="w-full px-0 sm:px-4">
+<div className="bg-white rounded-xl shadow-lg p-0 sm:p-6">
     <Card
   withBorder
   radius="md"
