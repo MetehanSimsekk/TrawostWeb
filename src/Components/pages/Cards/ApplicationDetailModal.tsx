@@ -7,10 +7,10 @@ import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 
 export default function ApplicationDetailModal(props: { app: any; title: string; isFamily?: boolean }) {
 
-    const [hovered, setHovered] = useState(false);
-    const [hovered2, setHovered2] = useState(false);
+const [hovered, setHovered] = useState(false);
+const [hovered2, setHovered2] = useState(false);
 
-    const [showPasaportModal, setShowPasaportModal] = useState(false);
+const [showPasaportModal, setShowPasaportModal] = useState(false);
 const [showSchengenModal, setShowSchengenModal] = useState(false);
 const [passportUrl, setPassportUrl] = useState<string | null>(null);
 const [schengenUrl, setSchengenUrl] = useState<string[]>([]);
@@ -67,6 +67,11 @@ const toUrlArray = (input: unknown): string[] => {
   }
   return [];
 };
+
+
+
+
+
 function normalizeToUrls(raw: unknown): string[] {
   if (!raw) return [];
   if (Array.isArray(raw)) return raw.filter(Boolean) as string[];
@@ -98,16 +103,16 @@ function normalizeToUrls(raw: unknown): string[] {
   className="w-full"
   style={{ maxWidth: '200%' }}
 >
-     
-      <Group justify="space-between" mb="lg">
-      <Title order={2} className="text-red-600 flex items-center gap-2">
+  <Group justify="space-between" mb="lg">
+
+    <Title order={2} className="text-red-600 flex items-center gap-2">
         {props.isFamily ? (
           <IconUsers size={28} />
         ) : (
           <IconUser size={28} />
         )}
         {props.title}
-      </Title>
+    </Title>
   
   <Group gap="m">
     <Badge
@@ -605,13 +610,6 @@ function normalizeToUrls(raw: unknown): string[] {
 </Modal>
 </Card>
 )}
-
-
-
-
-
-
-
 
 </SimpleGrid>
       <Text size="sm" fw={600} c="dimmed" mt="lg" mb="xs">Başvuru Özeti</Text>

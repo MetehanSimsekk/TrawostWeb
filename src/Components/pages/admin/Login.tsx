@@ -9,17 +9,27 @@ export default function Login() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const { data, error } = await supabase
-      .from("admins")
-      .select("*")
-      .eq("email", email)
-      .eq("password", password)
-      .single();
-
-    if (error || !data) {
-      alert("Hatalı giriş bilgileri ❌");
+    const { data: authData, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    
+    if (error) {
+      alert("Hatalı giriş");
       return;
     }
+    
+
+    const { data: adminData } = await supabase
+  .from("admins")
+  .select("*")
+  .eq("email", authData.user.email)
+  .single();
+
+if (!adminData) {
+  alert("Admin yetkiniz yok ");
+  return;
+}
 
     localStorage.setItem("isAdmin", "true");
     navigate('/admin')
