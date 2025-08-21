@@ -15,7 +15,7 @@ console.log('TARGET URLLL ' + TARGET_KEY)
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Methods":"POST, PATCH, DELETE, OPTIONS" ,
   "Access-Control-Allow-Headers": "authorization, content-type, apikey, x-client-info, x-supabase-authorization",
   "Content-Type": "application/json",
 };
@@ -37,31 +37,49 @@ Deno.serve(async (req) => {
       Prefer: "return=representation", 
     };
 
-    if (b.action === "update_ticket") {
-      if (!b.user_id) return json({ ok: false, error: "user_id zorunlu" }, 400);
+    // if (b.action === "update_ticket") {
+    //   if (!b.user_id) return json({ ok: false, error: "user_id zorunlu" }, 400);
      
 
+    //   const resp = await fetch(
+    //     `${TARGET_URL}/rest/v1/appointments?user_id=eq.${encodeURIComponent(b.user_id)}`,
+    //     {
+    //       method: "PATCH",
+    //       headers,
+    //       body: JSON.stringify({ 
+    //         user_id: b.user_id,
+    //         flight_booked: b.flight_booked ,
+        
+
+    //       }),
+    //     }
+    //   );
+
+    //   const txt = await resp.text();
+    //   if (!resp.ok) {
+    //     return json({ ok: false, status: resp.status, error: txt || resp.statusText }, resp.status);
+    //   }
+
+    //   const arr = txt ? JSON.parse(txt) : [];
+    //   return json({ ok: true, updated: Array.isArray(arr) ? arr.length : 0, rows: arr });
+    // }
+    if (b.action === "delete_calendar") {
+      if (!b.user_id) return json({ ok: false, error: "user_id zorunlu" }, 400);
+    
       const resp = await fetch(
         `${TARGET_URL}/rest/v1/appointments?user_id=eq.${encodeURIComponent(b.user_id)}`,
         {
-          method: "PATCH",
+          method: "DELETE",
           headers,
-          body: JSON.stringify({ 
-            user_id: b.user_id,
-            flight_booked: b.flight_booked ,
-        
-
-          }),
         }
       );
-
+    
       const txt = await resp.text();
       if (!resp.ok) {
         return json({ ok: false, status: resp.status, error: txt || resp.statusText }, resp.status);
       }
-
       const arr = txt ? JSON.parse(txt) : [];
-      return json({ ok: true, updated: Array.isArray(arr) ? arr.length : 0, rows: arr });
+      return json({ ok: true, deleted: Array.isArray(arr) ? arr.length : 0, rows: arr });
     }
     if (b.id) {
       const byId = await fetch(

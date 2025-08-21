@@ -640,6 +640,7 @@ const [errors, setErrors] = useState<FormErrors>({
   
       const currentData: ApplicationData = {
         ...baseData,
+        
         full_name: pickAt(firstName as any, i, '').trim(),
         surname: pickAt(lastName as any, i, '').trim(),
         gender: pickAt(genders as any, i, '') as Gender,

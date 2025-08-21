@@ -56,34 +56,62 @@ const [statusById, setStatusById] = useState<Record<string, string>>({});
 
 
 
-async function handleAppointmentStatusChange(newStatus: any) {
-  
-    if (!newStatus) return;
-  
-    const prevStatus = appointmentStatus;
-    setAppointmentStatus(newStatus); 
-  
-    const { error } = await supabase
-      .from('applications')
-      .update({ appointment_status: newStatus })
-      .eq('id', app.id);
-      notifications.show({
-        title: 'Bilgi',
-        message: (
-            <>
-              Randevu durumu <strong className="font-bold">{newStatus}</strong> olarak güncellendi.
-            </>
-          ),
-        color: 'red',
-        autoClose: 3000,
-      });
-    if (error) {
-      console.error('Güncelleme hatası:', error.message);
-      setAppointmentStatus(prevStatus); 
-    }
- 
+async function handleAppointmentStatusChange(newStatus: string | null) {
+  if (!newStatus) return;
+
+  const prevStatus = appointmentStatus;
+  const prevDate = appointmentDate;
+
+
+  if (newStatus === "Randevu Alındı" && !appointmentDate) {
+    alert("Lütfen önce randevu tarihi seçiniz.");
+    return;
   }
 
+  setAppointmentStatus(newStatus);
+
+
+  let dbUpdate: any = {};
+  if (newStatus === "Randevu Alınacak") {
+    dbUpdate = { appointment_status: null, appointment_date: null };
+    setAppointmentDate(null);
+  } else {
+    dbUpdate = { appointment_status: newStatus };
+  }
+
+  const { error: errA } = await supabase
+    .from("applications")
+    .update(dbUpdate)
+    .eq("id", app.id);
+
+  if (errA) {
+    console.error("Güncelleme hatası:", errA.message);
+    setAppointmentStatus(prevStatus);
+    setAppointmentDate(prevDate);
+    return;
+  }
+
+
+  if (newStatus === "Randevu Alınacak") {
+    const payload = { action: "delete_calendar", user_id: app.id };
+    const { error: errFn } = await supabase.functions.invoke("bridge-to-b", { body: payload });
+    if (errFn) {
+      console.error("Takvim silme hatası:", errFn.message);
+     
+    }
+  }
+
+  notifications.show({
+    title: "Bilgi",
+    message:(
+    <span className="text-lg">
+    Randevu durumu <strong className="font-bold">{newStatus}</strong> olarak güncellendi.</span>
+)
+    ,
+    color: "red",
+    autoClose: 3000,
+  });
+}
 
 
 
@@ -110,7 +138,8 @@ async function handleAppointmentStatusChange(newStatus: any) {
         .eq("id", app.id);
       if (errA) throw new Error(errA.message);
   
-    
+
+      setAppointmentStatus('Randevu Alındı');
       const payload = {
         user_id: app.id,            
         first_name: app.full_name,
@@ -127,6 +156,7 @@ async function handleAppointmentStatusChange(newStatus: any) {
       });
       if (errFn) throw new Error(errFn.message);
   
+
 
       notifications.show({
         title: 'Bilgi',
