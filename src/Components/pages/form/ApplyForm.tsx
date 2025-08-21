@@ -16,6 +16,8 @@ import { PaperAirplaneIcon } from '@heroicons/react/24/outline';
 import { DocumentDuplicateIcon } from '@heroicons/react/24/outline';
 import { v4 as uuidv4 } from 'uuid';
 import toast from "react-hot-toast";
+import ReactCountryFlag from "react-country-flag";
+
 import { Loader } from "@mantine/core";
 export default function ApplyForm({ value, onChange }: { value: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void }) {
   const [selectedCountry, setSelectedCountry] = useState('Danimarka')
@@ -24,7 +26,6 @@ export default function ApplyForm({ value, onChange }: { value: string; onChange
   const [passportImage, setPassportImage] = useState<string[]>([]);
 
   const [capturedPhotos, setCapturedPhotos] = useState<(string | null)[]>([]);
-
   const [passportFileName, setPassportFileName] = useState<string[]>([]);
   const [maritalStatuse, setMaritalStatuse] = useState<MaritalStatus[]>([]);
   const [schengenImages, setSchengenImages] = useState<string[][]>([]);
@@ -423,34 +424,34 @@ const [errors, setErrors] = useState<FormErrors>({
 
 
   const countriesWithFlags = [
-    { name: 'Almanya', flag: '🇩🇪' },
-    { name: 'Avusturya', flag: '🇦🇹' },
-    { name: 'Belçika', flag: '🇧🇪' },
-    { name: 'Çekya', flag: '🇨🇿' },
-    { name: 'Danimarka', flag: '🇩🇰' },
-    { name: 'Estonya', flag: '🇪🇪' },
-    { name: 'Finlandiya', flag: '🇫🇮' },
-    { name: 'Fransa', flag: '🇫🇷' },
-    { name: 'Hollanda', flag: '🇳🇱' },
-    { name: 'Hırvatistan', flag: '🇭🇷' },
-    { name: 'İspanya', flag: '🇪🇸' },
-    { name: 'İsveç', flag: '🇸🇪' },
-    { name: 'İtalya', flag: '🇮🇹' },
-    { name: 'Letonya', flag: '🇱🇻' },
-    { name: 'Litvanya', flag: '🇱🇹' },
-    { name: 'Lüksemburg', flag: '🇱🇺' },
-    { name: 'Macaristan', flag: '🇭🇺' },
-    { name: 'Malta', flag: '🇲🇹' },
-    { name: 'Polonya', flag: '🇵🇱' },
-    { name: 'Portekiz', flag: '🇵🇹' },
-    { name: 'Slovakya', flag: '🇸🇰' },
-    { name: 'Slovenya', flag: '🇸🇮' },
-    { name: 'Yunanistan', flag: '🇬🇷' },
-    { name: 'İzlanda', flag: '🇮🇸' },
-    { name: 'Lihtenştayn', flag: '🇱🇮' },
-    { name: 'Norveç', flag: '🇳🇴' },
-    { name: 'İsviçre', flag: '🇨🇭' },
-    { name: 'İngiltere', flag: '🇬🇧' },
+    { name: 'Almanya', code: 'DE' },
+    { name: 'Avusturya', code: 'AT' },
+    { name: 'Belçika', code: 'BE' },
+    { name: 'Çekya', code: 'CZ' },
+    { name: 'Danimarka', code: 'DK' },
+    { name: 'Estonya', code: 'EE' },
+    { name: 'Finlandiya', code: 'FI' },
+    { name: 'Fransa', code: 'FR' },
+    { name: 'Hollanda', code: 'NL' },
+    { name: 'Hırvatistan', code: 'HR' },
+    { name: 'İspanya', code: 'ES' },
+    { name: 'İsveç', code: 'SE' },
+    { name: 'İtalya', code: 'IT' },
+    { name: 'Letonya', code: 'LV' },
+    { name: 'Litvanya', code: 'LT' },
+    { name: 'Lüksemburg', code: 'LU' },
+    { name: 'Macaristan', code: 'HU' },
+    { name: 'Malta', code: 'MT' },
+    { name: 'Polonya', code: 'PL' },
+    { name: 'Portekiz', code: 'PT' },
+    { name: 'Slovakya', code: 'SK' },
+    { name: 'Slovenya', code: 'SI' },
+    { name: 'Yunanistan', code: 'GR' },
+    { name: 'İzlanda', code: 'IS' },
+    { name: 'Lihtenştayn', code: 'LI' },
+    { name: 'Norveç', code: 'NO' },
+    { name: 'İsviçre', code: 'CH' },
+    { name: 'İngiltere', code: 'GB' },
   ];
 
 
@@ -734,21 +735,28 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
   className="absolute z-10 mt-2 w-full rounded-lg bg-white text-black shadow-lg ring-1 ring-black/10 focus:outline-none max-h-64 overflow-y-auto"
 >
   <div className="py-1">
-    {countriesWithFlags.map(({ name, flag }) => (
-      <MenuItem key={name}>
-        {({ active }) => (
-          <button
-            onClick={() => setSelectedCountry(name)}
-            className={`${
-              active ? 'bg-red-100 text-red-800' : 'text-gray-900'
-            } flex items-center gap-2 w-full text-left px-4 py-2 text-base font-medium`}
-          >
-            <span className="text-lg">{flag}</span>
-            {name}
-          </button>
-        )}
-      </MenuItem>
-    ))}
+  {countriesWithFlags.map(({ name, code }) => (
+  <MenuItem key={name}>
+    {({ active }) => (
+      <button
+        onClick={() => setSelectedCountry(name)}
+        className={`${
+          active ? "bg-red-100 text-red-800" : "text-gray-900"
+        } flex items-center gap-2 w-full text-left px-4 py-2 text-base font-medium`}
+      >
+        <ReactCountryFlag
+          countryCode={code}
+          svg
+          style={{
+            fontSize: "1.5em",
+            lineHeight: "1.5em",
+          }}
+        />
+        {name}
+      </button>
+    )}
+  </MenuItem>
+))}
   </div>
 </MenuItems>
           </Transition>
