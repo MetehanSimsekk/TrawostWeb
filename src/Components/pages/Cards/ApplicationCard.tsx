@@ -92,24 +92,56 @@ async function handleAppointmentStatusChange(newStatus: any) {
     setKisiSayisi(kisiSayisiCount);
   }, [isFamily, relatedApps]);
 
-  async function handleAppointmentDateChange(newDate: Date | null) {
+ 
   
+  async function handleAppointmentDateChange(newDate: any) {
     if (!newDate) return;
   
     const prevDate = appointmentDate;
-    setAppointmentDate(newDate); 
+    setAppointmentDate(newDate);
+  
+    try {
+     
+  
+    
+      const { error: errA } = await supabase
+        .from("applications")
+        .update({ appointment_date: newDate })
+        .eq("id", app.id);
+      if (errA) throw new Error(errA.message);
+  
+    
+      const payload = {
+        user_id: app.id,            
+        first_name: app.full_name,
+        last_name: app.surname,
+        city: app.country,
+      person_count:kisiSayisi,
+        date: newDate,
+             
+      };
   
  
-    
+      const { data, error: errFn } = await supabase.functions.invoke("bridge-to-b", {
+        body: payload,
+      });
+      if (errFn) throw new Error(errFn.message);
   
-    const { error } = await supabase
-      .from('applications')
-      .update({ appointment_date: newDate })  
-      .eq('id', app.id);
-  
-    if (error) {
-      console.error('Randevu tarihi güncellenemedi:', error.message);
-      setAppointmentDate(prevDate); 
+
+      notifications.show({
+        title: 'Bilgi',
+        message: (
+          <span className="text-lg">
+            Randevu sistemi Tarihi <strong className="font-bold">{newDate}</strong> olarak güncellendi.
+          </span>
+        ),
+        color: 'green',
+        autoClose: 3000,
+      });
+      console.log("B’ye sync ok:");
+    } catch (e: any) {
+      console.error("Sync hatası:", e.message ?? e);
+      setAppointmentDate(prevDate);
     }
   }
   function confirm(title: string, body: React.ReactNode) {
@@ -149,11 +181,29 @@ async function handleAppointmentStatusChange(newStatus: any) {
       .update({ flight_ticket: newStatus })
       .eq("id", app.id);
   
+
+
     if (error) {
       console.error("Uçak bileti güncelleme hatası:", error.message);
       setTicketStatus(!newStatus); 
     }
+
+    const { data, error: errFn } = await supabase.functions.invoke("bridge-to-b", {
+      body: {
+        action: "update_ticket",
+        user_id: app.id,
+        flight_booked: !ticketStatus,
+        date: appointmentDate,
+      },
+    });
+    if (errFn) throw new Error(errFn.message);
+
+
+    
+
     const statusText = newStatus ? 'Alındı' : 'Alınmadı';
+
+
 
     notifications.show({
       title: 'Bilgi',
@@ -162,7 +212,7 @@ async function handleAppointmentStatusChange(newStatus: any) {
           Uçak bileti <strong className="font-bold">{statusText}</strong> olarak güncellendi.
         </span>
       ),
-      color: 'red',
+      color: newStatus ? 'green' : 'red',
       autoClose: 3000,
     });
   }
