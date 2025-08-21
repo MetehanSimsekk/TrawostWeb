@@ -17,7 +17,7 @@ import { DocumentDuplicateIcon } from '@heroicons/react/24/outline';
 import { v4 as uuidv4 } from 'uuid';
 import toast from "react-hot-toast";
 import ReactCountryFlag from "react-country-flag";
-
+import CitySelectRemote from "../CitySelect"
 import { Loader } from "@mantine/core";
 export default function ApplyForm({ value, onChange }: { value: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void }) {
   const [selectedCountry, setSelectedCountry] = useState('Danimarka')
@@ -68,6 +68,12 @@ const [companyName, setCompanyName] = useState<string[]>([]);
 const [companyAddress, setCompanyAddress] = useState<string[]>([]);
 const [companyPhone, setCompanyPhone] = useState<string[]>([]);
 
+
+const [city, setCity] = useState<string[]>([]);
+
+// errors tipine/başlangıcına city dizisini ekle (senin yapına uyarlayarak)
+
+
 const [schoolName, setSchoolName]= useState<string[]>([]);
 const [schoolAddress, setSchoolAddress] = useState<string[]>([]);
 const [schoolPhone, setSchoolPhone] = useState<string[]>([]);
@@ -85,6 +91,7 @@ type FormErrors =  {
   maidenName:string[]
   passport: string[];
   schengen?: string[];
+  city?: string[];
 }
 
 
@@ -103,7 +110,8 @@ const [errors, setErrors] = useState<FormErrors>({
   phone: [],
   maidenName:[],
   passport: [],
-  schengen: []
+  schengen: [],
+  city: []
 });
   // const jobTitles = [
   //   'Yazılım Mühendisi',
@@ -139,7 +147,7 @@ const [errors, setErrors] = useState<FormErrors>({
     passport_file_url: string | null;
     previous_schengen_url: any | null;   
     invitation_letter_url: any | null;   
-  
+   city:string
                
     company_name?: string[];
     company_address?: string[];
@@ -641,7 +649,7 @@ const [errors, setErrors] = useState<FormErrors>({
         address: pickAt(address as any, i, ''),
         email: pickAt(email as any, i, ''),
         phone: pickAt(phone as any, i, ''),
-         
+        city:pickAt(city as any , i,'') ,
      
         passport_file_url: Array.isArray(passportImage)
           ? (passportImage[i] ?? null)
@@ -1335,8 +1343,23 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
     İletişim Bilgileri
   </h2>
 </div>
- 
+
 <div className="sm:col-span-1 mb-6">
+
+<div className="sm:col-span-1 mb-6 md:w-1/2">
+<CitySelectRemote
+  value={city[index] ?? ""}
+  onChange={(c) => {
+    setCity(prev => { const n = [...prev]; n[index] = c; return n; });
+    if (errors.city?.[index]) {
+      setErrors(p => { const arr = [...(p.city || [])]; arr[index] = ""; return { ...p, city: arr }; });
+      
+    }
+  }}
+  error={errors.city?.[index]}
+  required
+/>
+</div>
   {/* Ev Adresi */}
   <label htmlFor={`address-${index}`} className="block text-m font-semibold text-gray-600">
     Ev Adresi <span className="text-red-500">*</span>
@@ -1479,6 +1502,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
     </div>
 
   </div>
+
 </div>
 <div className="mt-10 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
 

@@ -115,7 +115,7 @@ async function handleAppointmentStatusChange(newStatus: any) {
         user_id: app.id,            
         first_name: app.full_name,
         last_name: app.surname,
-        city: app.country,
+        city:app.city+'-'+app.country,
       person_count:kisiSayisi,
         date: newDate,
              
@@ -172,50 +172,50 @@ async function handleAppointmentStatusChange(newStatus: any) {
     }
   }
 
-  async function handleTicketToggle() {
-    const newStatus = !ticketStatus;
-    setTicketStatus(newStatus); 
+  // async function handleTicketToggle() {
+  //   const newStatus = !ticketStatus;
+  //   setTicketStatus(newStatus); 
   
-    const { error } = await supabase
-      .from("applications")
-      .update({ flight_ticket: newStatus })
-      .eq("id", app.id);
+  //   const { error } = await supabase
+  //     .from("applications")
+  //     .update({ flight_ticket: newStatus })
+  //     .eq("id", app.id);
   
 
 
-    if (error) {
-      console.error("Uçak bileti güncelleme hatası:", error.message);
-      setTicketStatus(!newStatus); 
-    }
+  //   if (error) {
+  //     console.error("Uçak bileti güncelleme hatası:", error.message);
+  //     setTicketStatus(!newStatus); 
+  //   }
 
-    const { data, error: errFn } = await supabase.functions.invoke("bridge-to-b", {
-      body: {
-        action: "update_ticket",
-        user_id: app.id,
-        flight_booked: !ticketStatus,
-        date: appointmentDate,
-      },
-    });
-    if (errFn) throw new Error(errFn.message);
+  //   const { data, error: errFn } = await supabase.functions.invoke("bridge-to-b", {
+  //     body: {
+  //       action: "update_ticket",
+  //       user_id: app.id,
+  //       flight_booked: !ticketStatus,
+  //       date: appointmentDate,
+  //     },
+  //   });
+  //   if (errFn) throw new Error(errFn.message);
 
 
     
 
-    const statusText = newStatus ? 'Alındı' : 'Alınmadı';
+  //   const statusText = newStatus ? 'Alındı' : 'Alınmadı';
 
 
 
-    notifications.show({
-      title: 'Bilgi',
-      message: (
-        <span className="text-lg">
-          Uçak bileti <strong className="font-bold">{statusText}</strong> olarak güncellendi.
-        </span>
-      ),
-      color: newStatus ? 'green' : 'red',
-      autoClose: 3000,
-    });
-  }
+  //   notifications.show({
+  //     title: 'Bilgi',
+  //     message: (
+  //       <span className="text-lg">
+  //         Uçak bileti <strong className="font-bold">{statusText}</strong> olarak güncellendi.
+  //       </span>
+  //     ),
+  //     color: newStatus ? 'green' : 'red',
+  //     autoClose: 3000,
+  //   });
+  // }
 
 
     return (
@@ -272,6 +272,16 @@ async function handleAppointmentStatusChange(newStatus: any) {
                   <div>
                     <Text size="xs" c="dimmed">Başvuru Sayısı</Text>
                     <Text fw={500} c="violet">{kisiSayisi}</Text>
+                  </div>
+                </Group>
+              </Card>
+
+              <Card withBorder radius="md" padding="md" bg="blue.0">
+                <Group gap="xs">
+                  <IconUser size={16} color="blue" />
+                  <div>
+                    <Text size="xs" c="dimmed">Şehir</Text>
+                    <Text fw={500} c="blue">{app.city}</Text>
                   </div>
                 </Group>
               </Card>
@@ -395,10 +405,10 @@ async function handleAppointmentStatusChange(newStatus: any) {
   {appointmentStatus === 'Randevu Alındı' && (
   <>
     
-    <Text size="m" c="violet" fw={600} className="flex items-center gap-2 mb-2">
+    {/* <Text size="m" c="violet" fw={600} className="flex items-center gap-2 mb-2">
   <span className="text-violet-900 text-xl">●</span> Uçak Bileti
-</Text>
-<Button
+</Text> */}
+{/* <Button
   fullWidth
   variant="outline"
   color={ticketStatus ? "green" : "violet"}
@@ -409,7 +419,7 @@ async function handleAppointmentStatusChange(newStatus: any) {
   onClick={handleTicketToggle}
 >
   {ticketStatus ? "Uçak bileti alındı" : "Uçak bileti alınacak"}
-</Button>
+</Button> */}
   </>
 )}
   
