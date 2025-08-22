@@ -1,7 +1,7 @@
 // Follow this setup guide to integrate the Deno language server with your editor:
 // https://deno.land/manual/getting_started/setup_your_environment
 // This enables autocomplete, go to definition, etc.
-
+// @ts-nocheck
 // Setup type definitions for built-in Supabase Runtime APIs
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 
@@ -26,9 +26,9 @@ Deno.serve(async (req) => {
 
   try {
     const b = await req.json();
-    if (!b?.user_id) return json({ error: "user_id zorunlu" }, 400);
+   
 
-    const dateStr = typeof b.date === "string" ? b.date : new Date(b.date).toISOString();
+    
 
     const headers = {
       apikey: TARGET_KEY,
@@ -82,6 +82,8 @@ Deno.serve(async (req) => {
       return json({ ok: true, deleted: Array.isArray(arr) ? arr.length : 0, rows: arr });
     }
     if (b.id) {
+      const dateStr = typeof b.date === "string" ? b.date : new Date(b.date).toISOString();
+      if (!b?.user_id) return json({ error: "user_id zorunlu" }, 400);
       const byId = await fetch(
         `${TARGET_URL}/rest/v1/appointments?user_id=eq.${encodeURIComponent(b.user_id)}`,
         {
@@ -105,7 +107,7 @@ Deno.serve(async (req) => {
       }
     }
 
-
+    const dateStr = typeof b.date === "string" ? b.date : new Date(b.date).toISOString();
     const byUser = await fetch(
       `${TARGET_URL}/rest/v1/appointments?user_id=eq.${encodeURIComponent(b.user_id)}`,
       {
