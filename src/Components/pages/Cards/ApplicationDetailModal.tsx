@@ -69,6 +69,14 @@ const toUrlArray = (input: unknown): string[] => {
 };
 
 
+function applyUrls(data: any) {
+  const normalized = Array.isArray(data)
+    ? data.flat().filter((u): u is string => typeof u === "string")
+    : [];
+  setSchengenUrl(normalized);
+}
+
+
 function normalizeField(value: any): string {
   if (!value) return "-";
 
@@ -107,7 +115,29 @@ function normalizeField(value: any): string {
   return String(value);
 }
 
+const flatUrls = Array.isArray(schengenUrl)
 
+
+
+
+  ? (schengenUrl as any[]).flat(Infinity).filter((u): u is string => typeof u === "string" && u.trim() !== "")
+  : [];
+
+
+useEffect(() => {
+  if (schengenIndex >= flatUrls.length) {
+
+
+
+
+    
+    setSchengenIndex(Math.max(0, flatUrls.length - 1));
+  }
+}, [flatUrls, schengenIndex]);
+
+
+const url = flatUrls[schengenIndex] ?? "";
+const isPdf = typeof url === "string" && url.toLowerCase().endsWith(".pdf");
 
 function normalizeToUrls(raw: unknown): string[] {
   if (!raw) return [];
@@ -568,8 +598,11 @@ function normalizeToUrls(raw: unknown): string[] {
 
       return `${urls.length} dosya`;
     } catch {
-   
-      return props.app.previous_schengen_url ? "1 dosya" : "0 dosya";
+      const urls = Array.isArray(props.app.previous_schengen_url)
+      ? props.app.previous_schengen_url.filter(Boolean)
+    
+      : JSON.parse(props.app.previous_schengen_url || "[]").filter(Boolean);
+      return props.app.previous_schengen_url ? `${urls.length} dosya` : "0 dosya";
     }
   })()}
 </Badge>
@@ -611,7 +644,7 @@ function normalizeToUrls(raw: unknown): string[] {
   
        urls = normalizeToUrls(props.app.previous_schengen_url);
        if (urls.length > 0) {
-        setSchengenUrl(urls[0]);
+        applyUrls(urls);
       } else {
         setSchengenUrl([]); 
       }
