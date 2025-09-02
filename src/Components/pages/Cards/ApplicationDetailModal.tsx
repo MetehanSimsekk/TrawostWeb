@@ -245,35 +245,27 @@ function normalizeToUrls(raw: unknown): string[] {
     <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
       <Card shadow="xs" withBorder radius="md" padding="xs">
         <Text size="xs" c="dimmed">Pozisyon</Text>
-        <Text fw={900}>
+        <Text fw={900} >{props.app.job_title}</Text>
+        {/* <Text fw={900}>
     {typeof props.app.job_title === "string"
       ? props.app.job_title.replace(/[\[\]"]+/g, "")
       : props.app.job_title || "-"}
-  </Text>
+  </Text> */}
       </Card>
       <Card shadow="xs" withBorder radius="md" padding="xs">
         <Text size="xs" c="dimmed">Firma Adı</Text>
-        <Text fw={900}>
-    {typeof props.app.company_name === "string"
-      ? props.app.company_name.replace(/[\[\]"]+/g, "") 
-      : props.app.company_name || "-"}
-  </Text>
+        <Text fw={900} >{props.app.company_name}</Text>
+       
       </Card>
       <Card shadow="xs" withBorder radius="md" padding="xs">
         <Text size="xs" c="dimmed">Firma Adresi</Text>
-        <Text fw={900}>
-  {typeof props.app.company_address === "string"
-    ? props.app.company_address.replace(/[\[\]"]+/g, "")  
-    : props.app.company_address || "-"}
-</Text>
+        <Text fw={900} >{props.app.company_address}</Text>
+       
       </Card>
       <Card shadow="xs" withBorder radius="md" padding="xs">
         <Text size="xs" c="dimmed">Firma Telefonu</Text>
-        <Text fw={900}>
-    {typeof props.app.company_phone === "string"
-      ? props.app.company_phone.replace(/[\[\]"]+/g, "") 
-      : props.app.company_phone || "-"}
-  </Text>
+        <Text fw={900} >{props.app.company_phone}</Text>
+        
       </Card>
     </SimpleGrid>
   </div>
@@ -284,23 +276,18 @@ function normalizeToUrls(raw: unknown): string[] {
     <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
       <Card shadow="xs" withBorder radius="md" padding="xs">
         <Text size="xs" c="dimmed">Okul Adı</Text>
-      
-        <Text fw={900}>
-  
-        {normalizeField(props.app.school_name)}
-  </Text>
+        <Text fw={900} >{props.app.school_name}</Text>
+        
       </Card>
       <Card shadow="xs" withBorder radius="md" padding="xs">
         <Text size="xs" c="dimmed">Okul Adresi</Text>
-   
-        <Text fw={900}>
-  {normalizeField(props.app.school_address)}
-</Text>
+        <Text fw={900} >{props.app.school_address}</Text>
+        
       </Card>
       <Card shadow="xs" withBorder radius="md" padding="xs">
         <Text size="xs" c="dimmed">Okul Telefonu</Text>
- 
-  {normalizeField(props.app.school_phone)}
+        <Text fw={900} >{props.app.school_phone}</Text>
+  
       </Card>
     </SimpleGrid>
   </div>

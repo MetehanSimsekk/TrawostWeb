@@ -658,15 +658,15 @@ const [errors, setErrors] = useState<FormErrors>({
   
        
         ...(ws === 'Çalışıyor' && {
-          job_title :(selectedJobTitle || undefined),
-          company_name: (companyName || undefined),
-          company_address: (companyAddress || undefined),
-          company_phone: (companyPhone || undefined),
+          job_title :pickAt(selectedJobTitle as any , i,''),
+          company_name: pickAt(companyName as any , i,'') ,
+          company_address: pickAt(companyAddress as any , i,'') ,
+          company_phone:pickAt(companyPhone as any , i,'') 
         }),
         ...(ws === 'Öğrenci' && {
-          school_name: (schoolName || undefined), 
-          school_address: (schoolAddress || undefined),
-          school_phone: (schoolPhone || undefined),
+          school_name:pickAt(schoolName as any , i,''),
+          school_address: pickAt(schoolAddress as any , i,''),
+          school_phone: pickAt(schoolPhone as any , i,'')
         }),
       };
      
@@ -1206,6 +1206,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
   placeholder="Firma adresini girin"
   className="h-12 px-4 py-3 rounded-lg w-full border border-gray-300 bg-white text-gray-800 placeholder-gray-500 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
 />
+
 
 <input
   id={`company-phone-${index}`}
