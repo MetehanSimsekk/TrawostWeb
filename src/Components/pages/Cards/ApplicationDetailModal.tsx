@@ -396,75 +396,69 @@ function normalizeToUrls(raw: unknown): string[] {
     </div>
   )}
 
-
-
 <Modal
   opened={showPasaportModal}
   onClose={() => setShowPasaportModal(false)}
   size="68%"
   radius="md"
   centered
-  
 >
-  {passportUrl ? (
-    passportUrl.endsWith(".pdf") ? (
-     
-      <iframe
-        src={passportUrl}
-        title="Pasaport PDF"
-        style={{ width: "100%", height: "80vh", border: "none" }}
-      />
+  <div className="max-h-[80vh] overflow-y-auto pr-2">
+    {passportUrl ? (
+      passportUrl.endsWith(".pdf") ? (
+        <iframe
+          src={passportUrl}
+          title="Pasaport PDF"
+          className="w-full h-[75vh] border-0"
+        />
+      ) : (
+        <TransformWrapper
+          initialScale={1}
+          minScale={1}
+          maxScale={10}
+          wheel={{ step: 0.15 }}
+          doubleClick={{ disabled: false, step: 1.3 }}
+          pinch={{ step: 5 }}
+          limitToBounds={true}
+        >
+          {({ zoomIn, zoomOut, resetTransform }) => (
+            <>
+              <div className="flex gap-2 justify-end mb-2 sticky top-0 bg-white/80 backdrop-blur z-10 p-1 rounded">
+                <button onClick={() => zoomOut()} className="px-3 py-1 rounded bg-gray-200">−</button>
+                <button onClick={() => zoomIn()} className="px-3 py-1 rounded bg-gray-200">+</button>
+                <button onClick={() => setRotation(r => r - 90)} className="px-3 py-1 rounded bg-gray-200">⟲</button>
+                <button onClick={() => setRotation(r => r + 90)} className="px-3 py-1 rounded bg-gray-200">⟳</button>
+                <button onClick={() => resetTransform()} className="px-3 py-1 rounded bg-gray-200">Sıfırla</button>
+              </div>
+
+              <TransformComponent
+                wrapperStyle={{ width: '100%', height: '75vh', background: '#000' }}
+                contentStyle={{
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: 'white'
+                }}
+              >
+                <img
+                  src={passportUrl}
+                  alt="Pasaport Görseli"
+                  className="max-w-full max-h-[70vh] mx-auto rounded-md shadow select-none"
+                  draggable={false}
+                  style={{ transform: `rotate(${rotation}deg)` }}
+                />
+              </TransformComponent>
+            </>
+          )}
+        </TransformWrapper>
+      )
     ) : (
-      <TransformWrapper
-        initialScale={1}
-        minScale={1}
-        maxScale={10}
-        wheel={{ step: 0.15 }}
-        doubleClick={{ disabled: false, step: 1.3 }}
-        pinch={{ step: 5 }}
-        limitToBounds={true}
-        
-      >
-        {({ zoomIn, zoomOut, resetTransform }) => (
-          <>
-        
-        <div className="flex gap-2 justify-end">
-  <button onClick={() => zoomOut()} className="px-3 py-1 rounded bg-gray-200">−</button>
-  <button onClick={() => zoomIn()} className="px-3 py-1 rounded bg-gray-200">+</button>
-  <button onClick={() => setRotation(r => r - 90)} className="px-3 py-1 rounded bg-gray-200">⟲</button>
-  <button onClick={() => setRotation(r => r + 90)} className="px-3 py-1 rounded bg-gray-200">⟳</button>
-  <button onClick={() => resetTransform()} className="px-3 py-1 rounded bg-gray-200">Sıfırla</button>
-
-</div>
-
-<TransformComponent
-  wrapperStyle={{ width: '100%', height: '80vh', background: '#000' }}
-  contentStyle={{
-    width: '100%',
-    height: '100%',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    background: 'white'
-  }}
->
-  <img
-    src={passportUrl}
-    alt="Pasaport Görseli"
-    className="max-w-full max-h-[80vh] mx-auto rounded-md shadow select-none"
-    draggable={false}
-    style={{ transform: `rotate(${rotation}deg)` }}  // ROTATE EKLEDİK
-  />
-</TransformComponent>
-          </>
-        )}
-      </TransformWrapper>
-    )
-  ) : (
-    <Text c="dimmed">Pasaport dosyası bulunamadı.</Text>
-  )}
+      <Text c="dimmed">Pasaport dosyası bulunamadı.</Text>
+    )}
+  </div>
 </Modal>
-
 </Card>
 
 
@@ -655,70 +649,46 @@ function normalizeToUrls(raw: unknown): string[] {
     <IconEye size={32} className="text-white cursor-pointer" />
   </div>
   )}
+<Modal opened={showSchengenModal} onClose={() => setShowSchengenModal(false)} size="75%" radius="md" centered>
+  <div className="max-h-[80vh] overflow-y-auto pr-2">  {/* <-- scroll burada */}
+    {(() => {
+      const url = schengenUrl[schengenIndex];
+      if (typeof url !== 'string' || !url) return <Text c="dimmed">Schengen dosyası bulunamadı.</Text>;
 
-<Modal
-  opened={showSchengenModal}
-  onClose={() => setShowSchengenModal(false)}
-  size="75%"
-  radius="md"
-  centered
->
-  {(() => {
-    const url = schengenUrl[schengenIndex];
-    if (typeof url !== 'string' || !url) {
-      return <Text c="dimmed">Schengen dosyası bulunamadı.</Text>;
-    }
+      const isPdf = url.toLowerCase().endsWith('.pdf');
 
-    const isPdf = url.toLowerCase().endsWith('.pdf');
+      return isPdf ? (
+        <iframe src={url} title="Schengen PDF" className="w-full h-[75vh] border-0" />
+      ) : (
+        <TransformWrapper initialScale={1} minScale={1} maxScale={5} wheel={{ step: 0.15 }} doubleClick={{ disabled: false, step: 1.3 }} pinch={{ step: 5 }} limitToBounds centerOnInit>
+          {({ zoomIn, zoomOut, resetTransform }) => (
+            <>
+              <div className="flex gap-2 justify-end mb-2 sticky top-0 bg-white/80 backdrop-blur z-10 p-1 rounded">
+                <button onClick={() => zoomOut()} className="px-3 py-1 rounded bg-gray-200">−</button>
+                <button onClick={() => zoomIn()} className="px-3 py-1 rounded bg-gray-200">+</button>
+                <button onClick={() => setRotation(r => r - 90)} className="px-3 py-1 rounded bg-gray-200">⟲</button>
+                <button onClick={() => setRotation(r => r + 90)} className="px-3 py-1 rounded bg-gray-200">⟳</button>
+                <button onClick={() => resetTransform()} className="px-3 py-1 rounded bg-gray-200">Sıfırla</button>
+              </div>
 
-    return isPdf ? (
-      <iframe
-        src={url}
-        title="Schengen PDF"
-        style={{ width: '100%', height: '80vh', border: 'none' }}
-      />
-    ) : (
-      <TransformWrapper
-        initialScale={1}
-        minScale={1}
-        maxScale={5}
-        wheel={{ step: 0.15 }}
-        doubleClick={{ disabled: false, step: 1.3 }}
-        pinch={{ step: 5 }}
-        limitToBounds={true}
-        centerOnInit={true}
-      >
-        {({ zoomIn, zoomOut, resetTransform }) => (
-          <>
-            <div className="flex gap-2 justify-end mb-2">
-            <button onClick={() => zoomOut()} className="px-3 py-1 rounded bg-gray-200">−</button>
-  <button onClick={() => zoomIn()} className="px-3 py-1 rounded bg-gray-200">+</button>
-  <button onClick={() => setRotation(r => r - 90)} className="px-3 py-1 rounded bg-gray-200">⟲</button>
-  <button onClick={() => setRotation(r => r + 90)} className="px-3 py-1 rounded bg-gray-200">⟳</button>
-  <button onClick={() => resetTransform()} className="px-3 py-1 rounded bg-gray-200">Sıfırla</button>
-            </div>
-
-            <TransformComponent
-              wrapperStyle={{ width:'100%', height:'80vh', background:'#000' }}  
-              contentStyle={{
-                width:'100%', height:'100%',
-                display:'flex', alignItems:'center', justifyContent:'center',
-                background:'white'
-              }}
-            >
-              <img
-                src={url}
-                alt="Schengen Belgesi"
-                className="max-w-full max-h-[70vh] mx-auto rounded-md shadow-lg select-none"
-                draggable={false}
-                style={{ transform: `rotate(${rotation}deg)` }} 
-              />
-            </TransformComponent>
-          </>
-        )}
-      </TransformWrapper>
-    );
-  })()}
+              <TransformComponent
+                wrapperStyle={{ width: '100%', height: '75vh', background: '#000' }}
+                contentStyle={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'white' }}
+              >
+                <img
+                  src={url}
+                  alt="Schengen Belgesi"
+                  className="max-w-full max-h-[70vh] mx-auto rounded-md shadow-lg select-none"
+                  draggable={false}
+                  style={{ transform: `rotate(${rotation}deg)` }}
+                />
+              </TransformComponent>
+            </>
+          )}
+        </TransformWrapper>
+      );
+    })()}
+  </div>
 
   {schengenUrl.length > 1 && (
     <div className="mt-4 flex gap-2 flex-wrap">
