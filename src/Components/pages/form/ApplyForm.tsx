@@ -152,7 +152,7 @@ const [errors, setErrors] = useState<FormErrors>({
     company_name?: string[];
     company_address?: string[];
     company_phone?: string[];
-  
+    job_title?:string[];
    
   }
   // type Applicant = {
@@ -658,7 +658,7 @@ const [errors, setErrors] = useState<FormErrors>({
   
        
         ...(ws === 'Çalışıyor' && {
-       
+          job_title :(selectedJobTitle || undefined),
           company_name: (companyName || undefined),
           company_address: (companyAddress || undefined),
           company_phone: (companyPhone || undefined),
@@ -1181,45 +1181,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
   placeholder="Lütfen çalıştığınız pozisyonu girin"
   className="h-12 w-full rounded-lg bg-white px-4 text-base text-gray-800 border border-red-500 shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500"
 />
-      {/* <Menu as="div" className="relative inline-block w-full">
-        <MenuButton className="h-12 inline-flex w-full justify-between items-center rounded-lg bg-white px-4 text-base text-gray-800 border border-red-500 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500">
-        {selectedJobTitle[index] || 'Lütfen çalıştığınız pozisyonu seçin'}
-          <ChevronDownIcon className="w-5 h-5 text-gray-500" aria-hidden="true" />
-        </MenuButton>
-
-        <Transition
-          as={Fragment}
-          enter="transition ease-out duration-100"
-          enterFrom="transform opacity-0 scale-95"
-          enterTo="transform opacity-100 scale-100"
-          leave="transition ease-in duration-75"
-          leaveFrom="transform opacity-100 scale-100"
-          leaveTo="transform opacity-0 scale-95"
-        >
-          <MenuItems className="absolute z-10 mt-2 w-full rounded-lg bg-white text-black shadow-lg ring-1 ring-black/10 focus:outline-none">
-            <div className="py-1 max-h-60 overflow-y-auto">
-              {jobTitles.map((title) => (
-                <MenuItem key={title}>
-                  {({ active }) => (
-                    <button
-                      onClick={() => {
-                        setSelectedJobTitle(prev => {
-                          const next = [...prev];
-                          next[index] = title;
-                          return next;
-                        });
-                      }}
-                      className={`${active ? 'bg-red-100 text-red-800' : 'text-gray-900'} block w-full text-left px-4 py-2 text-base font-medium`}
-                    >
-                      {title}
-                    </button>
-                  )}
-                </MenuItem>
-              ))}
-            </div>
-          </MenuItems>
-        </Transition>
-      </Menu> */}
+ 
 <input
   id={`company-name-${index}`}
   value={companyName[index] || ""}

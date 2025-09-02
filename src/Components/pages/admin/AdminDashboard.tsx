@@ -21,6 +21,7 @@ import { ApplicationCard } from '../Cards/ApplicationCard';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from "../../../services/supabase";
 import { Application } from '@/types/types';
+import App from '@/App';
 
 
 export default function AdminDashboard() {
@@ -132,6 +133,12 @@ export default function AdminDashboard() {
   
   //   return matchName && matchStatus && matchCountry;
   // });
+
+  const countries = useMemo(() => {
+    const all = applications.map((app: any) => app.country).filter(Boolean);
+    const unique = Array.from(new Set(all));
+    return ['Tüm Ülkeler', ...unique];
+  }, [applications]);
 
   const leaderIdByGroup = new Map<string, string>();
 
@@ -255,7 +262,7 @@ export default function AdminDashboard() {
       <span className="text-violet-500 text-base">●</span> Ülke
     </Text>
   }
-  data={['Tüm Ülkeler', 'Danimarka']}
+  data={countries}
   value={country}
   onChange={(value) => setCountry(value || '')}
   radius="md"

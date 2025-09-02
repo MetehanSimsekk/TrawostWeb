@@ -18,7 +18,7 @@ const [schengenIndex, setSchengenIndex] = useState(0);
 const [hoveredInvitation, setHoveredInvitation] = useState(false);
 const [showInvitationModal, setShowInvitationModal] = useState(false);
 const [invitationUrls, setInvitationUrls] = useState<string[]>([]);
-
+const [rotation, setRotation] = useState(0);
 const [kisiSayisi, setKisiSayisi] = useState<number>(0);
 const isStringNonEmpty = (v: unknown): v is string =>
   typeof v === "string" && v.trim().length > 0;
@@ -69,6 +69,43 @@ const toUrlArray = (input: unknown): string[] => {
 };
 
 
+function normalizeField(value: any): string {
+  if (!value) return "-";
+
+  if (typeof value === "string" && value.trim().startsWith("[")) {
+    
+    
+    try {
+    
+    
+    
+      const arr = JSON.parse(value);
+      if (Array.isArray(arr)) {
+
+        return arr.filter((x) => x && typeof x === "string").join(", ") || "-";
+      }
+    } catch {
+
+      return value.replace(/[\[\]"]+/g, "") || "-";
+    }
+  }
+
+  if (Array.isArray(value)) {
+    return value.filter((x) => x && typeof x === "string").join(", ") || "-";
+
+
+  }
+
+  if (typeof value === "string") {
+    
+    
+    
+    
+    return value.replace(/[\[\]"]+/g, "") || "-";
+  }
+
+  return String(value);
+}
 
 
 
@@ -202,7 +239,72 @@ function normalizeToUrls(raw: unknown): string[] {
     <Text fw={900} >{props.app.work_status}</Text>
   </Card>
 </SimpleGrid>
-    
+{props.app.work_status === "Çalışıyor" && (
+  <div className="mt-6">
+    <Text size="sm" fw={600} c="dimmed" mb="xs">İş Bilgileri</Text>
+    <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+      <Card shadow="xs" withBorder radius="md" padding="xs">
+        <Text size="xs" c="dimmed">Pozisyon</Text>
+        <Text fw={900}>
+    {typeof props.app.job_title === "string"
+      ? props.app.job_title.replace(/[\[\]"]+/g, "")
+      : props.app.job_title || "-"}
+  </Text>
+      </Card>
+      <Card shadow="xs" withBorder radius="md" padding="xs">
+        <Text size="xs" c="dimmed">Firma Adı</Text>
+        <Text fw={900}>
+    {typeof props.app.company_name === "string"
+      ? props.app.company_name.replace(/[\[\]"]+/g, "") 
+      : props.app.company_name || "-"}
+  </Text>
+      </Card>
+      <Card shadow="xs" withBorder radius="md" padding="xs">
+        <Text size="xs" c="dimmed">Firma Adresi</Text>
+        <Text fw={900}>
+  {typeof props.app.company_address === "string"
+    ? props.app.company_address.replace(/[\[\]"]+/g, "")  
+    : props.app.company_address || "-"}
+</Text>
+      </Card>
+      <Card shadow="xs" withBorder radius="md" padding="xs">
+        <Text size="xs" c="dimmed">Firma Telefonu</Text>
+        <Text fw={900}>
+    {typeof props.app.company_phone === "string"
+      ? props.app.company_phone.replace(/[\[\]"]+/g, "") 
+      : props.app.company_phone || "-"}
+  </Text>
+      </Card>
+    </SimpleGrid>
+  </div>
+)}
+{props.app.work_status === "Öğrenci" && (
+  <div className="mt-6">
+    <Text size="sm" fw={600} c="dimmed" mb="xs">Okul Bilgileri</Text>
+    <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+      <Card shadow="xs" withBorder radius="md" padding="xs">
+        <Text size="xs" c="dimmed">Okul Adı</Text>
+      
+        <Text fw={900}>
+  
+        {normalizeField(props.app.school_name)}
+  </Text>
+      </Card>
+      <Card shadow="xs" withBorder radius="md" padding="xs">
+        <Text size="xs" c="dimmed">Okul Adresi</Text>
+   
+        <Text fw={900}>
+  {normalizeField(props.app.school_address)}
+</Text>
+      </Card>
+      <Card shadow="xs" withBorder radius="md" padding="xs">
+        <Text size="xs" c="dimmed">Okul Telefonu</Text>
+ 
+  {normalizeField(props.app.school_phone)}
+      </Card>
+    </SimpleGrid>
+  </div>
+)}
       <Text size="sm" fw={600} c="dimmed" mt="sm" mb="xs">
   Belgeler
 </Text>
@@ -312,24 +414,31 @@ function normalizeToUrls(raw: unknown): string[] {
         <div className="flex gap-2 justify-end">
   <button onClick={() => zoomOut()} className="px-3 py-1 rounded bg-gray-200">−</button>
   <button onClick={() => zoomIn()} className="px-3 py-1 rounded bg-gray-200">+</button>
+  <button onClick={() => setRotation(r => r - 90)} className="px-3 py-1 rounded bg-gray-200">⟲</button>
+  <button onClick={() => setRotation(r => r + 90)} className="px-3 py-1 rounded bg-gray-200">⟳</button>
   <button onClick={() => resetTransform()} className="px-3 py-1 rounded bg-gray-200">Sıfırla</button>
+
 </div>
 
-            <TransformComponent
-                wrapperStyle={{ width:'100%', height:'80vh', background:'#000' }}  
-                contentStyle={{
-                  width:'100%', height:'100%',
-                  display:'flex', alignItems:'center', justifyContent:'center',
-                  background:'white'
-                }}
-            >
-              <img
-                src={passportUrl}
-                alt="Pasaport Görseli"
-                className="max-w-full max-h-[80vh] mx-auto rounded-md shadow select-none"
-                draggable={false}
-              />
-            </TransformComponent>
+<TransformComponent
+  wrapperStyle={{ width: '100%', height: '80vh', background: '#000' }}
+  contentStyle={{
+    width: '100%',
+    height: '100%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: 'white'
+  }}
+>
+  <img
+    src={passportUrl}
+    alt="Pasaport Görseli"
+    className="max-w-full max-h-[80vh] mx-auto rounded-md shadow select-none"
+    draggable={false}
+    style={{ transform: `rotate(${rotation}deg)` }}  // ROTATE EKLEDİK
+  />
+</TransformComponent>
           </>
         )}
       </TransformWrapper>
@@ -564,6 +673,8 @@ function normalizeToUrls(raw: unknown): string[] {
             <div className="flex gap-2 justify-end mb-2">
             <button onClick={() => zoomOut()} className="px-3 py-1 rounded bg-gray-200">−</button>
   <button onClick={() => zoomIn()} className="px-3 py-1 rounded bg-gray-200">+</button>
+  <button onClick={() => setRotation(r => r - 90)} className="px-3 py-1 rounded bg-gray-200">⟲</button>
+  <button onClick={() => setRotation(r => r + 90)} className="px-3 py-1 rounded bg-gray-200">⟳</button>
   <button onClick={() => resetTransform()} className="px-3 py-1 rounded bg-gray-200">Sıfırla</button>
             </div>
 
@@ -580,6 +691,7 @@ function normalizeToUrls(raw: unknown): string[] {
                 alt="Schengen Belgesi"
                 className="max-w-full max-h-[70vh] mx-auto rounded-md shadow-lg select-none"
                 draggable={false}
+                style={{ transform: `rotate(${rotation}deg)` }} 
               />
             </TransformComponent>
           </>
