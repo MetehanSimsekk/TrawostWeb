@@ -5,7 +5,7 @@ import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 
-export default function ApplicationDetailModal(props: { app: any; title: string; isFamily?: boolean }) {
+export default function ApplicationDetailModal(props: { app: any; title: string; isFamily?: boolean, personIndex:any, }) {
 
 const [hovered, setHovered] = useState(false);
 const [hovered2, setHovered2] = useState(false);
@@ -20,6 +20,7 @@ const [showInvitationModal, setShowInvitationModal] = useState(false);
 const [invitationUrls, setInvitationUrls] = useState<string[]>([]);
 const [rotation, setRotation] = useState(0);
 const [kisiSayisi, setKisiSayisi] = useState<number>(0);
+
 const isStringNonEmpty = (v: unknown): v is string =>
   typeof v === "string" && v.trim().length > 0;
 
@@ -584,19 +585,34 @@ function normalizeToUrls(raw: unknown): string[] {
     <Badge color="gray" variant="light">
   {(() => {
     try {
-     
-      const urls = Array.isArray(props.app.previous_schengen_url)
-        ? props.app.previous_schengen_url.filter(Boolean)
-      
-        : JSON.parse(props.app.previous_schengen_url || "[]").filter(Boolean);
+      let raw = props.app.previous_schengen_url;
+      let urls: any = [];
 
-      return `${urls.length} dosya`;
+      if (typeof raw === "string") {
+        try {
+          urls = JSON.parse(raw);
+        } catch {
+          urls = raw ? [raw] : [];
+        }
+      } else if (Array.isArray(raw)) {
+        urls = raw;
+      }
+
+      let count = 0;
+      if (Array.isArray(urls) && Array.isArray(urls[0])) {
+
+
+
+        count = (urls[props.personIndex] as string[]).filter(Boolean).length;
+      } else if (Array.isArray(urls)) {
+  
+        
+        count = (urls as string[]).filter(Boolean).length;
+      }
+
+      return `${count} dosya`;
     } catch {
-      const urls = Array.isArray(props.app.previous_schengen_url)
-      ? props.app.previous_schengen_url.filter(Boolean)
-    
-      : JSON.parse(props.app.previous_schengen_url || "[]").filter(Boolean);
-      return props.app.previous_schengen_url ? `${urls.length} dosya` : "0 dosya";
+      return "0 dosya";
     }
   })()}
 </Badge>
@@ -620,28 +636,43 @@ function normalizeToUrls(raw: unknown): string[] {
     className="absolute inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center rounded-md"
     onClick={(e) => {
       e.stopPropagation();
-  
-      let urls: any[] = [];
-  
-      if (props.app.previous_schengen_url) {
-        if (typeof props.app.previous_schengen_url === "string") {
-          try {
-            const parsed = JSON.parse(props.app.previous_schengen_url);
-            urls = Array.isArray(parsed) ? parsed : [parsed];
-          } catch {
-            urls = [props.app.previous_schengen_url];
+    
+      const raw = props.app.previous_schengen_url;
+      let urls: string[] = [];
+    
+      if (typeof raw === 'string') {
+        try {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) {
+            if (Array.isArray(parsed[0])) {
+              urls = (parsed[props.personIndex] || []).filter(Boolean);
+            } else {
+              urls = parsed.filter(Boolean);
+            }
+          } else if (typeof parsed === 'string') {
+            urls = [parsed];
+          } else {
+            urls = [];
           }
-        } else if (Array.isArray(props.app.previous_schengen_url)) {
-          urls = props.app.previous_schengen_url;
+        } catch {
+          urls = raw ? [raw] : [];
         }
-      }
-  
-       urls = normalizeToUrls(props.app.previous_schengen_url);
-       if (urls.length > 0) {
-        applyUrls(urls);
+      } else if (Array.isArray(raw)) {
+        if (Array.isArray(raw[0])) {
+          urls = (raw[props.personIndex] || []).filter(Boolean);
+        } else {
+          urls = raw.filter(Boolean);
+        }
       } else {
-        setSchengenUrl([]); 
+        urls = [];
       }
+    
+      if (urls.length > 0) {
+        applyUrls(urls);        // senin mevcut fonksiyonun
+      } else {
+        setSchengenUrl([]);     // state boşalt
+      }
+    
       setSchengenIndex(0);
       setShowSchengenModal(true);
     }}
@@ -650,6 +681,26 @@ function normalizeToUrls(raw: unknown): string[] {
   </div>
   )}
 <Modal opened={showSchengenModal} onClose={() => setShowSchengenModal(false)} size="75%" radius="md" centered>
+
+{schengenUrl.length > 1 && (
+    <div className="mt-4 flex gap-2 flex-wrap">
+      {schengenUrl.map((u, i) => (
+        <button
+          key={i}
+          type="button"
+          className={`border rounded p-1 ${i === schengenIndex ? 'ring-2 ring-red-500' : ''}`}
+          onClick={() => setSchengenIndex(i)}
+          title={`Dosya ${i + 1}`}
+        >
+          {u.toLowerCase().endsWith('.pdf') ? (
+            <span className="text-xs px-2">PDF</span>
+          ) : (
+            <img src={u} alt={`thumb-${i}`} className="w-16 h-16 object-cover rounded" />
+          )}
+        </button>
+      ))}
+    </div>
+  )}
   <div className="max-h-[80vh] overflow-y-auto pr-2">  {/* <-- scroll burada */}
     {(() => {
       const url = schengenUrl[schengenIndex];
@@ -690,25 +741,6 @@ function normalizeToUrls(raw: unknown): string[] {
     })()}
   </div>
 
-  {schengenUrl.length > 1 && (
-    <div className="mt-4 flex gap-2 flex-wrap">
-      {schengenUrl.map((u, i) => (
-        <button
-          key={i}
-          type="button"
-          className={`border rounded p-1 ${i === schengenIndex ? 'ring-2 ring-red-500' : ''}`}
-          onClick={() => setSchengenIndex(i)}
-          title={`Dosya ${i + 1}`}
-        >
-          {u.toLowerCase().endsWith('.pdf') ? (
-            <span className="text-xs px-2">PDF</span>
-          ) : (
-            <img src={u} alt={`thumb-${i}`} className="w-16 h-16 object-cover rounded" />
-          )}
-        </button>
-      ))}
-    </div>
-  )}
 </Modal>
 </Card>
 )}

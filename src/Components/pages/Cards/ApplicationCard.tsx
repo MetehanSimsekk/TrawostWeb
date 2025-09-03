@@ -393,6 +393,7 @@ async function handleAppointmentStatusChange(newStatus: string | null) {
     title="1. Başvuru Sahibi"
     app={selectedApp}
     isFamily={isFamily}
+    personIndex={0} 
   />
 
   {isFamily &&
@@ -402,6 +403,7 @@ async function handleAppointmentStatusChange(newStatus: string | null) {
         title={`${i + 2}. Başvuru Sahibi`}
         app={rel}
         isFamily={true}
+        personIndex={i + 1} 
       />
     ))}
 </Card>

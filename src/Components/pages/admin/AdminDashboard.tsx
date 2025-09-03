@@ -289,7 +289,7 @@ export default function AdminDashboard() {
   .map((app: any) => {
     const group = groupedByCode.get(app.basvuru_grup_kodu) || [];
     const leaderId = leaderIdByGroup.get(app.basvuru_grup_kodu);
-    const relatedApps = group.filter((x: any) => x.id !== leaderId);
+    const relatedApps = group.filter((x: any) => x.id !== leaderId)
 
     return (
       <ApplicationCard
