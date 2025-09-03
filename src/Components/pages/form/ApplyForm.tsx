@@ -148,7 +148,7 @@ const [errors, setErrors] = useState<FormErrors>({
     previous_schengen_url: any | null;   
     invitation_letter_url: any | null;   
    city:string
-               
+    appointment_status:string
     company_name?: string[];
     company_address?: string[];
     company_phone?: string[];
@@ -651,7 +651,7 @@ const [errors, setErrors] = useState<FormErrors>({
         email: pickAt(email as any, i, ''),
         phone: pickAt(phone as any, i, ''),
         city:pickAt(city as any , i,'') ,
-     
+        appointment_status:'Randevu Alınacak',
         passport_file_url: Array.isArray(passportImage)
           ? (passportImage[i] ?? null)
           : (passportImage ?? null),

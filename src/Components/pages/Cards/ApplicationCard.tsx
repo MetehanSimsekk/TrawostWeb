@@ -132,19 +132,19 @@ async function handleAppointmentStatusChange(newStatus: string | null) {
   
     const prevDate = appointmentDate;
     setAppointmentDate(newDate);
-  
+   
     try {
      
   
     
       const { error: errA } = await supabase
         .from("applications")
-        .update({ appointment_date: newDate })
+        .update({ appointment_date: newDate ,appointment_status:'Randevu Alındı'})
         .eq("id", app.id);
       if (errA) throw new Error(errA.message);
   
 
-      setAppointmentStatus('Randevu Alındı');
+     
       const payload = {
         user_id: app.id,            
         first_name: app.full_name,
