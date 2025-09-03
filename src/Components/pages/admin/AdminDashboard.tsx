@@ -28,7 +28,7 @@ export default function AdminDashboard() {
  
 
   const [search, setSearch] = useState('');
-  const [status, setStatus] = useState('Tümü');
+  const [status, setStatus] = useState('Randevu Alınacak');
   const [country, setCountry] = useState('Tüm Ülkeler');
   const [applications, setApplications] = useState<Application[]>([]);
   const navigate = useNavigate();
@@ -250,7 +250,7 @@ export default function AdminDashboard() {
       <span className="text-red-500 text-base">●</span> Randevu Durumu
     </Text>
   }
-  data={['Tümü', 'Randevu Alındı', 'Randevu Alınacak']}
+  data={['Randevu Alındı', 'Randevu Alınacak']}
   value={status}
   onChange={(value) => setStatus(value || '')}
   radius="md"

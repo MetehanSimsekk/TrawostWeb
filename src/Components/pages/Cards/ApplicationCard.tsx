@@ -73,9 +73,14 @@ async function handleAppointmentStatusChange(newStatus: string | null) {
 
   let dbUpdate: any = {};
   if (newStatus === "Randevu Alınacak") {
-    dbUpdate = { appointment_status: null, appointment_date: null };
+    dbUpdate = { appointment_status: newStatus, appointment_date: null };
     setAppointmentDate(null);
-  } else {
+  } 
+  if(newStatus === "Randevu Alındı") {
+    dbUpdate = { appointment_status: newStatus, appointment_date: appointmentDate };
+    setAppointmentDate(null);
+  } 
+  else {
     dbUpdate = { appointment_status: newStatus };
   }
 
