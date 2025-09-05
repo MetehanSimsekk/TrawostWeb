@@ -7,6 +7,7 @@ import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 
 export default function ApplicationDetailModal(props: { app: any; title: string; isFamily?: boolean, personIndex:any, }) {
 
+  
 const [hovered, setHovered] = useState(false);
 const [hovered2, setHovered2] = useState(false);
 
@@ -53,6 +54,11 @@ useEffect(() => {
 
   fetchKisiSayisi();
 }, [props.app.basvuru_grup_kodu]);
+
+
+
+
+
 
 const toUrlArray = (input: unknown): string[] => {
   if (!input) return [];
@@ -603,7 +609,7 @@ function normalizeToUrls(raw: unknown): string[] {
 
 
 
-        count = (urls[props.personIndex] as string[]).filter(Boolean).length;
+        count = (urls[urls.length-1 - props.personIndex] as string[]).filter(Boolean).length;
       } else if (Array.isArray(urls)) {
   
         
@@ -631,8 +637,8 @@ function normalizeToUrls(raw: unknown): string[] {
   })()}
 </Text>
 
-  {hovered2 && (
-    <div
+ {hovered2 && (
+  <div
     className="absolute inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center rounded-md"
     onClick={(e) => {
       e.stopPropagation();
@@ -645,14 +651,12 @@ function normalizeToUrls(raw: unknown): string[] {
           const parsed = JSON.parse(raw);
           if (Array.isArray(parsed)) {
             if (Array.isArray(parsed[0])) {
-              urls = (parsed[props.personIndex] || []).filter(Boolean);
+              urls = (parsed[parsed.length-1 - props.personIndex] || []).filter(Boolean);
             } else {
               urls = parsed.filter(Boolean);
             }
           } else if (typeof parsed === 'string') {
             urls = [parsed];
-          } else {
-            urls = [];
           }
         } catch {
           urls = raw ? [raw] : [];
@@ -663,23 +667,23 @@ function normalizeToUrls(raw: unknown): string[] {
         } else {
           urls = raw.filter(Boolean);
         }
-      } else {
-        urls = [];
       }
+
     
+
       if (urls.length > 0) {
-        applyUrls(urls);        // senin mevcut fonksiyonun
+        applyUrls(urls);
       } else {
-        setSchengenUrl([]);     // state boşalt
+        setSchengenUrl([]);
       }
-    
+
       setSchengenIndex(0);
       setShowSchengenModal(true);
     }}
   >
     <IconEye size={32} className="text-white cursor-pointer" />
   </div>
-  )}
+)}
 <Modal opened={showSchengenModal} onClose={() => setShowSchengenModal(false)} size="75%" radius="md" centered>
 
 {schengenUrl.length > 1 && (
@@ -746,6 +750,10 @@ function normalizeToUrls(raw: unknown): string[] {
 )}
 
 </SimpleGrid>
+
+
+
+
       <Text size="sm" fw={600} c="dimmed" mt="lg" mb="xs">Başvuru Özeti</Text>
 <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md">
   <Card shadow="xs" withBorder radius="md" padding="xs">

@@ -18,7 +18,7 @@ import { v4 as uuidv4 } from 'uuid';
 import toast from "react-hot-toast";
 import ReactCountryFlag from "react-country-flag";
 import CitySelectRemote from "../CitySelect"
-import { Loader } from "@mantine/core";
+import { Button, Card, Group, Loader, Text, Textarea } from "@mantine/core";
 export default function ApplyForm({ value, onChange }: { value: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void }) {
   const [selectedCountry, setSelectedCountry] = useState('Danimarka')
   const [hasSchengen, setHasSchengen] = useState<boolean[]>([]);
@@ -72,8 +72,11 @@ const [companyPhone, setCompanyPhone] = useState<string[]>([]);
 const [city, setCity] = useState<string[]>([]);
 
 // errors tipine/başlangıcına city dizisini ekle (senin yapına uyarlayarak)
+const [note, setNote] = useState("");
 
-
+const [saving, setSaving] = useState(false);
+const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
+const [highlighted, setHighlighted] = useState(false);
 const [schoolName, setSchoolName]= useState<string[]>([]);
 const [schoolAddress, setSchoolAddress] = useState<string[]>([]);
 const [schoolPhone, setSchoolPhone] = useState<string[]>([]);
@@ -153,7 +156,7 @@ const [errors, setErrors] = useState<FormErrors>({
     company_address?: string[];
     company_phone?: string[];
     job_title?:string[];
-   
+    notes?:string
   }
   // type Applicant = {
   //   firstName: string;
@@ -1876,6 +1879,42 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
 </div>
 
 </Transition>
+{/* <Text fw={600} size="sm">Müşteri Notu</Text> */}
+{/* <Text size="sm" fw={800} c="black" mt="sm" mb="xs">
+  Müşteri Notu 
+</Text>
+
+    
+    <div className="flex items-center gap-2">
+      {saving ? (
+        <Text size="xs" c="dimmed">Kaydediliyor…</Text>
+      ) : lastSavedAt ? (
+        <Text size="xs" c="dimmed">Kaydedildi: {lastSavedAt}</Text>
+      ) : null}
+    </div>
+
+
+  <Textarea
+      placeholder="Bu başvuruya özel notunuzu yazın…"
+      autosize
+      minRows={5}
+      value={note}
+      onChange={(e) => setNote(e.currentTarget.value)}
+      onFocus={() => setHighlighted(false)}  // yazarken normal
+      onBlur={() => {
+        if (note.trim()) setHighlighted(true); // sadece içerik varsa yeşil
+      }}
+      styles={{
+        input: {
+          fontSize: 14,
+          borderRadius: 8,
+          fontFamily:'sans-serif',
+          backgroundColor: highlighted ? "#d1fae5" : "white", // tailwind: bg-green-100
+          transition: "background-color 0.3s ease",
+        },
+      }}
+    /> */}
+
 </div>
 </div>
 

@@ -120,6 +120,7 @@ async function handleAppointmentStatusChange(newStatus: string | null) {
 
 
 
+
   useEffect(() => {
     const kisiSayisiCount = isFamily ? (relatedApps.length + 1) : 1;
     setKisiSayisi(kisiSayisiCount);
@@ -403,9 +404,9 @@ async function handleAppointmentStatusChange(newStatus: string | null) {
         title={`${i + 2}. Başvuru Sahibi`}
         app={rel}
         isFamily={true}
-        personIndex={i + 1} 
+        personIndex={i + 1}
       />
-    ))}
+  ))}
 </Card>
     
   </div>
