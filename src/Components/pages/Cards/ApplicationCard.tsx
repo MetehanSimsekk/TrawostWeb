@@ -13,8 +13,9 @@ import {
     rem,
     Radio,
     Modal,
+    ActionIcon,
   } from '@mantine/core';
-  import { IconUser, IconCalendar, IconCalendarCheck, IconGlobe, IconSearch, IconEye, IconTrash, IconClock, IconUsers } from '@tabler/icons-react';
+  import { IconUser, IconCalendar, IconCalendarCheck, IconGlobe, IconSearch, IconEye, IconTrash, IconClock, IconUsers, IconNote } from '@tabler/icons-react';
   import { JSX, useEffect, useState } from 'react';
   import { IconCheck, IconPlaneTilt } from '@tabler/icons-react';
   import { DatePickerInput, DateTimePicker } from '@mantine/dates';
@@ -54,7 +55,7 @@ export function ApplicationCard({
 
 const [statusById, setStatusById] = useState<Record<string, string>>({});
 
-
+const [noteModalOpen, setNoteModalOpen] = useState(false);
 
 async function handleAppointmentStatusChange(newStatus: string | null) {
   if (!newStatus) return;
@@ -321,6 +322,43 @@ async function handleAppointmentStatusChange(newStatus: string | null) {
                   </div>
                 </Group>
               </Card>
+              <>
+     
+          {/* Sol taraf */}
+          
+
+          {/* Sağ taraf: Note ikonu */}
+          {app.form_note && (
+             <Card  onClick={() => setNoteModalOpen(true)} withBorder radius="md" padding="md" bg="red.0"  className="w-1/4">
+        <Group gap="xs" justify="space-between">
+            <ActionIcon
+              variant="subtle"
+              color="red"
+             
+              title="Müşteri Notunu Gör"
+            >
+              <IconNote size={50} />
+            
+            </ActionIcon>
+            <div>
+              <Text fw={500} c="dimmed">Note !</Text>
+             </div>
+            </Group>
+            </Card>
+          )}
+      
+
+      {/* Modal */}
+      <Modal
+        opened={noteModalOpen}
+        onClose={() => setNoteModalOpen(false)}
+        title="Müşteri Notu"
+        centered
+      >
+        <Text size="sm">{app.form_note || "Not bulunamadı."}</Text>
+      </Modal>
+    </>
+
             </SimpleGrid>
           </div>
   

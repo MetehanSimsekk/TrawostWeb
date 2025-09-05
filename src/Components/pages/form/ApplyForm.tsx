@@ -71,7 +71,7 @@ const [companyPhone, setCompanyPhone] = useState<string[]>([]);
 
 const [city, setCity] = useState<string[]>([]);
 
-// errors tipine/başlangıcına city dizisini ekle (senin yapına uyarlayarak)
+
 const [note, setNote] = useState("");
 
 const [saving, setSaving] = useState(false);
@@ -82,6 +82,10 @@ const [schoolAddress, setSchoolAddress] = useState<string[]>([]);
 const [schoolPhone, setSchoolPhone] = useState<string[]>([]);
 const [schengenPaths, setSchengenPaths] = useState<string[][]>([]); 
 const [invitationPaths, setInvitationPaths] = useState<string[][]>([]); 
+
+
+const maxChars = 250;
+
 type FormErrors =  {
   firstName: string[];
   lastName: string[];
@@ -156,7 +160,7 @@ const [errors, setErrors] = useState<FormErrors>({
     company_address?: string[];
     company_phone?: string[];
     job_title?:string[];
-    notes?:string
+    form_note?:string
   }
   // type Applicant = {
   //   firstName: string;
@@ -441,6 +445,7 @@ const [errors, setErrors] = useState<FormErrors>({
     { name: 'Çekya', code: 'CZ' },
     { name: 'Danimarka', code: 'DK' },
     { name: 'Estonya', code: 'EE' },
+    { name: 'Bulgaristan', code: 'BG' },
     { name: 'Finlandiya', code: 'FI' },
     { name: 'Fransa', code: 'FR' },
     { name: 'Hollanda', code: 'NL' },
@@ -659,7 +664,7 @@ const [errors, setErrors] = useState<FormErrors>({
           ? (passportImage[i] ?? null)
           : (passportImage ?? null),
   
-       
+        form_note:note,
         ...(ws === 'Çalışıyor' && {
           job_title :pickAt(selectedJobTitle as any , i,''),
           company_name: pickAt(companyName as any , i,'') ,
@@ -1879,8 +1884,8 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
 </div>
 
 </Transition>
-{/* <Text fw={600} size="sm">Müşteri Notu</Text> */}
-{/* <Text size="sm" fw={800} c="black" mt="sm" mb="xs">
+
+<Text size="sm" fw={800} c="black" mt="sm" mb="xs">
   Müşteri Notu 
 </Text>
 
@@ -1893,28 +1898,36 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
       ) : null}
     </div>
 
+    <div className="relative">
 
   <Textarea
       placeholder="Bu başvuruya özel notunuzu yazın…"
       autosize
       minRows={5}
       value={note}
-      onChange={(e) => setNote(e.currentTarget.value)}
-      onFocus={() => setHighlighted(false)}  // yazarken normal
+      onChange={(e) => setNote(e.currentTarget.value.slice(0, maxChars))} 
+      onFocus={() => setHighlighted(false)}  
       onBlur={() => {
-        if (note.trim()) setHighlighted(true); // sadece içerik varsa yeşil
+        if (note.trim()) setHighlighted(true); 
       }}
       styles={{
         input: {
           fontSize: 14,
           borderRadius: 8,
           fontFamily:'sans-serif',
-          backgroundColor: highlighted ? "#d1fae5" : "white", // tailwind: bg-green-100
+          backgroundColor: highlighted ? "#d1fae5" : "white",
           transition: "background-color 0.3s ease",
         },
       }}
-    /> */}
-
+   ></Textarea>
+<Text
+        size="xs"
+        c={note.length >= maxChars ? "red" : "dimmed"}
+        className="absolute bottom-2 right-3"
+      >
+        {maxChars - note.length}
+      </Text>
+      </div>
 </div>
 </div>
 

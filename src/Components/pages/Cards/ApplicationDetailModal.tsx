@@ -22,6 +22,9 @@ const [invitationUrls, setInvitationUrls] = useState<string[]>([]);
 const [rotation, setRotation] = useState(0);
 const [kisiSayisi, setKisiSayisi] = useState<number>(0);
 
+
+const [uploadingSchengen, setUploadingSchengen] = useState(false);
+
 const isStringNonEmpty = (v: unknown): v is string =>
   typeof v === "string" && v.trim().length > 0;
 
@@ -685,6 +688,24 @@ function normalizeToUrls(raw: unknown): string[] {
   </div>
 )}
 <Modal opened={showSchengenModal} onClose={() => setShowSchengenModal(false)} size="75%" radius="md" centered>
+
+
+{/* <div className="sticky top-0 z-20 bg-white/90 backdrop-blur border-b border-gray-200 px-2 py-2 rounded-t-md flex items-center gap-3">
+    <label htmlFor="admin-schengen-upload" className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-red-600 text-white text-sm font-medium cursor-pointer hover:bg-red-700 transition">
+      {uploadingSchengen ? 'Yükleniyor…' : 'Yeni Dosya Ekle'}
+    </label>
+    <input
+      id="admin-schengen-upload"
+      type="file"
+      multiple
+      accept=".jpg,.jpeg,.png,.pdf"
+      className="hidden"
+      onChange={handleAdminSchengenUpload}
+      disabled={uploadingSchengen}
+    />
+    {uploadingSchengen && <span className="text-sm text-gray-500">Lütfen bekleyin…</span>}
+  </div> */}
+
 
 {schengenUrl.length > 1 && (
     <div className="mt-4 flex gap-2 flex-wrap">
