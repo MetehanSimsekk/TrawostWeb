@@ -1,3 +1,4 @@
+import { notifications } from "@mantine/notifications";
 import { supabase } from "../../../services/supabase";
 import { Alert, Badge, Card, Divider, Group, Modal, SimpleGrid, Text, Title } from '@mantine/core';
 import { IconMapPin, IconMail, IconPhone, IconUser, IconCheck, IconEye, IconClock, IconUsers } from '@tabler/icons-react';
@@ -6,7 +7,9 @@ import { useEffect, useState } from 'react';
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 
 export default function ApplicationDetailModal(props: { app: any; title: string; isFamily?: boolean, personIndex:any, }) {
-
+  const MAX_FILES_PER_PERSON = 10;
+  const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'application/pdf'];
+  const MAX_SIZE_MB = 10;
   
 const [hovered, setHovered] = useState(false);
 const [hovered2, setHovered2] = useState(false);
@@ -21,9 +24,17 @@ const [showInvitationModal, setShowInvitationModal] = useState(false);
 const [invitationUrls, setInvitationUrls] = useState<string[]>([]);
 const [rotation, setRotation] = useState(0);
 const [kisiSayisi, setKisiSayisi] = useState<number>(0);
+const [schengenImages, setSchengenImages] = useState<string[][]>([]);
 
-
+const [schengenLoading, setSchengenLoading] = useState<boolean[]>([]);
+const [schengenFileNames, setSchengenFileNames] = useState<string[][]>([]);
 const [uploadingSchengen, setUploadingSchengen] = useState(false);
+
+const [selectedForDelete, setSelectedForDelete] = useState<number | null>(null);
+
+const [schengenPaths, setSchengenPaths] = useState<string[][]>([]); 
+
+type UploadResult = { url: string; name: string; path: string };
 
 const isStringNonEmpty = (v: unknown): v is string =>
   typeof v === "string" && v.trim().length > 0;
@@ -59,8 +70,231 @@ useEffect(() => {
 }, [props.app.basvuru_grup_kodu]);
 
 
+function ensureIndex<T>(arr: T[], idx: number, factory: () => T) {
+  const copy = [...arr];
+  while (copy.length <= idx) copy.push(factory());
+  return copy;
+}
+
+async function uploadOneToSchengen(file: File): Promise<UploadResult> {
+  // doğrulama
+  if (!ALLOWED_TYPES.includes(file.type)) {
+    throw new Error('Sadece JPG, PNG veya PDF yükleyebilirsiniz.');
+  }
+  if (file.size > MAX_SIZE_MB * 1024 * 1024) {
+    throw new Error(`Dosya ${MAX_SIZE_MB}MB sınırını aşıyor.`);
+  }
+
+  const ext = file.name.split('.').pop() || 'bin';
+  const fileName = `${crypto.randomUUID()}.${ext}`;
+  const filePath = `schengen/${fileName}`;
+
+  const { error: upErr } = await supabase.storage
+    .from('schengen')
+    .upload(filePath, file);
+  if (upErr) throw upErr;
+
+  const { data: pub } = supabase.storage.from('schengen').getPublicUrl(filePath);
+  const url = pub?.publicUrl;
+  if (!url) throw new Error('Public URL alınamadı');
+
+  return { url, name: file.name, path: filePath };
+}
 
 
+function parsePrevSchengen(val: unknown): string[][] {
+ 
+  if (!val) return [];
+
+
+
+
+
+
+  if (Array.isArray(val)) {
+    if (val.length === 0) return [];
+    if (Array.isArray(val[0])) return val as string[][];
+    return [val as string[]]; 
+
+    
+  }
+  if (typeof val === 'string') {
+    const s = val.trim();
+    if (!s) return [];
+  
+    if (s.startsWith('[')) {
+      try {
+        const parsed = JSON.parse(s);
+        if (Array.isArray(parsed)) {
+
+
+
+          if (Array.isArray(parsed[0])) return parsed as string[][];
+          return [parsed as string[]];
+        }
+      } catch {
+       
+        return [[s]];
+      }
+    }
+  
+
+
+
+
+
+
+    return [[s]];
+  }
+  return [];
+}
+
+
+
+const handleDeleteSchengenFile = async (index: number) => {
+  try {
+    const updatedUrls = schengenUrl.filter((_, i) => i !== index);
+    setSchengenUrl(updatedUrls);
+
+ 
+    await supabase
+      .from("applications")
+      .update({ previous_schengen_url: JSON.stringify(updatedUrls) })
+      .eq("id", props.app.id);
+
+    setSelectedForDelete(null);
+    setSchengenIndex(0);
+    notifications.show({
+      title: "Bilgi",
+      message:(
+        <span>
+        <strong className="font-bold">{props.title + ' '}</strong>
+        {props.app.full_name} - {props.app.surname }
+       
+          <span className="ml-2 text-red-600 text-sm font-medium">
+            — Görsel Silindi
+          </span>
+        
+      </span>
+  )
+      ,
+      color: "red",
+      autoClose: 3000,
+    });
+  } catch (err) {
+    console.error("Silme hatası:", err);
+    alert("❌ Dosya silinemedi");
+  }
+};
+
+
+const handleSchengenUpload = (idx: number, e: React.ChangeEvent<HTMLInputElement>, mode: 'append' | 'replace' = 'append') => {
+  (async () => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+  
+    setSchengenLoading(prev => {
+      const next = ensureIndex(prev, idx, () => false);
+      next[idx] = true;
+      return next;
+    });
+
+    try {
+  
+      const currentCount = (schengenImages[idx]?.length ?? 0);
+      if (currentCount + files.length > MAX_FILES_PER_PERSON) {
+        throw new Error(`En fazla ${MAX_FILES_PER_PERSON} dosya yükleyebilirsiniz.`);
+      }
+    
+    
+      const results = await Promise.all(Array.from(files).map(uploadOneToSchengen));
+      const newUrls  = results.map(r => r.url);
+      const newNames = results.map(r => r.name);
+      const newPaths = results.map(r => r.path);
+    
+     
+      setSchengenImages(prev => {
+        let next = ensureIndex(prev, idx, () => []);
+        next[idx] = (mode === 'replace') ? newUrls : [...(next[idx] || []), ...newUrls];
+        return [...next];
+      });
+    
+      setSchengenFileNames(prev => {
+        let next = ensureIndex(prev, idx, () => []);
+        next[idx] = (mode === 'replace') ? newNames : [...(next[idx] || []), ...newNames];
+        return [...next];
+      });
+    
+      setSchengenPaths(prev => {
+        let next = ensureIndex(prev, idx, () => []);
+        next[idx] = (mode === 'replace') ? newPaths : [...(next[idx] || []), ...newPaths];
+        return [...next];
+      });
+      setSchengenUrl(prev => {
+        const next = [...prev, ...newUrls];
+        return next;
+      });
+     
+      const { data: existing, error: fetchError } = await supabase
+        .from("applications")
+        .select("previous_schengen_url")
+        .eq("id", props.app.id)
+        .single();
+    
+      if (fetchError) {
+    
+        console.warn("read previous_schengen_url error:", fetchError.message);
+      }
+    
+      let parsed = parsePrevSchengen(existing?.previous_schengen_url);
+   
+      while (parsed.length <= idx) parsed.push([]);
+ 
+      parsed[idx] = (mode === 'replace') ? newUrls : [...(parsed[idx] || []), ...newUrls];
+    
+      const { error: updateErr } = await supabase
+        .from("applications")
+        .update({ previous_schengen_url: JSON.stringify(parsed) })
+        .eq("id", props.app.id);
+    
+      if (updateErr) throw updateErr;
+     notifications.show({
+        title: "Bilgi",
+        message:(
+          <span>
+          <strong className="font-bold">{props.title + ' '}</strong>
+          {props.app.full_name} - {props.app.surname }
+          {props.app.passport_file_url ? (
+            <span className="ml-2 text-green-600 text-sm font-medium">
+              — Görsel yüklendi
+            </span>
+          ) : (
+            <span className="ml-2 text-red-500 text-sm font-medium">
+              — Görsel yok
+            </span>
+          )}
+        </span>
+    )
+        ,
+        color: "red",
+        autoClose: 3000,
+      });
+    
+    
+    } catch (err: any) {
+      console.error(err);
+      alert('❌ Schengen dosyası yüklenemedi: ' + (err?.message || 'Bilinmeyen hata'));
+    } finally {
+      setSchengenLoading(prev => {
+        const next = ensureIndex(prev, idx, () => false);
+        next[idx] = false;
+        return next;
+      });
+      e.target.value = '';
+    }
+  })();
+};
 
 
 const toUrlArray = (input: unknown): string[] => {
@@ -690,43 +924,9 @@ function normalizeToUrls(raw: unknown): string[] {
 <Modal opened={showSchengenModal} onClose={() => setShowSchengenModal(false)} size="75%" radius="md" centered>
 
 
-{/* <div className="sticky top-0 z-20 bg-white/90 backdrop-blur border-b border-gray-200 px-2 py-2 rounded-t-md flex items-center gap-3">
-    <label htmlFor="admin-schengen-upload" className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-red-600 text-white text-sm font-medium cursor-pointer hover:bg-red-700 transition">
-      {uploadingSchengen ? 'Yükleniyor…' : 'Yeni Dosya Ekle'}
-    </label>
-    <input
-      id="admin-schengen-upload"
-      type="file"
-      multiple
-      accept=".jpg,.jpeg,.png,.pdf"
-      className="hidden"
-      onChange={handleAdminSchengenUpload}
-      disabled={uploadingSchengen}
-    />
-    {uploadingSchengen && <span className="text-sm text-gray-500">Lütfen bekleyin…</span>}
-  </div> */}
 
 
-{schengenUrl.length > 1 && (
-    <div className="mt-4 flex gap-2 flex-wrap">
-      {schengenUrl.map((u, i) => (
-        <button
-          key={i}
-          type="button"
-          className={`border rounded p-1 ${i === schengenIndex ? 'ring-2 ring-red-500' : ''}`}
-          onClick={() => setSchengenIndex(i)}
-          title={`Dosya ${i + 1}`}
-        >
-          {u.toLowerCase().endsWith('.pdf') ? (
-            <span className="text-xs px-2">PDF</span>
-          ) : (
-            <img src={u} alt={`thumb-${i}`} className="w-16 h-16 object-cover rounded" />
-          )}
-        </button>
-      ))}
-    </div>
-  )}
-  <div className="max-h-[80vh] overflow-y-auto pr-2">  {/* <-- scroll burada */}
+  <div className="max-h-[80vh] overflow-y-auto pr-2"> 
     {(() => {
       const url = schengenUrl[schengenIndex];
       if (typeof url !== 'string' || !url) return <Text c="dimmed">Schengen dosyası bulunamadı.</Text>;
@@ -739,13 +939,99 @@ function normalizeToUrls(raw: unknown): string[] {
         <TransformWrapper initialScale={1} minScale={1} maxScale={5} wheel={{ step: 0.15 }} doubleClick={{ disabled: false, step: 1.3 }} pinch={{ step: 5 }} limitToBounds centerOnInit>
           {({ zoomIn, zoomOut, resetTransform }) => (
             <>
-              <div className="flex gap-2 justify-end mb-2 sticky top-0 bg-white/80 backdrop-blur z-10 p-1 rounded">
-                <button onClick={() => zoomOut()} className="px-3 py-1 rounded bg-gray-200">−</button>
-                <button onClick={() => zoomIn()} className="px-3 py-1 rounded bg-gray-200">+</button>
-                <button onClick={() => setRotation(r => r - 90)} className="px-3 py-1 rounded bg-gray-200">⟲</button>
-                <button onClick={() => setRotation(r => r + 90)} className="px-3 py-1 rounded bg-gray-200">⟳</button>
-                <button onClick={() => resetTransform()} className="px-3 py-1 rounded bg-gray-200">Sıfırla</button>
-              </div>
+             <div className="sticky top-0 z-20 bg-white/90 backdrop-blur border-b border-gray-200 px-2 py-2 rounded-t-md flex items-center justify-between">
+
+
+
+
+  <div className="flex items-center gap-3">
+  {schengenUrl.map((u, i) => (
+    <div key={i} className="relative">
+      <button
+        type="button"
+        className={`border rounded p-1 ${i === schengenIndex ? 'ring-2 ring-red-500' : ''}`}
+        onClick={() => {
+          setSchengenIndex(i);
+          setSelectedForDelete(i); 
+
+
+        }}
+        title={`Dosya ${i + 1}`}
+      >
+        {u.toLowerCase().endsWith('.pdf') ? (
+          <span className="text-xs px-2">PDF</span>
+        ) : (
+          <img src={u} alt={`thumb-${i}`} className="w-16 h-16 object-cover rounded" />
+        )}
+      </button>
+
+      {selectedForDelete === i && (
+        <button
+          onClick={() => handleDeleteSchengenFile(i)}
+          className="absolute top-1 right-1 bg-red-600 text-white text-xs rounded px-1"
+        >
+          Sil
+        </button>
+      )}
+    </div>
+  ))}
+  </div>
+
+
+  <div className="flex gap-2 items-center">
+  
+    <label
+      htmlFor="admin-schengen-upload"
+      className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-red-600 text-white text-sm font-medium cursor-pointer hover:bg-red-700 transition"
+    >
+    
+      {uploadingSchengen ? 'Yükleniyor…' : 'Yeni Görsel Ekle'}
+    </label>
+    <input
+      id="admin-schengen-upload"
+      type="file"
+      multiple
+      accept=".jpg,.jpeg,.png,.pdf"
+      className="hidden"
+      onChange={(e) => handleSchengenUpload(props.personIndex, e)}
+      disabled={uploadingSchengen}
+    />
+    {uploadingSchengen && (
+      <span className="text-sm text-gray-500">Lütfen bekleyin…</span>
+    )}
+
+    <button
+      onClick={() => zoomOut()}
+      className="px-3 py-1 rounded bg-gray-200"
+    >
+      −
+    </button>
+    <button
+      onClick={() => zoomIn()}
+      className="px-3 py-1 rounded bg-gray-200"
+    >
+      +
+    </button>
+    <button
+      onClick={() => setRotation(r => r - 90)}
+      className="px-3 py-1 rounded bg-gray-200"
+    >
+      ⟲
+    </button>
+    <button
+      onClick={() => setRotation(r => r + 90)}
+      className="px-3 py-1 rounded bg-gray-200"
+    >
+      ⟳
+    </button>
+    <button
+      onClick={() => resetTransform()}
+      className="px-3 py-1 rounded bg-gray-200"
+    >
+      Sıfırla
+    </button>
+  </div>
+</div>
 
               <TransformComponent
                 wrapperStyle={{ width: '100%', height: '75vh', background: '#000' }}

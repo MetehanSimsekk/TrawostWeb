@@ -322,6 +322,19 @@ async function handleAppointmentStatusChange(newStatus: string | null) {
                   </div>
                 </Group>
               </Card>
+
+              <Card withBorder radius="md" padding="md" bg="yellow.0">
+              <Group gap="md">
+  <div>
+    <Text size="xs" c="dimmed">Seyahat Başlangıç</Text>
+    <Text fw={500} c="blue">{app.tripStart || "-"}</Text>
+  </div>
+  <div>
+    <Text size="xs" c="dimmed">Seyahat Bitiş</Text>
+    <Text fw={500} c="blue">{app.tripEnd || "-"}</Text>
+  </div>
+</Group>
+              </Card>
               <>
      
           {/* Sol taraf */}
@@ -344,7 +357,10 @@ async function handleAppointmentStatusChange(newStatus: string | null) {
               <Text fw={500} c="dimmed">Note !</Text>
              </div>
             </Group>
+            
             </Card>
+
+            
           )}
       
 

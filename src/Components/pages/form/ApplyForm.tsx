@@ -18,6 +18,7 @@ import { v4 as uuidv4 } from 'uuid';
 import toast from "react-hot-toast";
 import ReactCountryFlag from "react-country-flag";
 import CitySelectRemote from "../CitySelect"
+import { DateInput, TimeInput } from '@mantine/dates';
 import { Button, Card, Group, Loader, Text, Textarea } from "@mantine/core";
 export default function ApplyForm({ value, onChange }: { value: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void }) {
   const [selectedCountry, setSelectedCountry] = useState('Danimarka')
@@ -83,6 +84,9 @@ const [schoolPhone, setSchoolPhone] = useState<string[]>([]);
 const [schengenPaths, setSchengenPaths] = useState<string[][]>([]); 
 const [invitationPaths, setInvitationPaths] = useState<string[][]>([]); 
 
+const [tripStart, setTripStart] = useState<string>('');
+const [tripEnd, setTripEnd] = useState<string>('');
+
 
 const maxChars = 250;
 
@@ -99,6 +103,8 @@ type FormErrors =  {
   passport: string[];
   schengen?: string[];
   city?: string[];
+  tripStart?: string;
+  tripEnd?: string;
 }
 
 
@@ -118,7 +124,9 @@ const [errors, setErrors] = useState<FormErrors>({
   maidenName:[],
   passport: [],
   schengen: [],
-  city: []
+  city: [],
+  tripStart: '',
+  tripEnd: ''
 });
   // const jobTitles = [
   //   'Yazılım Mühendisi',
@@ -161,6 +169,8 @@ const [errors, setErrors] = useState<FormErrors>({
     company_phone?: string[];
     job_title?:string[];
     form_note?:string
+    tripStart:string,
+    tripEnd:string
   }
   // type Applicant = {
   //   firstName: string;
@@ -565,6 +575,30 @@ const [errors, setErrors] = useState<FormErrors>({
       nextErrors.passport[i] = hasPassport ? '' : 'Pasaport görseli zorunludur.';
       if (nextErrors.passport[i]) isValid = false;
     }
+    
+    if (!tripStart?.trim()) {
+      nextErrors.tripStart = 'Başlangıç tarihi zorunludur.';
+      isValid = false;
+    } else {
+      nextErrors.tripStart = '';
+    }
+    
+    if (!tripEnd?.trim()) {
+      nextErrors.tripEnd = 'Bitiş tarihi zorunludur.';
+      isValid = false;
+    } else {
+      nextErrors.tripEnd = '';
+    }
+    
+  
+    if (tripStart && tripEnd) {
+      const start = new Date(tripStart);
+      const end = new Date(tripEnd);
+      if (isFinite(start.getTime()) && isFinite(end.getTime()) && start > end) {
+        nextErrors.tripEnd = 'Bitiş tarihi başlangıç tarihinden önce olamaz.';
+        isValid = false;
+      }
+    }
   
     setErrors(nextErrors);
     return isValid;
@@ -659,6 +693,10 @@ const [errors, setErrors] = useState<FormErrors>({
         email: pickAt(email as any, i, ''),
         phone: pickAt(phone as any, i, ''),
         city:pickAt(city as any , i,'') ,
+        tripEnd:pickAt(tripEnd as any,i,''),
+        
+        tripStart:pickAt(tripEnd as any,i,''),
+
         appointment_status:'Randevu Alınacak',
         passport_file_url: Array.isArray(passportImage)
           ? (passportImage[i] ?? null)
@@ -676,6 +714,7 @@ const [errors, setErrors] = useState<FormErrors>({
           school_address: pickAt(schoolAddress as any , i,''),
           school_phone: pickAt(schoolPhone as any , i,'')
         }),
+
       };
      
       applications.push(currentData);
@@ -695,6 +734,9 @@ const [errors, setErrors] = useState<FormErrors>({
       setIsSubmitting(false);
     }
   };
+
+
+
   
   return (
     
@@ -836,6 +878,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
       <label className="block mb-2 text-m font-semibold text-gray-600">
           Kaç Kişi Başvuruyor? <span className="text-red-600">*</span>
       </label>
+      <div className="mt-8">
         <Menu as="div" className="relative inline-block w-full">
   <MenuButton className="inline-flex w-full justify-between items-center rounded-lg bg-white px-4 py-3 text-base text-gray-800 border border-gray-300 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500">
     {selectedPeople}
@@ -872,7 +915,66 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
   </Transition>
 </Menu>
       </div>
-    
+      </div>
+      <div className="mt-0">
+  <label className="block mb-2 text-m font-semibold text-gray-600">
+    Seyahat Planlaması <span className="text-red-600">*</span>
+  </label>
+ 
+
+
+  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+  <div>
+    <label className="block mb-1 text-sm font-medium text-gray-700">
+      Başlangıç Tarihi
+    </label>
+    <input
+      type="date"
+      value={tripStart}
+      onChange={(e) => setTripStart(e.target.value)}
+      max={tripEnd || undefined}
+      className={`block w-full h-13 rounded-lg px-4 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset
+        ${
+          errors.tripStart
+            ? 'border-red-500 ring-red-500 bg-red-50 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500'
+            : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500'
+        }`}
+    />
+    {errors.tripStart && (
+      <p className="mt-2 text-sm text-red-600">{errors.tripStart}</p>
+    )}
+  </div>
+
+
+  <div>
+    <label className="block mb-1 text-sm font-medium text-gray-700">
+      Bitiş Tarihi
+    </label>
+    <input
+      type="date"
+      value={tripEnd}
+      onChange={(e) => setTripEnd(e.target.value)}
+      min={tripStart || undefined}
+      className={`block w-full h-13 rounded-lg px-4 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset
+        ${
+          errors.tripEnd
+            ? 'border-red-500 ring-red-500 bg-red-50 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500'
+            : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500'
+        }`}
+    />
+    {errors.tripEnd && (
+      <p className="mt-2 text-sm text-red-600">{errors.tripStart}</p>
+    )}
+  </div>
+</div>
+
+</div>
+
+
+
+
+
     </div>
     </div>
 
@@ -1272,26 +1374,26 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
         className="h-12 px-4 py-3 rounded-lg w-full border border-gray-300 bg-white text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-0"
       />
 
-<Cleave
-  id={`school-phone-${index}`}
-  options={{ phone: true, phoneRegionCode: 'TR' }}
-  value={schoolPhone[index] || ''}
-  onChange={(e: any) => {
-    let v = e.target.value as string;
+   <Cleave
+      id={`school-phone-${index}`}
+      options={{ phone: true, phoneRegionCode: 'TR' }}
+      value={schoolPhone[index] || ''}
+      onChange={(e: any) => {
+        let v = e.target.value as string;
 
 
-    if (v && !v.startsWith('0')) {
-      v = '0' + v;
-    }
+        if (v && !v.startsWith('0')) {
+          v = '0' + v;
+        }
 
-    const updated = [...schoolPhone];
-    updated[index] = v;
-    setSchoolPhone(updated);
-  }}
-  inputMode="tel"
-  placeholder="(xxx) xxx xx xx"
-  className="h-12 px-4 py-3 rounded-lg w-full border border-gray-300 bg-white text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-0"
-/>
+        const updated = [...schoolPhone];
+        updated[index] = v;
+        setSchoolPhone(updated);
+      }}
+      inputMode="tel"
+      placeholder="(xxx) xxx xx xx"
+      className="h-12 px-4 py-3 rounded-lg w-full border border-gray-300 bg-white text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-0"
+      />
       <textarea
         id={`school-address-${index}`}
         value={schoolAddress[index] || ""}
@@ -1830,7 +1932,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
           strokeLinejoin="round"
           strokeWidth={2}
           d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M12 12v9m0 0l-3-3m3 3l3-3M12 3v9"
-        />
+       />
       </svg>
     )}
 
