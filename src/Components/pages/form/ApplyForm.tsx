@@ -695,7 +695,7 @@ const [errors, setErrors] = useState<FormErrors>({
         city:pickAt(city as any , i,'') ,
         tripEnd:pickAt(tripEnd as any,i,''),
         
-        tripStart:pickAt(tripEnd as any,i,''),
+        tripStart:pickAt(tripStart as any,i,''),
 
         appointment_status:'Randevu Alınacak',
         passport_file_url: Array.isArray(passportImage)
