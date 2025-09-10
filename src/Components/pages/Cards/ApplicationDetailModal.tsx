@@ -29,11 +29,14 @@ const [schengenImages, setSchengenImages] = useState<string[][]>([]);
 const [schengenLoading, setSchengenLoading] = useState<boolean[]>([]);
 const [schengenFileNames, setSchengenFileNames] = useState<string[][]>([]);
 const [uploadingSchengen, setUploadingSchengen] = useState(false);
-
+const [uploadingPasaport, setUploadingPasaport] = useState(false);
 const [selectedForDelete, setSelectedForDelete] = useState<number | null>(null);
 
-const [schengenPaths, setSchengenPaths] = useState<string[][]>([]); 
+const [passportImage, setPassportImage] = useState<string[]>([]);
 
+const [passportLoading, setPassportLoading] = useState<boolean[]>([]);
+const [schengenPaths, setSchengenPaths] = useState<string[][]>([]); 
+const [passportFileName, setPassportFileName] = useState<string[]>([]);
 type UploadResult = { url: string; name: string; path: string };
 
 const isStringNonEmpty = (v: unknown): v is string =>
@@ -294,6 +297,83 @@ const handleSchengenUpload = (idx: number, e: React.ChangeEvent<HTMLInputElement
       e.target.value = '';
     }
   })();
+};
+
+
+
+const handlePassportUpload = (i: number, e: React.ChangeEvent<HTMLInputElement>) => async () => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  setPassportLoading(prev => { 
+    const next = ensureIndex(prev, i, () => false);
+    next[i] = true; 
+    return next; 
+  });
+
+  try {
+    const ext = file.name.split('.').pop() || 'dat';
+    const fileName = `${Date.now()}.${ext}`;
+    const filePath = `passports/${fileName}`;
+
+    // 1) Upload
+    const { error: upErr } = await supabase.storage.from('passports').upload(filePath, file);
+    if (upErr) throw upErr;
+
+    // 2) Public URL
+    const { data: pub } = supabase.storage.from('passports').getPublicUrl(filePath);
+    const url = pub?.publicUrl;
+    if (!url) throw new Error('Public URL alınamadı');
+
+    // 3) Local state
+    setPassportFileName(prev => { 
+      const n = ensureIndex(prev, i, () => ''); 
+      n[i] = file.name; 
+      return [...n]; 
+    });
+
+    setPassportImage(prev => { 
+      const n = Array.isArray(prev) ? [...prev] : []; 
+      while (n.length <= i) n.push('');
+      n[i] = url; 
+      return n; 
+    });
+
+   
+    // 4) DB update (tek URL)
+    const { error: dbErr } = await supabase
+      .from('applications')
+      .update({ passport_file_url: url })
+      .eq('id', props.app.id); // <-- bulunduğun yerde 'app' erişilebilir olmalı
+
+    if (dbErr) throw dbErr;
+
+    // 5) Opsiyonel: başarı bildirimi
+    notifications?.show?.({
+      title: 'Bilgi',
+      message: (
+        <span>
+          <strong className="font-bold">{(props?.title ?? '') + ' '}</strong>
+          {props.app?.full_name} - {props.app?.surname}
+          <span className="ml-2 text-green-600 text-sm font-medium"> — Pasaport görseli yüklendi</span>
+        </span>
+      ),
+      color: 'red',
+      autoClose: 3000,
+    });
+
+  } catch (err: any) {
+    console.error(err);
+  
+    alert('❌ Pasaport yüklenemedi: ' + (err?.message || 'Bilinmeyen hata'));
+  } finally {
+    setPassportLoading(prev => { 
+      const n = ensureIndex(prev, i, () => false); 
+      n[i] = false; 
+      return n; 
+    });
+    e.target.value = '';
+  }
 };
 
 
@@ -668,6 +748,30 @@ function normalizeToUrls(raw: unknown): string[] {
           {({ zoomIn, zoomOut, resetTransform }) => (
             <>
               <div className="flex gap-2 justify-end mb-2 sticky top-0 bg-white/80 backdrop-blur z-10 p-1 rounded">
+
+
+              <label
+      htmlFor="admin-passport-upload"
+      className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-red-600 text-white text-sm font-medium cursor-pointer hover:bg-red-700 transition"
+    >
+    
+      {uploadingPasaport ? 'Yükleniyor…' : 'Yeni Görsel Ekle'}
+    </label>
+    <input
+      id="admin-passport-upload"
+      type="file"
+      multiple
+      accept=".jpg,.jpeg,.png,.pdf"
+      className="hidden"
+      onChange={(e) => handlePassportUpload(props.personIndex, e)}
+      disabled={uploadingPasaport}
+    />
+    {uploadingPasaport && (
+      <span className="text-sm text-gray-500">Lütfen bekleyin…</span>
+    )}
+
+
+
                 <button onClick={() => zoomOut()} className="px-3 py-1 rounded bg-gray-200">−</button>
                 <button onClick={() => zoomIn()} className="px-3 py-1 rounded bg-gray-200">+</button>
                 <button onClick={() => setRotation(r => r - 90)} className="px-3 py-1 rounded bg-gray-200">⟲</button>

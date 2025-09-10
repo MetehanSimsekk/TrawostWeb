@@ -20,6 +20,11 @@ import ReactCountryFlag from "react-country-flag";
 import CitySelectRemote from "../CitySelect"
 import { DateInput, TimeInput } from '@mantine/dates';
 import { Button, Card, Group, Loader, Text, Textarea } from "@mantine/core";
+
+
+import { IconCurrencyDollar, IconMoneybag, IconMoneybagHeart } from "@tabler/icons-react"; 
+
+
 export default function ApplyForm({ value, onChange }: { value: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void }) {
   const [selectedCountry, setSelectedCountry] = useState('Danimarka')
   const [hasSchengen, setHasSchengen] = useState<boolean[]>([]);
@@ -41,6 +46,22 @@ const [emailError, setEmailError] = useState('');
 const [showTooltip, setShowTooltip] = useState(false);
 const [showScanner, setShowScanner] = useState(false);
 const [phone, setPhone] = useState<string[]>([]);
+const [travelHistory, setTravelHistory] = useState<string[]>([]);
+
+const [travelStart, setTravelStart] = useState<string[]>([]);
+
+const [travelEnd, setTravelEnd] = useState<string[]>([]);
+
+const [homeStatus, setHomeStatus] = useState<string[]>([]);
+
+const [homeSince, setHomeSince] = useState<string[]>([]);
+
+
+
+
+const [previousAddress, setPreviousAddress] = useState<string[]>([]);
+
+
 
 
 const [maidenNames, setMaidenNames] = useState<string[]>([]);
@@ -73,6 +94,8 @@ const [companyPhone, setCompanyPhone] = useState<string[]>([]);
 const [city, setCity] = useState<string[]>([]);
 
 
+const [monthlyExpense, setMonthlyExpense] = useState<string[]>([]);
+
 const [note, setNote] = useState("");
 
 const [saving, setSaving] = useState(false);
@@ -83,12 +106,29 @@ const [schoolAddress, setSchoolAddress] = useState<string[]>([]);
 const [schoolPhone, setSchoolPhone] = useState<string[]>([]);
 const [schengenPaths, setSchengenPaths] = useState<string[][]>([]); 
 const [invitationPaths, setInvitationPaths] = useState<string[][]>([]); 
+const [monthlyIncome, setMonthlyIncome] = useState<string[]>([]);
 
+const [plannedSpending, setPlannedSpending] = useState<string[]>([]);
 const [tripStart, setTripStart] = useState<string>('');
 const [tripEnd, setTripEnd] = useState<string>('');
 
 
+const [visaRefusal, setVisaRefusal] = useState<string[]>([]);       
+const [visaRefusalCountry, setVisaRefusalCountry] = useState<string[]>([]);
+const [visaRefusalDate, setVisaRefusalDate] = useState<string[]>([]);
+
+
+
+const [motherName, setMotherName] = useState<string[]>([]);
+const [motherDob, setMotherDob] = useState<string[]>([]);
+const [fatherName, setFatherName] = useState<string[]>([]);
+const [fatherDob, setFatherDob] = useState<string[]>([]);
+
 const maxChars = 250;
+
+
+// en üste (diğer state'lerin yanına)
+
 
 type FormErrors =  {
   firstName: string[];
@@ -105,6 +145,21 @@ type FormErrors =  {
   city?: string[];
   tripStart?: string;
   tripEnd?: string;
+  monthlyIncome:string[]
+  plannedSpending:string[]
+  homeSince:string[]
+  previousAddress:string[]
+  homeStatus:string[]
+  visaRefusal?: string[];
+  visaRefusalCountry?: string[];
+  visaRefusalDate?: string[];
+  monthlyExpense:string[]
+  travelStart:string[]
+  travelEnd:string[]
+  motherName:string[]
+  motherDob:string[]
+  fatherName:string[]
+  fatherDob:string[]
 }
 
 
@@ -126,7 +181,19 @@ const [errors, setErrors] = useState<FormErrors>({
   schengen: [],
   city: [],
   tripStart: '',
-  tripEnd: ''
+  tripEnd: '',
+  monthlyIncome:[],
+  plannedSpending:[],
+  homeSince:[],
+  previousAddress:[],
+  homeStatus:[],
+  monthlyExpense:[],
+  travelStart:[],
+  travelEnd:[],
+  motherName:[],
+  motherDob:[],
+  fatherName:[],
+  fatherDob:[]
 });
   // const jobTitles = [
   //   'Yazılım Mühendisi',
@@ -171,6 +238,20 @@ const [errors, setErrors] = useState<FormErrors>({
     form_note?:string
     tripStart:string,
     tripEnd:string
+    monthlyIncome?:string[]
+    plannedSpending?:string[]
+    monthlyExpense?:string[]
+    travelStart?:string[]
+    travelEnd?:string[]
+    motherName:string[]
+    motherDob:string[]
+  fatherName:string[]
+  fatherDob:string[]
+  homeStatus:string[]
+  homeSince:string[]
+  visaRefusalCountry:string[]
+  visaRefusalDate:string[]
+  previousAddress:string[]
   }
   // type Applicant = {
   //   firstName: string;
@@ -501,19 +582,27 @@ const [errors, setErrors] = useState<FormErrors>({
       phone: Array<string>(totalForms).fill(''),
       passport: Array<string>(totalForms).fill(''),
       schengen: Array<string>(totalForms).fill(''),
+      monthlyIncome: Array<string>(totalForms).fill(''),  
+      plannedSpending: Array<string>(totalForms).fill(''),  
+      monthlyExpense: Array<string>(totalForms).fill(''),  
+      motherName: Array<string>(totalForms).fill(''),
+      motherDob: Array<string>(totalForms).fill(''),
+      fatherName: Array<string>(totalForms).fill(''),
+      fatherDob: Array<string>(totalForms).fill(''),
     };
   
     let isValid = true;
   
     for (let i = 0; i < totalForms; i++) {
-      // Ad / Soyad
+      
+
       nextErrors.firstName[i] = get(firstName, i).trim() ? '' : 'Ad zorunludur.';
       if (nextErrors.firstName[i]) isValid = false;
   
       nextErrors.lastName[i] = get(lastName, i).trim() ? '' : 'Soyad zorunludur.';
       if (nextErrors.lastName[i]) isValid = false;
   
-      // Cinsiyet / Medeni / Çalışma
+  
       nextErrors.gender[i] = get(genders as unknown as string[], i) ? '' : 'Cinsiyet seçimi zorunludur.';
       if (nextErrors.gender[i]) isValid = false;
   
@@ -523,7 +612,7 @@ const [errors, setErrors] = useState<FormErrors>({
       nextErrors.workStatus[i] = get(workStatus as unknown as string[], i) ? '' : 'Çalışma durumu seçimi zorunludur.';
       if (nextErrors.workStatus[i]) isValid = false;
   
-      // Kızlık soyadı (SADECE Kadın + Evli ise zorunlu)
+    
       const isFemaleMarried =
         (genders?.[i] === 'Kadın') && (maritalStatuse?.[i] === 'Evli');
       nextErrors.maidenName[i] = isFemaleMarried
@@ -531,11 +620,11 @@ const [errors, setErrors] = useState<FormErrors>({
         : '';
       if (nextErrors.maidenName[i]) isValid = false;
   
-      // Adres
+   
       nextErrors.address[i] = get(address, i).trim() ? '' : 'Adres zorunludur.';
       if (nextErrors.address[i]) isValid = false;
   
-      // E-posta
+   
       const em = get(email, i).trim();
       if (!em) {
         nextErrors.email[i] = 'E-posta zorunludur.';
@@ -547,7 +636,50 @@ const [errors, setErrors] = useState<FormErrors>({
         nextErrors.email[i] = '';
       }
   
-      // Telefon (Cleave TR -> genelde 12 rakam: 90 + 10 hane)
+ 
+      if (selectedCountry === 'İngiltere') {
+   
+        const incomeRaw = get(monthlyIncome, i).replace(/[^\d]/g, '');
+        const incomeNum = Number(incomeRaw);
+    
+        nextErrors.monthlyIncome[i] =
+          incomeNum > 0 ? '' : 'Aylık belgelendirilebilir maaş zorunludur.';
+        if (nextErrors.monthlyIncome[i]) isValid = false;
+    
+
+        nextErrors.monthlyIncome[i] = monthlyIncome[i]?.trim() ? '' : 'Aylık gelir zorunludur.';
+        if (nextErrors.monthlyIncome[i]) isValid = false;
+      
+        nextErrors.plannedSpending[i] = plannedSpending[i]?.trim() ? '' : 'Planlanan harcama zorunludur.';
+        if (nextErrors.plannedSpending[i]) isValid = false;
+
+        nextErrors.monthlyExpense[i] = (monthlyExpense[i] || '').trim()
+  ? ''
+  : 'Aylık harcama zorunludur.';
+if (nextErrors.monthlyExpense[i]) isValid = false;
+
+
+
+nextErrors.motherName[i] = get(motherName, i).trim() ? '' : 'Anne adı soyadı zorunludur.';
+if (nextErrors.motherName[i]) isValid = false;
+
+{
+  const dob = get(motherDob, i).trim();
+  nextErrors.motherDob[i] = dob ? '' : 'Anne doğum tarihi zorunludur.';
+  if (nextErrors.motherDob[i]) isValid = false;
+}
+
+nextErrors.fatherName[i] = get(fatherName, i).trim() ? '' : 'Baba adı soyadı zorunludur.';
+if (nextErrors.fatherName[i]) isValid = false;
+
+{
+  const dob = get(fatherDob, i).trim();
+  nextErrors.fatherDob[i] = dob ? '' : 'Baba doğum tarihi zorunludur.';
+  if (nextErrors.fatherDob[i]) isValid = false;
+}
+  
+      }
+
       const ph = get(phone, i);
       const digits = ph.replace(/\D/g, '');
       if (!ph.trim()) {
@@ -589,7 +721,7 @@ const [errors, setErrors] = useState<FormErrors>({
     } else {
       nextErrors.tripEnd = '';
     }
-    
+   
   
     if (tripStart && tripEnd) {
       const start = new Date(tripStart);
@@ -600,6 +732,7 @@ const [errors, setErrors] = useState<FormErrors>({
       }
     }
   
+
     setErrors(nextErrors);
     return isValid;
   };
@@ -694,8 +827,27 @@ const [errors, setErrors] = useState<FormErrors>({
         phone: pickAt(phone as any, i, ''),
         city:pickAt(city as any , i,'') ,
         tripEnd:pickAt(tripEnd as any,i,''),
-        
+      
         tripStart:pickAt(tripStart as any,i,''),
+
+        monthlyIncome: pickAt(monthlyIncome as any ,i,''),
+
+        plannedSpending:pickAt(plannedSpending as any ,i,''),
+
+        travelStart:pickAt(travelStart as any ,i,''),
+        travelEnd:pickAt(travelEnd as any ,i,''),
+        motherName:pickAt(motherName as any ,i,''),
+        motherDob:pickAt(motherDob as any ,i,''),
+        fatherName:pickAt(fatherName as any ,i,''),
+        fatherDob:pickAt(fatherDob as any ,i,''),
+
+        homeStatus:pickAt(fatherDob as any ,i,''),
+        homeSince:pickAt(homeSince as any ,i,''),
+
+        visaRefusalCountry:pickAt(visaRefusalCountry as any ,i,''),
+        visaRefusalDate:pickAt(visaRefusalDate as any ,i,''),
+        
+        previousAddress:pickAt(previousAddress as any ,i,''),
 
         appointment_status:'Randevu Alınacak',
         passport_file_url: Array.isArray(passportImage)
@@ -781,7 +933,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
             {selectedCountry}
             <ChevronDownIcon className="w-5 h-5 text-gray-500" aria-hidden="true" />
           </MenuButton>
-          <Transition
+        <Transition
     as={Fragment}
     enter="transition ease-out duration-100"
     enterFrom="transform opacity-0 scale-95"
@@ -927,7 +1079,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
 
   <div>
     <label className="block mb-1 text-sm font-medium text-gray-700">
-      Başlangıç Tarihi
+      Gidiş Tarihi
     </label>
     <input
       type="date"
@@ -949,13 +1101,13 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
 
   <div>
     <label className="block mb-1 text-sm font-medium text-gray-700">
-      Bitiş Tarihi
+      Dönüş Tarihi
     </label>
     <input
       type="date"
       value={tripEnd}
       onChange={(e) => setTripEnd(e.target.value)}
-      min={tripStart || undefined}
+      min={tripEnd || undefined}
       className={`block w-full h-13 rounded-lg px-4 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset
         ${
           errors.tripEnd
@@ -964,7 +1116,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
         }`}
     />
     {errors.tripEnd && (
-      <p className="mt-2 text-sm text-red-600">{errors.tripStart}</p>
+      <p className="mt-2 text-sm text-red-600">{errors.tripEnd}</p>
     )}
   </div>
 </div>
@@ -1134,7 +1286,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
   <legend className="text-m font-semibold text-gray-600 mb-2">
     Medeni Durum <span className="text-red-500">*</span>
   </legend>
- 
+  <p className="mt-1 text-sm/6 text-gray-600">Lütfen medeni durumunuzu seçiniz.</p>
   <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3 p-2 rounded-lg">
     {(['Bekar','Evli','Boşanmış','Dul'] as MaritalStatus[]).map((status) => (
       <label key={status} className="inline-flex items-center gap-2 text-sm text-gray-700">
@@ -1322,25 +1474,25 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
   id={`company-phone-${index}`}
   value={companyPhone[index] || ""}
   onChange={(e) => {
-    let v = e.target.value;
+    let v = e.target.value.replace(/\D/g, ""); 
 
   
-    v = v.replace(/[^0-9+ ]+/g, "");
-
-  
-    const plusFirst = v.indexOf("+");
-    if (plusFirst !== -1) {
-    
-      v = v.slice(0, plusFirst + 1) + v.slice(plusFirst + 1).replace(/\+/g, "");
+    if (v && v[0] !== "0") {
+      v = "0" + v;
     }
 
-  
-    if (plusFirst > 0) {
-      v = v.replace(/\+/g, ""); 
+    let formatted = v;
+    if (v.length > 1) {
+      const first = v[0];      
+      const area = v.slice(1, 4); 
+      const rest = v.slice(4);   
+      formatted = rest
+        ? `${first} (${area}) ${rest}`
+        : `${first} (${area})`;
     }
 
     const updated = [...companyPhone];
-    updated[index] = v;
+    updated[index] = formatted;
     setCompanyPhone(updated);
   }}
   type="text"
@@ -1348,6 +1500,51 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
   placeholder="Firma telefon numarasını girin"
   className="h-12 px-4 py-3 rounded-lg w-full border border-gray-300 bg-white text-gray-800 placeholder-gray-500 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
 />
+
+{selectedCountry === 'İngiltere' && (
+ <div className="mt-0 overflow-hidden">
+ <div
+   className={selectedCountry === 'İngiltere'
+     ? 'opacity-100 max-h-40'
+     : 'opacity-0 max-h-0 pointer-events-none'}
+   style={{ transition: 'max-height .3s ease, opacity .2s ease' }}
+ >
+   <label className="block mb-2 text-sm font-semibold text-white ml-1">
+   Aylık Belgelendirilebilir Maaş <span className="text-red-500">*</span>
+   </label>
+   <div className="flex items-center w-full relative">
+   <div className="relative w-1/2">
+  <input
+    id={`monthly-income-${index}`}
+    inputMode="numeric"
+    placeholder="20,000"
+    value={monthlyIncome[index] || ''}
+    onChange={(e) => {
+      const raw = e.target.value.replace(/[^\d]/g, '');
+      const withThousands = raw.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      const next = [...monthlyIncome];
+      next[index] = withThousands;
+      setMonthlyIncome(next);
+    }}
+    className="h-12 px-4 pr-10 py-3 rounded-lg w-full border border-gray-300 bg-white text-gray-800 placeholder-gray-500 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
+  />
+
+ 
+  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 font-semibold">
+    ₺
+  </span>
+
+
+</div>
+
+{errors.monthlyIncome?.[index] && (
+  <p className="mt-1 text-sm text-white ml-3">{errors.monthlyIncome[index]}</p>
+)}
+ </div>
+ </div>
+
+</div>
+)}
     </div>
   </div>
 )}
@@ -1408,6 +1605,305 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
     </div>
   </div>
 )}
+
+{selectedCountry === 'İngiltere' &&
+   (
+  <div className="mt-4">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-x-3 gap-y-2">
+    {workStatus[index] !== 'Çalışıyor' && (
+  <div>
+    
+  <legend className="text-m font-semibold text-gray-600 mb-1 flex items-center gap-1 flex-wrap">
+  <span>Aylık Geliriniz</span>
+  <span className="text-red-500">*</span>
+</legend>
+    
+
+    <div className="relative w-full max-w-[240px] mt-7">
+      <input
+        id={`monthly-income-${index}`}
+        inputMode="numeric"
+        placeholder="20,000"
+        value={monthlyIncome[index] || ''}
+        onChange={(e) => {
+          const raw = e.target.value.replace(/[^\d]/g, '');
+          const withThousands = raw.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+          const next = [...monthlyIncome];
+          next[index] = withThousands;
+          setMonthlyIncome(next);
+        }}
+        className={`block w-full rounded-lg px-4 pr-10 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset mt-1
+          ${errors.monthlyIncome?.[index]
+            ? 'border-red-500 ring-red-500 bg-red-50 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500'
+            : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500'}`}
+      />
+      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 font-semibold">₺</span>
+    </div>
+
+    {errors.monthlyIncome?.[index] && (
+      <p className="mt-1 text-sm text-red-600">{errors.monthlyIncome[index]}</p>
+    )}
+
+  </div>
+)}
+
+  <div>
+    <legend className="text-m font-semibold text-gray-600 mb-1">
+      İngiltere'de harcamayı düşündüğünüz tutar <span className="text-red-500">*</span>
+    </legend>
+
+    <div className="relative w-full max-w-[240px]">
+      <input
+        id={`planned-spending-${index}`}
+        inputMode="numeric"
+        placeholder="1,500"
+        value={plannedSpending[index] || ''}
+        onChange={(e) => {
+          const raw = e.target.value.replace(/[^\d]/g, '');
+          const withThousands = raw.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+          const next = [...plannedSpending];
+          next[index] = withThousands;
+          setPlannedSpending(next);
+        }}
+        className={`block w-full rounded-lg px-4 pr-10 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset mt-1
+          ${errors.plannedSpending?.[index]
+            ? 'border-red-500 ring-red-500 bg-red-50 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500'
+            : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500'}`}
+      />
+      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 font-semibold">₺</span>
+    </div>
+
+    {errors.plannedSpending?.[index] && (
+      <p className="mt-1 text-sm text-red-600">{errors.plannedSpending[index]}</p>
+    )}
+  </div>
+
+  <div>
+  <legend className="text-m font-semibold text-gray-600 mb-1">
+    Aylık harcama tutarınız <span className="text-red-500">*</span>
+  </legend>
+
+  <div className="relative w-full max-w-[240px] mt-7">
+    <input
+      id={`monthly-expense-${index}`}   
+      inputMode="numeric"
+      placeholder="1,500"
+      value={monthlyExpense[index] || ''}   
+      onChange={(e) => {
+        const raw = e.target.value.replace(/[^\d]/g, '');
+        const withThousands = raw.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        const next = [...monthlyExpense];
+        next[index] = withThousands;
+        setMonthlyExpense(next);  
+      }}
+      className={`block w-full rounded-lg px-4 pr-10 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset mt-1
+        ${errors.monthlyExpense?.[index]
+          ? 'border-red-500 ring-red-500 bg-red-50 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500'
+          : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500'}`}
+    />
+    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 font-semibold">₺</span>
+  </div>
+
+  {errors.monthlyExpense?.[index] && (
+    <p className="mt-1 text-sm text-red-600">{errors.monthlyExpense[index]}</p>
+  )}
+</div>
+
+
+
+
+
+
+</div>
+<div>
+  <legend className="text-m font-semibold text-gray-600 mb-1 mt-5">
+    Son 10 yıl içinde 
+    <span className="font-bold text-black"> Amerika</span>&nbsp;, 
+    <span className="font-bold text-black"> Kanada</span> , 
+    <span className="font-bold text-black"> İngiltere</span> 
+    &nbsp; seyahatleriniz oldu mu? <span className="text-red-500">*</span>
+  </legend>
+
+
+  <div className="flex items-center gap-6 mt-2">
+    <label className="flex items-center gap-2">
+      <input
+        type="radio"
+        name={`travelHistory-${index}`}
+        value="yes"
+        checked={travelHistory[index] === "yes"}
+        onChange={() => {
+          const next = [...travelHistory];
+          next[index] = "yes";
+          setTravelHistory(next);
+        }}
+        className={`relative size-4 appearance-none rounded-full border border-gray-300 bg-white
+          
+          checked:border-red-600 checked:bg-white
+          before:absolute before:inset-1 before:rounded-full
+          before:bg-red-600 before:scale-0 checked:before:scale-100
+          transition-all duration-200 ease-in-out
+          focus:outline-none focus:ring-2 focus:ring-red-600`}
+      />
+      <span>Evet</span>
+    </label>
+
+    <label className="flex items-center gap-2">
+      <input
+        type="radio"
+        name={`travelHistory-${index}`}
+        value="no"
+        checked={travelHistory[index] === "no"}
+        onChange={() => {
+          const next = [...travelHistory];
+          next[index] = "no";
+          setTravelHistory(next);
+        }}
+        className={`relative size-4 appearance-none rounded-full border border-gray-300 bg-white
+          
+          checked:border-red-600 checked:bg-white
+          before:absolute before:inset-1 before:rounded-full
+          before:bg-red-600 before:scale-0 checked:before:scale-100
+          transition-all duration-200 ease-in-out
+          focus:outline-none focus:ring-2 focus:ring-red-600`}
+      />
+      <span>Hayır</span>
+    </label>
+  </div>
+
+
+  {travelHistory[index] === "yes" && (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+    
+      <div>
+        <label className="block  mb-1 text-sm font-medium text-gray-700">
+          Gidiş Tarihi
+        </label>
+        <input
+          type="date"
+          value={travelStart[index] || ""}
+          onChange={(e) => {
+            const next = [...travelStart];
+            next[index] = e.target.value;
+            setTravelStart(next);
+          }}
+          className={`block w-1/2 rounded-lg px-4 pr-10 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset mt-1
+            ${errors.travelStart?.[index]
+              ? 'border-red-500 ring-red-500 bg-red-50 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500'
+              : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500'}`}
+        />
+      </div>
+
+   
+      <div>
+        <label className="block mb-1 text-sm font-medium text-gray-700">
+          Dönüş Tarihi
+        </label>
+        <input
+          type="date"
+          value={travelEnd[index] || ""}
+          onChange={(e) => {
+            const next = [...travelEnd];
+            next[index] = e.target.value;
+            setTravelEnd(next);
+          }}
+          className={`block w-1/2 rounded-lg px-4 pr-10 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset mt-1
+            ${errors.travelEnd?.[index]
+              ? 'border-red-500 ring-red-500 bg-red-50 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500'
+              : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500'}`}
+        />
+      </div>
+    </div>
+  )}
+</div>
+
+<div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+  <div>
+    <legend className="text-m font-semibold text-gray-600 mb-1">
+      Annenizin Adı Soyadı <span className="text-red-500">*</span>
+    </legend>
+    <input
+      type="text"
+      placeholder="Anne Adı Soyadı"
+      value={motherName[index] || ""}   
+      onChange={(e) => {
+        const next = [...motherName];
+        next[index] = e.target.value;
+        setMotherName(next);
+
+
+      }}
+      className={`block w-full rounded-lg px-4 pr-10 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset mt-1
+        ${errors.motherName?.[index]
+          ? 'border-red-500 ring-red-500 bg-red-50 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500'
+          : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500'}`}
+    />
+  </div>
+
+  <div>
+    <legend className="text-m font-semibold text-gray-600 mb-1">
+      Annenizin Doğum Tarihi <span className="text-red-500">*</span>
+    </legend>
+    <input
+      type="date"
+      value={motherDob[index] || ""}    
+      onChange={(e) => {
+        const next = [...motherDob];
+        next[index] = e.target.value;
+        setMotherDob(next);
+      }}
+      className={`block w-full rounded-lg px-4 pr-10 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset mt-1
+        ${errors.motherDob?.[index]
+          ? 'border-red-500 ring-red-500 bg-red-50 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500'
+          : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500'}`}
+    />
+  </div>
+</div>
+
+
+<div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+  <div>
+    <legend className="text-m font-semibold text-gray-600 mb-1">
+      Babanızın Adı Soyadı <span className="text-red-500">*</span>
+    </legend>
+    <input
+      type="text"
+      placeholder="Baba Adı Soyadı"
+      value={fatherName[index] || ""}   
+      onChange={(e) => {
+        const next = [...fatherName];
+        next[index] = e.target.value;
+        setFatherName(next);
+      }}
+      className={`block w-full rounded-lg px-4 pr-10 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset mt-1
+        ${errors.fatherName?.[index]
+          ? 'border-red-500 ring-red-500 bg-red-50 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500'
+          : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500'}`}
+    />
+  </div>
+
+  <div>
+    <legend className="text-m font-semibold text-gray-600 mb-1">
+      Babanızın Doğum Tarihi <span className="text-red-500">*</span>
+    </legend>
+    <input
+      type="date"
+      value={fatherDob[index] || ""}    
+      onChange={(e) => {
+        const next = [...fatherDob];
+        next[index] = e.target.value;
+        setFatherDob(next);
+      }}
+      className={`block w-full rounded-lg px-4 pr-10 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset mt-1
+        ${errors.fatherDob?.[index]
+          ? 'border-red-500 ring-red-500 bg-red-50 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500'
+          : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500'}`}
+    />
+  </div>
+</div>
+
+  </div>
+)}
 </div>
 
 <div className="mt-8 rounded-xl  bg-white p-0 shadow-sm">
@@ -1434,7 +1930,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
   required
 />
 </div>
-  {/* Ev Adresi */}
+
   <label htmlFor={`address-${index}`} className="block text-m font-semibold text-gray-600">
     Ev Adresi <span className="text-red-500">*</span>
   </label>
@@ -1473,10 +1969,266 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
 )}
   </div>
 
-  {/* Email ve Telefon */}
+
+{selectedCountry === 'İngiltere' && (
+
+
+  <><div className="mt-6">
+                    <legend className="text-m font-semibold text-gray-600 mb-2">
+                      Oturduğunuz Ev <span className="text-red-500">*</span>
+                    </legend>
+
+                    <div className="flex items-center gap-6">
+               
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="radio"
+                          name={`home-${index}`} 
+                          value="kira"
+                          checked={homeStatus[index] === 'kira'}
+                          onChange={() => setHomeStatus(prev => {
+                            const next = [...prev];
+                            next[index] = 'kira';
+                            return next;
+                          })}
+                          className={`relative size-4 appearance-none rounded-full border border-gray-300 bg-white
+          
+          checked:border-red-600 checked:bg-white
+          before:absolute before:inset-1 before:rounded-full
+          before:bg-red-600 before:scale-0 checked:before:scale-100
+          transition-all duration-200 ease-in-out
+          focus:outline-none focus:ring-2 focus:ring-red-600`} />
+                        <span className="text-gray-700">Kira</span>
+                      </label>
+
+               
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="radio"
+                          name={`home-${index}`}
+                          value="mulk"
+                          checked={homeStatus[index] === 'mulk'}
+                          onChange={() => setHomeStatus(prev => {
+                            const next = [...prev];
+                            next[index] = 'mulk';
+                            return next;
+                          })}
+                          className={`relative size-4 appearance-none rounded-full border border-gray-300 bg-white
+          
+          checked:border-red-600 checked:bg-white
+          before:absolute before:inset-1 before:rounded-full
+          before:bg-red-600 before:scale-0 checked:before:scale-100
+          transition-all duration-200 ease-in-out
+          focus:outline-none focus:ring-2 focus:ring-red-600`} />
+                        <span className="text-gray-700">Mülk Sahibi</span>
+                      </label>
+                    </div>
+
+                    {errors.homeStatus?.[index] && (
+                      <p className="mt-1 text-sm text-red-600">{errors.homeStatus[index]}</p>
+                    )}
+                  </div><div className="mt-6">
+                      <legend className="text-m font-semibold text-gray-600 mb-1">
+                        Oturduğunuz evde ne zamandan beri ikamet ediyorsunuz? <span className="text-red-500">*</span>
+                      </legend>
+
+                      <div className="relative w-full max-w-[240px]">
+                        <input
+                          type="date"
+                          value={homeSince[index] || ''}
+                          onChange={(e) => {
+                            const v = e.target.value;
+                            setHomeSince(prev => {
+                              const next = [...prev];
+                              next[index] = v;
+                              return next;
+                            });
+
+
+                            if (errors.homeSince?.[index]) {
+                              setErrors(prev => {
+                                const n = { ...prev };
+                                n.homeSince = [...(n.homeSince || [])];
+                                n.homeSince[index] = '';
+                                return n;
+                              });
+                            }
+                          } }
+                          max={new Date().toISOString().slice(0, 10)}
+                          className={`block w-full rounded-lg px-4 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset
+        ${errors.homeSince?.[index]
+                              ? 'border-red-500 ring-red-500 bg-red-50 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500'
+                              : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500'}`} />
+                      </div>
+
+                      {errors.homeSince?.[index] && (
+                        <p className="mt-1 text-sm text-red-600">{errors.homeSince[index]}</p>
+                      )}
+
+
+                      {homeSince[index] && (() => {
+                        const selected = new Date(homeSince[index]);
+                        const today = new Date();
+                        const diffInMonths = (today.getFullYear() - selected.getFullYear()) * 12 +
+                          (today.getMonth() - selected.getMonth());
+                        return diffInMonths < 12;
+                      })() && (
+                          <div className="mt-4">
+                            <label className="block mb-2 text-sm font-medium text-gray-700">
+                              Son İkamet Adresiniz <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              id={`previous-address-${index}`}
+                              value={previousAddress[index] || ''}
+                              onChange={(e) => {
+                                const next = [...previousAddress];
+                                next[index] = e.target.value;
+                                setPreviousAddress(next);
+                              } }
+                              className={`block w-full rounded-lg px-4 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset
+          ${errors.previousAddress?.[index]
+                                  ? 'border-red-500 ring-red-500 bg-red-50 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500 focus:ring-offset-0'
+                                  : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:border-gray-300 focus:ring-2 focus:ring-gray-300 focus:ring-offset-0'}`}
+                              placeholder="Son ikamet adresinizi girin" />
+                            {errors.previousAddress?.[index] && (
+                              <p className="mt-1 text-sm text-red-600">
+                                {errors.previousAddress[index]}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                    </div><div className="mt-6">
+                      <legend className="text-m font-semibold text-gray-600 mb-1">
+                        Son 5 yıl içinde Schengen, Amerika, Kanada veya İngiltere vize reddi aldınız mı?
+                        <span className="text-red-500"> *</span>
+                      </legend>
+
+
+                      <div className="mt-2 flex items-center gap-4">
+                        {['Evet', 'Hayır'].map(opt => (
+                          <label key={opt} className="inline-flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="radio"
+                              name={`visa-refusal-${index}`}
+                              value={opt}
+                              checked={visaRefusal[index] === opt}
+                              onChange={(e) => {
+                                const v = e.target.value;
+
+                                setVisaRefusal(prev => {
+                                  const next = [...prev];
+                                  next[index] = v;
+                                  return next;
+                                });
+
+                                if (errors.visaRefusal?.[index]) {
+                                  setErrors(prev => {
+                                    const n = { ...prev };
+                                    n.visaRefusal = [...(n.visaRefusal || [])];
+                                    n.visaRefusal[index] = '';
+                                    return n;
+                                  });
+                                }
+
+                                if (v === 'Hayır') {
+                                  setVisaRefusalCountry(prev => { const n = [...prev]; n[index] = ''; return n; });
+                                  setVisaRefusalDate(prev => { const n = [...prev]; n[index] = ''; return n; });
+                                  setErrors(prev => {
+                                    const n = { ...prev };
+                                    n.visaRefusalCountry = [...(n.visaRefusalCountry || [])];
+                                    n.visaRefusalDate = [...(n.visaRefusalDate || [])];
+                                    n.visaRefusalCountry[index] = '';
+                                    n.visaRefusalDate[index] = '';
+                                    return n;
+                                  });
+                                }
+                              } }
+                              className={`relative size-4 appearance-none rounded-full border border-gray-300 bg-white
+          
+                                checked:border-red-600 checked:bg-white
+                                before:absolute before:inset-1 before:rounded-full
+                                before:bg-red-600 before:scale-0 checked:before:scale-100
+                                transition-all duration-200 ease-in-out
+                                focus:outline-none focus:ring-2 focus:ring-red-600`} />
+                            <span className="text-sm text-gray-800">{opt}</span>
+                          </label>
+                        ))}
+                      </div>
+
+                      {errors.visaRefusal?.[index] && (
+                        <p className="mt-1 text-sm text-red-600">{errors.visaRefusal[index]}</p>
+                      )}
+
+
+                      {visaRefusal[index] === 'Evet' && (
+                        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <legend className="text-m font-semibold text-gray-600 mb-1">
+                              Hangi Ülke <span className="text-red-500">*</span>
+                            </legend>
+
+                            <input
+                              type="text"
+                              placeholder="Almanya"
+                              value={visaRefusalCountry[index] || ''}
+                              onChange={(e) => {
+                                const v = e.target.value;
+                                setVisaRefusalCountry(prev => { const n = [...prev]; n[index] = v; return n; });
+                                if (errors.visaRefusalCountry?.[index]) {
+                                  setErrors(prev => {
+                                    const n = { ...prev };
+                                    n.visaRefusalCountry = [...(n.visaRefusalCountry || [])];
+                                    n.visaRefusalCountry[index] = '';
+                                    return n;
+                                  });
+                                }
+                              } }
+                              className={`block w-full rounded-lg px-4 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset
+            ${errors.visaRefusalCountry?.[index]
+                                  ? 'border-red-500 ring-red-500 bg-red-50 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500'
+                                  : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500'}`} />
+                            {errors.visaRefusalCountry?.[index] && (
+                              <p className="mt-1 text-sm text-red-600">{errors.visaRefusalCountry[index]}</p>
+                            )}
+                          </div>
+
+                          <div>
+                            <legend className="text-m font-semibold text-gray-600 mb-1">
+                              Ret Tarihi <span className="text-red-500">*</span>
+                            </legend>
+                            <input
+                              type="date"
+                              value={visaRefusalDate[index] || ''}
+                              onChange={(e) => {
+                                const v = e.target.value;
+                                setVisaRefusalDate(prev => { const n = [...prev]; n[index] = v; return n; });
+                                if (errors.visaRefusalDate?.[index]) {
+                                  setErrors(prev => {
+                                    const n = { ...prev };
+                                    n.visaRefusalDate = [...(n.visaRefusalDate || [])];
+                                    n.visaRefusalDate[index] = '';
+                                    return n;
+                                  });
+                                }
+                              } }
+                              max={new Date().toISOString().slice(0, 10)} // gelecek tarih olmasın
+                              className={`block w-full rounded-lg px-4 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset
+            ${errors.visaRefusalDate?.[index]
+                                  ? 'border-red-500 ring-red-500 bg-red-50 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500'
+                                  : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500'}`} />
+                            {errors.visaRefusalDate?.[index] && (
+                              <p className="mt-1 text-sm text-red-600">{errors.visaRefusalDate[index]}</p>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div></>
+)}
+
   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
 
-    {/* E-posta */}
+
     <div className="relative sm:col-span-1">
       <label htmlFor={`email-${index}`} className="block text-m font-semibold text-gray-600 mb-1">
         E-posta <span className="text-red-500">*</span>
@@ -1516,7 +2268,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
       </div>
     </div>
 
-    {/* Telefon */}
+    
     <div className="sm:col-span-1">
       <label htmlFor={`phone-${index}`} className="block text-m font-semibold text-gray-600">
         Telefon <span className="text-red-500">*</span>
@@ -2012,10 +2764,11 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
       onBlur={() => {
         if (note.trim()) setHighlighted(true); 
       }}
+     
       styles={{
         input: {
           fontSize: 14,
-          borderRadius: 8,
+         
           fontFamily:'sans-serif',
           backgroundColor: highlighted ? "#d1fae5" : "white",
           transition: "background-color 0.3s ease",
