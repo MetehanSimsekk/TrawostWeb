@@ -56,11 +56,17 @@ const [homeStatus, setHomeStatus] = useState<string[]>([]);
 
 const [homeSince, setHomeSince] = useState<string[]>([]);
 
+const [currencyMonth, setCurrencyMonth] = useState<string[]>([]);
 
+const [currencyBalance, setCurrencyBalance] = useState<string[]>([]);
+const [currentBalance, setCurrentBalance] = useState<string[]>([]);
+
+const [currencyForEngland, setCurrencyForEngland] = useState<string[]>([]);
+const [currencyMonthAmount, setCurrencyMonthAmount] = useState<string[]>([]);
 
 
 const [previousAddress, setPreviousAddress] = useState<string[]>([]);
-
+const [travelHistorySchengen, settravelHistorySchengen] = useState<string[]>([]);
 
 
 
@@ -108,6 +114,13 @@ const [schengenPaths, setSchengenPaths] = useState<string[][]>([]);
 const [invitationPaths, setInvitationPaths] = useState<string[][]>([]); 
 const [monthlyIncome, setMonthlyIncome] = useState<string[]>([]);
 
+
+const [travelCountry, setTravelCountry] = useState<string[]>([]);
+const [travelEndForSchengen, setTravelEndForSchengen] = useState<string[]>([]);
+
+const [travelStartForSchengen, setTravelStartForSchengen] = useState<string[]>([]);
+
+
 const [plannedSpending, setPlannedSpending] = useState<string[]>([]);
 const [tripStart, setTripStart] = useState<string>('');
 const [tripEnd, setTripEnd] = useState<string>('');
@@ -117,7 +130,7 @@ const [visaRefusal, setVisaRefusal] = useState<string[]>([]);
 const [visaRefusalCountry, setVisaRefusalCountry] = useState<string[]>([]);
 const [visaRefusalDate, setVisaRefusalDate] = useState<string[]>([]);
 
-
+const [travelSchengenCountry, setTravelSchengen] = useState<string[]>([]);
 
 const [motherName, setMotherName] = useState<string[]>([]);
 const [motherDob, setMotherDob] = useState<string[]>([]);
@@ -160,6 +173,11 @@ type FormErrors =  {
   motherDob:string[]
   fatherName:string[]
   fatherDob:string[]
+  currentBalance:string[]
+  travelCountry:string[]
+  travelSchengenCountry:string[]
+  travelStartForSchengen:string[]
+  travelEndForSchengen:string[]
 }
 
 
@@ -193,7 +211,12 @@ const [errors, setErrors] = useState<FormErrors>({
   motherName:[],
   motherDob:[],
   fatherName:[],
-  fatherDob:[]
+  fatherDob:[],
+  currentBalance:[],
+  travelCountry:[],
+  travelSchengenCountry:[],
+  travelStartForSchengen:[],
+  travelEndForSchengen:[]
 });
   // const jobTitles = [
   //   'Yazılım Mühendisi',
@@ -208,6 +231,9 @@ const [errors, setErrors] = useState<FormErrors>({
   //   'Teknisyen',
   // ];
   
+
+
+
   // type JobTitle = typeof jobTitles[number];
   type Gender = 'Erkek' | 'Kadın';
   type MaritalStatus = 'Bekar' | 'Evli' | 'Boşanmış' | 'Dul';
@@ -243,6 +269,8 @@ const [errors, setErrors] = useState<FormErrors>({
     monthlyExpense?:string[]
     travelStart?:string[]
     travelEnd?:string[]
+    travelStartForSchengen?:string[]
+    travelEndForSchengen?:string[]
     motherName:string[]
     motherDob:string[]
   fatherName:string[]
@@ -252,6 +280,16 @@ const [errors, setErrors] = useState<FormErrors>({
   visaRefusalCountry:string[]
   visaRefusalDate:string[]
   previousAddress:string[]
+  currencyBalance:string[]
+  currentBalance:string[]
+  currencyMonth:string[]
+
+  currencyForEngland:string[]
+  currencyMonthAmount:string[]
+  travelCountry:string[]
+  travelSchengenCountry:string[]
+
+
   }
   // type Applicant = {
   //   firstName: string;
@@ -268,7 +306,15 @@ const [errors, setErrors] = useState<FormErrors>({
   //   school_phone?: string[];
   // };
 
-  
+  const COUNTRY_OPTIONS = ['Amerika', 'Kanada', 'İngiltere'];
+
+  const COUNTRY_OPTIONS_SCHENGEN = [
+    'Almanya', 'Avusturya', 'Belçika', 'Çekya', 'Danimarka', 'Estonya',
+    'Finlandiya', 'Fransa', 'Hırvatistan', 'Hollanda', 'İspanya', 'İsveç',
+    'İtalya', 'İzlanda', 'Letonya', 'Lihtenştayn', 'Litvanya', 'Lüksemburg',
+    'Macaristan', 'Malta', 'Norveç', 'Polonya', 'Portekiz', 'Slovakya',
+    'Slovenya', 'Yunanistan', 'İsviçre'
+  ];
   const totalForms = parseInt(selectedPeople);
   useEffect(() => {
     setSelectedJobTitle(prev => {
@@ -589,6 +635,8 @@ const [errors, setErrors] = useState<FormErrors>({
       motherDob: Array<string>(totalForms).fill(''),
       fatherName: Array<string>(totalForms).fill(''),
       fatherDob: Array<string>(totalForms).fill(''),
+      
+      currentBalance: Array<string>(totalForms).fill(''),
     };
   
     let isValid = true;
@@ -646,7 +694,9 @@ const [errors, setErrors] = useState<FormErrors>({
           incomeNum > 0 ? '' : 'Aylık belgelendirilebilir maaş zorunludur.';
         if (nextErrors.monthlyIncome[i]) isValid = false;
     
-
+      
+        nextErrors.currentBalance[i] = currentBalance[i]?.trim() ?  '' : 'Anlık bakiyeniz zorunludur.';
+        if (nextErrors.currentBalance[i]) isValid = false;
         nextErrors.monthlyIncome[i] = monthlyIncome[i]?.trim() ? '' : 'Aylık gelir zorunludur.';
         if (nextErrors.monthlyIncome[i]) isValid = false;
       
@@ -836,6 +886,14 @@ if (nextErrors.fatherName[i]) isValid = false;
 
         travelStart:pickAt(travelStart as any ,i,''),
         travelEnd:pickAt(travelEnd as any ,i,''),
+
+
+
+        travelStartForSchengen:pickAt(travelStartForSchengen as any ,i,''),
+        travelEndForSchengen:pickAt(travelEndForSchengen as any ,i,''),
+
+
+
         motherName:pickAt(motherName as any ,i,''),
         motherDob:pickAt(motherDob as any ,i,''),
         fatherName:pickAt(fatherName as any ,i,''),
@@ -848,6 +906,18 @@ if (nextErrors.fatherName[i]) isValid = false;
         visaRefusalDate:pickAt(visaRefusalDate as any ,i,''),
         
         previousAddress:pickAt(previousAddress as any ,i,''),
+
+
+        currencyMonth:pickAt(currencyMonth as any ,i,''),
+        currentBalance:pickAt(currentBalance as any ,i,''),
+        currencyForEngland:pickAt(currencyForEngland as any ,i,''),
+
+        currencyBalance:pickAt(currencyBalance as any ,i,''),
+        
+        currencyMonthAmount:pickAt(currencyMonthAmount as any ,i,''),
+        travelCountry:pickAt(travelCountry as any ,i,''),
+        travelSchengenCountry:pickAt(travelSchengenCountry as any ,i,''),
+
 
         appointment_status:'Randevu Alınacak',
         passport_file_url: Array.isArray(passportImage)
@@ -1637,7 +1707,19 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
             ? 'border-red-500 ring-red-500 bg-red-50 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500'
             : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500'}`}
       />
-      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 font-semibold">₺</span>
+       <select
+    value={currencyMonth[index] || '₺'}
+    onChange={(e) => {
+      const next = [...currencyMonth];
+      next[index] = e.target.value;
+      setCurrencyMonth(next);
+    }}
+    className="absolute right-2 top-1/2 -translate-y-1/2 bg-transparent border-none text-gray-600 font-semibold focus:outline-none"
+  >
+   <option value="₺">₺</option>    
+    <option value="£">£ </option>
+    <option value="$">$</option>
+  </select>
     </div>
 
     {errors.monthlyIncome?.[index] && (
@@ -1670,7 +1752,19 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
             ? 'border-red-500 ring-red-500 bg-red-50 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500'
             : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500'}`}
       />
-      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 font-semibold">₺</span>
+      <select
+    value={currencyForEngland[index] || '₺'}
+    onChange={(e) => {
+      const next = [...currencyForEngland];
+      next[index] = e.target.value;
+      setCurrencyForEngland(next);
+    }}
+    className="absolute right-2 top-1/2 -translate-y-1/2 bg-transparent border-none text-gray-600 font-semibold focus:outline-none"
+  >
+    <option value="₺">₺</option>    
+    <option value="£">£ </option>
+    <option value="$">$</option>
+  </select>
     </div>
 
     {errors.plannedSpending?.[index] && (
@@ -1701,15 +1795,69 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
           ? 'border-red-500 ring-red-500 bg-red-50 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500'
           : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500'}`}
     />
-    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 font-semibold">₺</span>
+    <select
+    value={currencyMonthAmount[index] || '₺'}
+    onChange={(e) => {
+      const next = [...currencyMonthAmount];
+      next[index] = e.target.value;
+      setCurrencyMonthAmount(next);
+    }}
+    className="absolute right-2 top-1/2 -translate-y-1/2 bg-transparent border-none text-gray-600 font-semibold focus:outline-none"
+  >
+    <option value="₺">₺</option>    
+    <option value="£">£ </option>
+    <option value="$">$</option>
+  </select>
   </div>
 
   {errors.monthlyExpense?.[index] && (
     <p className="mt-1 text-sm text-red-600">{errors.monthlyExpense[index]}</p>
   )}
 </div>
+<div>
+<legend className="text-m font-semibold text-gray-600 mb-1">
+  Anlık Bakiyeniz <span className="text-red-500">*</span>
+</legend>
 
+<div className="relative w-full max-w-[240px] mt-1">
+  <input
+    id={`current-balance-${index}`}   
+    inputMode="numeric"
+    placeholder="1,500"
+    value={currentBalance[index] || '₺'}   
+    onChange={(e) => {
+      const raw = e.target.value.replace(/[^\d]/g, '');
+      const withThousands = raw.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      const next = [...currentBalance];
+      next[index] = withThousands;
+      setCurrentBalance(next);  
+    }}
+    className={`block w-full rounded-lg px-4 pr-16 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset mt-1
+      ${errors.currentBalance?.[index]
+        ? 'border-red-500 ring-red-500 bg-red-50 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500'
+        : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500'}`}
+  />
 
+  <select
+    value={currencyBalance[index] || '₺'}
+    onChange={(e) => {
+      const next = [...currencyBalance];
+      next[index] = e.target.value;
+      setCurrencyBalance(next);
+    }}
+    className="absolute right-2 top-1/2 -translate-y-1/2 bg-transparent border-none text-gray-600 font-semibold focus:outline-none"
+  >
+    <option value="₺">₺</option>    
+    <option value="£">£ </option>
+    <option value="$">$</option>
+  </select>
+</div>
+
+{errors.currentBalance?.[index] && (
+  <p className="mt-1 text-sm text-red-600">{errors.currentBalance[index]}</p>
+)}
+
+</div>
 
 
 
@@ -1773,8 +1921,76 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
 
 
   {travelHistory[index] === "yes" && (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
-    
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
+  <div>
+  <label className="block mb-1 text-sm font-medium text-gray-700">
+    Ülke
+  </label>
+
+  <Menu as="div" className="relative inline-block w-full">
+    <Menu.Button
+      className={[
+        "inline-flex w-full justify-between items-center rounded-lg px-4 py-3 text-base shadow-sm ring-1 ring-inset",
+        travelCountry[index]
+          ? "bg-white text-gray-800 border border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500"
+          : (errors.travelCountry?.[index]
+              ? "bg-red-50 text-gray-800 border border-red-500 ring-red-500 focus:outline-none focus:ring-2 focus:ring-red-500"
+              : "bg-white text-gray-500 border border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500")
+      ].join(" ")}
+    >
+      <span className={travelCountry[index] ? "text-gray-800" : "text-gray-500"}>
+        {travelCountry[index] || "— Ülke seçin —"}
+      </span>
+      <ChevronDownIcon className="w-5 h-5 text-gray-500" aria-hidden="true" />
+    </Menu.Button>
+
+    <Transition
+      as={Fragment}
+      enter="transition ease-out duration-100"
+      enterFrom="transform opacity-0 scale-95"
+      enterTo="transform opacity-100 scale-100"
+      leave="transition ease-in duration-75"
+      leaveFrom="transform opacity-100 scale-100"
+      leaveTo="transform opacity-0 scale-95"
+    >
+      <Menu.Items className="absolute z-10 mt-2 w-full rounded-lg bg-white text-black shadow-lg ring-1 ring-black/10 focus:outline-none">
+        <div className="py-1 max-h-64 overflow-auto">
+          {COUNTRY_OPTIONS.map((opt) => (
+            <Menu.Item key={opt}>
+              {({ active }) => (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const next = [...travelCountry];
+                    next[index] = opt;
+                    setTravelCountry(next);
+
+                    if (errors.travelCountry?.[index]) {
+                      setErrors((p) => {
+                        const n = { ...p, travelCountry: [...(p.travelCountry || [])] };
+                        n.travelCountry[index] = "";
+                        return n;
+                      });
+                    }
+                  }}
+                  className={`${
+                    active ? 'bg-red-100 text-red-800' : 'text-gray-900'
+                  } block w-full text-left px-4 py-2 text-base font-medium`}
+                >
+                  {opt}
+                </button>
+              )}
+            </Menu.Item>
+          ))}
+        </div>
+      </Menu.Items>
+    </Transition>
+  </Menu>
+
+  {errors.travelCountry?.[index] && (
+    <p className="mt-1 text-sm text-red-600">{errors.travelCountry[index]}</p>
+  )}
+</div>
       <div>
         <label className="block  mb-1 text-sm font-medium text-gray-700">
           Gidiş Tarihi
@@ -1787,7 +2003,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
             next[index] = e.target.value;
             setTravelStart(next);
           }}
-          className={`block w-1/2 rounded-lg px-4 pr-10 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset mt-1
+          className={`block w-full rounded-lg px-4 pr-10 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset mt-1
             ${errors.travelStart?.[index]
               ? 'border-red-500 ring-red-500 bg-red-50 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500'
               : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500'}`}
@@ -1807,7 +2023,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
             next[index] = e.target.value;
             setTravelEnd(next);
           }}
-          className={`block w-1/2 rounded-lg px-4 pr-10 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset mt-1
+          className={`block w-full rounded-lg px-4 pr-10 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset mt-1
             ${errors.travelEnd?.[index]
               ? 'border-red-500 ring-red-500 bg-red-50 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500'
               : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500'}`}
@@ -1816,7 +2032,156 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
     </div>
   )}
 </div>
+<div>
+  <legend className="text-m font-semibold text-gray-600 mb-1 mt-5">
+    Son 10 yıl içinde <span className="font-bold text-black">Avrupa</span> seyahatiniz oldu mu? <span className="text-red-500">*</span>
+  </legend>
 
+  <div className="flex items-center gap-6 mt-2">
+    <label className="flex items-center gap-2">
+      <input
+        type="radio"
+        name={`travelHistorySchengen-${index}`}
+        value="yes"
+        checked={travelHistorySchengen[index] === "yes"}
+        onChange={() => {
+          const next = [...travelHistorySchengen]; next[index] = "yes"; settravelHistorySchengen(next);
+        }}
+        className="relative size-4 appearance-none rounded-full border border-gray-300 bg-white
+                   checked:border-red-600 checked:bg-white
+                   before:absolute before:inset-1 before:rounded-full
+                   before:bg-red-600 before:scale-0 checked:before:scale-100
+                   transition-all duration-200 ease-in-out
+                   focus:outline-none focus:ring-2 focus:ring-red-600"
+      />
+      <span>Evet</span>
+    </label>
+
+    <label className="flex items-center gap-2">
+      <input
+        type="radio"
+        name={`travelHistorySchengen-${index}`}
+        value="no"
+        checked={travelHistorySchengen[index] === "no"}
+        onChange={() => {
+          const next = [...travelHistorySchengen]; next[index] = "no"; settravelHistorySchengen(next);
+        
+        }}
+        className="relative size-4 appearance-none rounded-full border border-gray-300 bg-white
+                   checked:border-red-600 checked:bg-white
+                   before:absolute before:inset-1 before:rounded-full
+                   before:bg-red-600 before:scale-0 checked:before:scale-100
+                   transition-all duration-200 ease-in-out
+                   focus:outline-none focus:ring-2 focus:ring-red-600"
+      />
+      <span>Hayır</span>
+    </label>
+  </div>
+
+  {travelHistorySchengen[index] === "yes" && (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
+     
+      <div>
+        <label className="block mb-1 text-sm font-medium text-gray-700">Ülke</label>
+
+        <Menu as="div" className="relative inline-block w-full">
+          <Menu.Button
+            className={[
+              "inline-flex w-full justify-between items-center rounded-lg px-4 py-3 text-base shadow-sm ring-1 ring-inset mt-1",
+              travelSchengenCountry[index]
+                ? "bg-white text-gray-800 border border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500"
+                : (errors.travelSchengenCountry?.[index]
+                    ? "bg-red-50 text-gray-800 border border-red-500 ring-red-500 focus:outline-none focus:ring-2 focus:ring-red-500"
+                    : "bg-white text-gray-500 border border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500")
+            ].join(" ")}
+          >
+            <span className={travelSchengenCountry[index] ? "text-gray-800" : "text-gray-500"}>
+              {travelSchengenCountry[index] || "— Ülke seçin —"}
+            </span>
+            <ChevronDownIcon className="w-5 h-5 text-gray-500" aria-hidden="true" />
+          </Menu.Button>
+
+          <Transition
+            as={Fragment}
+            enter="transition ease-out duration-100"
+            enterFrom="transform opacity-0 scale-95"
+            enterTo="transform opacity-100 scale-100"
+            leave="transition ease-in duration-75"
+            leaveFrom="transform opacity-100 scale-100"
+            leaveTo="transform opacity-0 scale-95"
+          >
+            <Menu.Items className="absolute z-10 mt-2 w-full rounded-lg bg-white text-black shadow-lg ring-1 ring-black/10 focus:outline-none">
+              <div className="py-1 max-h-64 overflow-auto">
+                {COUNTRY_OPTIONS_SCHENGEN.map((opt) => (
+                  <Menu.Item key={opt}>
+                    {({ active }) => (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const next = [...travelSchengenCountry];
+                          next[index] = opt;
+                          setTravelSchengen(next);
+                          if (errors.travelSchengenCountry?.[index]) {
+                            setErrors((p) => {
+                              const n = { ...p, travelSchengenCountry: [...(p.travelSchengenCountry || [])] };
+                              n.travelSchengenCountry[index] = "";
+                              return n;
+                            });
+                          }
+                        }}
+                        className={`${
+                          active ? 'bg-red-100 text-red-800' : 'text-gray-900'
+                        } block w-full text-left px-4 py-2 text-base font-medium`}
+                      >
+                        {opt}
+                      </button>
+                    )}
+                  </Menu.Item>
+                ))}
+              </div>
+            </Menu.Items>
+          </Transition>
+        </Menu>
+
+        {errors.travelSchengenCountry?.[index] && (
+          <p className="mt-1 text-sm text-red-600">{errors.travelSchengenCountry[index]}</p>
+        )}
+      </div>
+
+      {/* Gidiş */}
+      <div>
+        <label className="block mb-1 text-sm font-medium text-gray-700">Gidiş Tarihi</label>
+        <input
+          type="date"
+          value={travelStartForSchengen[index] || ""}
+          onChange={(e) => {
+            const next = [...travelStartForSchengen]; next[index] = e.target.value; setTravelStartForSchengen(next);
+          }}
+          className={`block w-full rounded-lg px-4 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset mt-1
+            ${errors.travelStartForSchengen?.[index]
+              ? 'border-red-500 ring-red-500 bg-red-50 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500'
+              : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500'}`}
+        />
+      </div>
+
+      {/* Dönüş */}
+      <div>
+        <label className="block mb-1 text-sm font-medium text-gray-700">Dönüş Tarihi</label>
+        <input
+          type="date"
+          value={travelEndForSchengen[index] || ""}
+          onChange={(e) => {
+            const next = [...travelEndForSchengen]; next[index] = e.target.value; setTravelEndForSchengen(next);
+          }}
+          className={`block w-full rounded-lg px-4 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset mt-1
+            ${errors.travelEndForSchengen?.[index]
+              ? 'border-red-500 ring-red-500 bg-red-50 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500'
+              : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500'}`}
+        />
+      </div>
+    </div>
+  )}
+</div>
 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
   <div>
     <legend className="text-m font-semibold text-gray-600 mb-1">
@@ -2096,6 +2461,11 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
                                 {errors.previousAddress[index]}
                               </p>
                             )}
+                             {homeSince[index] && new Date(homeSince[index]) > new Date(new Date().setFullYear(new Date().getFullYear() - 1)) && (
+    <p className="mt-1 text-sm text-gray-600 italic">
+      Mevcut ikamet adresiniz bir yıldan az olduğu için buraya son ikamet adresinizi girmeniz zorunludur.*
+    </p>
+  )}
                           </div>
                         )}
                     </div><div className="mt-6">
