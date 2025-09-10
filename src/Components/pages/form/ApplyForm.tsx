@@ -48,9 +48,9 @@ const [showScanner, setShowScanner] = useState(false);
 const [phone, setPhone] = useState<string[]>([]);
 const [travelHistory, setTravelHistory] = useState<string[]>([]);
 
-const [travelStart, setTravelStart] = useState<string[]>([]);
+// const [travelStart, setTravelStart] = useState<string[]>([]);
 
-const [travelEnd, setTravelEnd] = useState<string[]>([]);
+// const [travelEnd, setTravelEnd] = useState<string[]>([]);
 
 const [homeStatus, setHomeStatus] = useState<string[]>([]);
 
@@ -64,10 +64,11 @@ const [currentBalance, setCurrentBalance] = useState<string[]>([]);
 const [currencyForEngland, setCurrencyForEngland] = useState<string[]>([]);
 const [currencyMonthAmount, setCurrencyMonthAmount] = useState<string[]>([]);
 
+const [travelSchengenSegmentCount, setTravelSchengenSegmentCount] = useState<number[]>([]);
 
 const [previousAddress, setPreviousAddress] = useState<string[]>([]);
-const [travelHistorySchengen, settravelHistorySchengen] = useState<string[]>([]);
-
+// const [travelHistorySchengen, settravelHistorySchengen] = useState<string[]>([]);
+const [travelHistorySchengen, setTravelHistorySchengen] = useState<string[]>([]);
 
 
 const [maidenNames, setMaidenNames] = useState<string[]>([]);
@@ -115,11 +116,12 @@ const [invitationPaths, setInvitationPaths] = useState<string[][]>([]);
 const [monthlyIncome, setMonthlyIncome] = useState<string[]>([]);
 
 
-const [travelCountry, setTravelCountry] = useState<string[]>([]);
-const [travelEndForSchengen, setTravelEndForSchengen] = useState<string[]>([]);
+// const [travelCountry, setTravelCountry] = useState<string[]>([]);
+// const [travelEndForSchengen, setTravelEndForSchengen] = useState<string[]>([]);
 
-const [travelStartForSchengen, setTravelStartForSchengen] = useState<string[]>([]);
-
+// const [travelStartForSchengen, setTravelStartForSchengen] = useState<string[]>([]);
+const [travelStartForSchengen, setTravelStartForSchengen] = useState<string[][]>([]);
+const [travelEndForSchengen,   setTravelEndForSchengen]   = useState<string[][]>([]);
 
 const [plannedSpending, setPlannedSpending] = useState<string[]>([]);
 const [tripStart, setTripStart] = useState<string>('');
@@ -130,8 +132,8 @@ const [visaRefusal, setVisaRefusal] = useState<string[]>([]);
 const [visaRefusalCountry, setVisaRefusalCountry] = useState<string[]>([]);
 const [visaRefusalDate, setVisaRefusalDate] = useState<string[]>([]);
 
-const [travelSchengenCountry, setTravelSchengen] = useState<string[]>([]);
-
+// const [travelSchengenCountry, setTravelSchengen] = useState<string[]>([]);
+const [travelSchengenCountry, setTravelSchengen] = useState<string[][]>([]);
 const [motherName, setMotherName] = useState<string[]>([]);
 const [motherDob, setMotherDob] = useState<string[]>([]);
 const [fatherName, setFatherName] = useState<string[]>([]);
@@ -167,15 +169,15 @@ type FormErrors =  {
   visaRefusalCountry?: string[];
   visaRefusalDate?: string[];
   monthlyExpense:string[]
-  travelStart:string[]
-  travelEnd:string[]
+  travelStart:string[][]
+  travelEnd:string[][]
   motherName:string[]
   motherDob:string[]
   fatherName:string[]
   fatherDob:string[]
   currentBalance:string[]
-  travelCountry:string[]
-  travelSchengenCountry:string[]
+  travelCountry:string[][]
+  travelSchengenCountry:string[][]
   travelStartForSchengen:string[]
   travelEndForSchengen:string[]
 }
@@ -185,39 +187,7 @@ type FormErrors =  {
 
   const navigate = useNavigate();
 
-const [errors, setErrors] = useState<FormErrors>({
-  firstName: [],
-  lastName: [],
-  gender: [],
-  maritalStatus: [],
-  workStatus: [],
-  address: [],
-  email: [],
-  phone: [],
-  maidenName:[],
-  passport: [],
-  schengen: [],
-  city: [],
-  tripStart: '',
-  tripEnd: '',
-  monthlyIncome:[],
-  plannedSpending:[],
-  homeSince:[],
-  previousAddress:[],
-  homeStatus:[],
-  monthlyExpense:[],
-  travelStart:[],
-  travelEnd:[],
-  motherName:[],
-  motherDob:[],
-  fatherName:[],
-  fatherDob:[],
-  currentBalance:[],
-  travelCountry:[],
-  travelSchengenCountry:[],
-  travelStartForSchengen:[],
-  travelEndForSchengen:[]
-});
+
   // const jobTitles = [
   //   'Yazılım Mühendisi',
   //   'Doktor',
@@ -324,6 +294,55 @@ const [errors, setErrors] = useState<FormErrors>({
     });
   }, [totalForms]);
   
+  const [errors, setErrors] = useState<FormErrors>({
+    firstName: [],
+    lastName: [],
+    gender: [],
+    maritalStatus: [],
+    workStatus: [],
+    address: [],
+    email: [],
+    phone: [],
+    maidenName:[],
+    passport: [],
+    schengen: [],
+    city: [],
+    tripStart: '',
+    tripEnd: '',
+    monthlyIncome:[],
+    plannedSpending:[],
+    homeSince:[],
+    previousAddress:[],
+    homeStatus:[],
+    monthlyExpense:[],
+    travelStart: Array(totalForms).fill(null).map(()=>['']),
+    travelEnd:Array(totalForms).fill(null).map(()=>['']),
+    motherName:[],
+    motherDob:[],
+    fatherName:[],
+    fatherDob:[],
+    currentBalance:[],
+    travelCountry:[],
+    travelSchengenCountry:[],
+    travelStartForSchengen:[],
+    travelEndForSchengen:[]
+  });
+
+  const [travelSegmentCount, setTravelSegmentCount] = useState<number[]>(
+    Array(totalForms).fill(1)
+  );
+  
+
+  const [travelCountry, setTravelCountry] = useState<string[][]>(
+    Array(totalForms).fill(null).map(() => ['']) 
+  );
+  const [travelStart, setTravelStart] = useState<string[][]>(
+    Array(totalForms).fill(null).map(() => [''])
+  );
+  const [travelEnd, setTravelEnd] = useState<string[][]>(
+    Array(totalForms).fill(null).map(() => [''])
+  );
+
   const handleInvitationUpload = async (formIndex: number, e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);
     if (files.length === 0) return;
@@ -608,6 +627,33 @@ const [errors, setErrors] = useState<FormErrors>({
   ];
 
 
+
+  const ensure2D = (arr: string[][], outerIdx: number, newLen: number) => {
+    const n = arr.map(a => Array.isArray(a) ? [...a] : []);
+    while (n.length <= outerIdx) n.push([]);
+    while (n[outerIdx].length < newLen) n[outerIdx].push('');
+    n[outerIdx] = n[outerIdx].slice(0, newLen);
+    return n;
+  };
+
+  const MAX_SEG = 3;
+
+  const syncLen = <T,>(arr: T[][], i: number, len: number, fill: T): T[][] => {
+    const next = arr.map(a => [...a]);
+    while (next.length <= i) next.push([]);
+    while (next[i].length < len) next[i].push(fill);
+    if (next[i].length > len) next[i] = next[i].slice(0, len);
+    return next;
+  };
+  
+  const ensureSegCount = (countArr: number[], i: number, nextCount: number) => {
+    const next = [...countArr];
+    while (next.length <= i) next.push(1);
+    next[i] = Math.min(Math.max(nextCount, 1), MAX_SEG);
+    return next;
+  };
+
+
   const validateForm = () => {
     
     const get = (arr: string[] | undefined, i: number) =>
@@ -616,6 +662,16 @@ const [errors, setErrors] = useState<FormErrors>({
     const at = <T,>(arr: T[] | undefined, i: number, fallback: any = ''): T | any =>
       Array.isArray(arr) && i in arr ? arr[i] : fallback;
   
+    const make2D = (rows: number, cols = 1, fill = '') =>
+      Array.from({ length: rows }, () => Array(cols).fill(fill));
+    
+
+    const ensure2D = <T,>(arr: T[][], i: number, cols = 1, fill: T) => {
+      while (arr.length <= i) arr.push(Array(cols).fill(fill));
+      while (arr[i].length < cols) arr[i].push(fill);
+      return arr;
+    };
+
     const nextErrors: any = {
       firstName: Array<string>(totalForms).fill(''),
       lastName: Array<string>(totalForms).fill(''),
@@ -637,6 +693,14 @@ const [errors, setErrors] = useState<FormErrors>({
       fatherDob: Array<string>(totalForms).fill(''),
       
       currentBalance: Array<string>(totalForms).fill(''),
+
+      travelCountry: make2D(totalForms),          
+      travelStart:   make2D(totalForms),
+      travelEnd:     make2D(totalForms),
+    
+      travelSchengenCountry: make2D(totalForms),  
+      travelStartForSchengen: make2D(totalForms),
+      travelEndForSchengen:   make2D(totalForms),
     };
   
     let isValid = true;
@@ -694,6 +758,75 @@ const [errors, setErrors] = useState<FormErrors>({
           incomeNum > 0 ? '' : 'Aylık belgelendirilebilir maaş zorunludur.';
         if (nextErrors.monthlyIncome[i]) isValid = false;
     
+        if (travelHistory?.[i] === 'yes') {
+          const segCount = Math.max(1, travelSegmentCount?.[i] ?? 1); // max 3 ise ekleme/çıkarma tarafında sınırla
+      
+          ensure2D(nextErrors.travelCountry, i, segCount, '');
+          ensure2D(nextErrors.travelStart,   i, segCount, '');
+          ensure2D(nextErrors.travelEnd,     i, segCount, '');
+      
+          for (let seg = 0; seg < segCount; seg++) {
+            const country = travelCountry?.[i]?.[seg]?.trim() ?? '';
+            const start   = travelStart?.[i]?.[seg] ?? '';
+            const end     = travelEnd?.[i]?.[seg] ?? '';
+      
+            // ülke zorunlu
+            nextErrors.travelCountry[i][seg] = country ? '' : 'Ülke zorunludur.';
+            if (!country) isValid = false;
+      
+            // tarihler zorunlu
+            nextErrors.travelStart[i][seg] = start ? '' : 'Gidiş tarihi zorunludur.';
+            nextErrors.travelEnd[i][seg]   = end   ? '' : 'Dönüş tarihi zorunludur.';
+            if (!start || !end) isValid = false;
+      
+            // start <= end
+            if (start && end && new Date(start) > new Date(end)) {
+              nextErrors.travelEnd[i][seg] = 'Dönüş tarihi gidişten önce olamaz.';
+              isValid = false;
+            }
+          }
+        } else {
+          // "no" ise o satırdaki hataları sıfırla (opsiyonel)
+          nextErrors.travelCountry[i] = [''];
+          nextErrors.travelStart[i]   = [''];
+          nextErrors.travelEnd[i]     = [''];
+        }
+      
+        // ====== 2) Avrupa/Schengen seyahati (travelHistorySchengen[i] === 'yes') ======
+        if (travelHistorySchengen?.[i] === 'yes') {
+          const segCountSch = Math.max(1, travelSegmentCount?.[i] ?? 1);
+      
+          ensure2D(nextErrors.travelSchengenCountry,  i, segCountSch, '');
+          ensure2D(nextErrors.travelStartForSchengen, i, segCountSch, '');
+          ensure2D(nextErrors.travelEndForSchengen,   i, segCountSch, '');
+      
+          for (let seg = 0; seg < segCountSch; seg++) {
+            const country = travelSchengenCountry?.[i]?.[seg]?.trim() ?? '';
+            const start   = travelStartForSchengen?.[i]?.[seg] ?? '';
+            const end     = travelEndForSchengen?.[i]?.[seg] ?? '';
+      
+            nextErrors.travelSchengenCountry[i][seg] = country ? '' : 'Ülke zorunludur.';
+            if (!country) isValid = false;
+      
+            nextErrors.travelStartForSchengen[i][seg] = start ? '' : 'Gidiş tarihi zorunludur.';
+            nextErrors.travelEndForSchengen[i][seg]   = end   ? '' : 'Dönüş tarihi zorunludur.';
+            if (!start || !end) isValid = false;
+      
+            if (start && end && new Date(start) > new Date(end)) {
+              nextErrors.travelEndForSchengen[i][seg] = 'Dönüş tarihi gidişten önce olamaz.';
+              isValid = false;
+            }
+          }
+        } else {
+          nextErrors.travelSchengenCountry[i]  = [''];
+          nextErrors.travelStartForSchengen[i] = [''];
+          nextErrors.travelEndForSchengen[i]   = [''];
+        }
+    
+
+
+
+
       
         nextErrors.currentBalance[i] = currentBalance[i]?.trim() ?  '' : 'Anlık bakiyeniz zorunludur.';
         if (nextErrors.currentBalance[i]) isValid = false;
@@ -1824,7 +1957,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
     id={`current-balance-${index}`}   
     inputMode="numeric"
     placeholder="1,500"
-    value={currentBalance[index] || '₺'}   
+    value={currentBalance[index] || ''}   
     onChange={(e) => {
       const raw = e.target.value.replace(/[^\d]/g, '');
       const withThousands = raw.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
@@ -1921,120 +2054,199 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
 
 
   {travelHistory[index] === "yes" && (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
-  <div>
-  <label className="block mb-1 text-sm font-medium text-gray-700">
-    Ülke
-  </label>
+  <div className="mt-3">
 
-  <Menu as="div" className="relative inline-block w-full">
-    <Menu.Button
-      className={[
-        "inline-flex w-full justify-between items-center rounded-lg px-4 py-3 text-base shadow-sm ring-1 ring-inset",
-        travelCountry[index]
-          ? "bg-white text-gray-800 border border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500"
-          : (errors.travelCountry?.[index]
-              ? "bg-red-50 text-gray-800 border border-red-500 ring-red-500 focus:outline-none focus:ring-2 focus:ring-red-500"
-              : "bg-white text-gray-500 border border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500")
-      ].join(" ")}
-    >
-      <span className={travelCountry[index] ? "text-gray-800" : "text-gray-500"}>
-        {travelCountry[index] || "— Ülke seçin —"}
-      </span>
-      <ChevronDownIcon className="w-5 h-5 text-gray-500" aria-hidden="true" />
-    </Menu.Button>
+    {Array.from({ length: travelSegmentCount[index] }).map((_, segIdx) => (
+      <div key={`seg-${index}-${segIdx}`} className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
 
-    <Transition
-      as={Fragment}
-      enter="transition ease-out duration-100"
-      enterFrom="transform opacity-0 scale-95"
-      enterTo="transform opacity-100 scale-100"
-      leave="transition ease-in duration-75"
-      leaveFrom="transform opacity-100 scale-100"
-      leaveTo="transform opacity-0 scale-95"
-    >
-      <Menu.Items className="absolute z-10 mt-2 w-full rounded-lg bg-white text-black shadow-lg ring-1 ring-black/10 focus:outline-none">
-        <div className="py-1 max-h-64 overflow-auto">
-          {COUNTRY_OPTIONS.map((opt) => (
-            <Menu.Item key={opt}>
-              {({ active }) => (
-                <button
-                  type="button"
-                  onClick={() => {
-                    const next = [...travelCountry];
-                    next[index] = opt;
-                    setTravelCountry(next);
+  
+        <div>
+          <label className="block mb-1 text-sm font-medium text-gray-700">
+            Ülke ({segIdx + 1})
+          </label>
 
-                    if (errors.travelCountry?.[index]) {
-                      setErrors((p) => {
-                        const n = { ...p, travelCountry: [...(p.travelCountry || [])] };
-                        n.travelCountry[index] = "";
-                        return n;
-                      });
-                    }
-                  }}
-                  className={`${
-                    active ? 'bg-red-100 text-red-800' : 'text-gray-900'
-                  } block w-full text-left px-4 py-2 text-base font-medium`}
-                >
-                  {opt}
-                </button>
-              )}
-            </Menu.Item>
-          ))}
+          <Menu as="div" className="relative inline-block w-full">
+            <Menu.Button
+              className={[
+                "inline-flex w-full justify-between items-center rounded-lg px-4 py-3 text-base shadow-sm ring-1 ring-inset",
+                travelCountry[index]?.[segIdx]
+                  ? "bg-white text-gray-800 border border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500"
+                  : (errors.travelCountry?.[index]?.[segIdx]
+                      ? "bg-red-50 text-gray-800 border border-red-500 ring-red-500 focus:outline-none focus:ring-2 focus:ring-red-500"
+                      : "bg-white text-gray-500 border border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500")
+              ].join(" ")}
+            >
+              <span className={travelCountry[index]?.[segIdx] ? "text-gray-800" : "text-gray-500"}>
+                {travelCountry[index]?.[segIdx] || "— Ülke seçin —"}
+              </span>
+              <ChevronDownIcon className="w-5 h-5 text-gray-500" aria-hidden="true" />
+            </Menu.Button>
+
+            <Transition
+              as={Fragment}
+              enter="transition ease-out duration-100"
+              enterFrom="transform opacity-0 scale-95"
+              enterTo="transform opacity-100 scale-100"
+              leave="transition ease-in duration-75"
+              leaveFrom="transform opacity-100 scale-100"
+              leaveTo="transform opacity-0 scale-95"
+            >
+              <Menu.Items className="absolute z-10 mt-2 w-full rounded-lg bg-white text-black shadow-lg ring-1 ring-black/10 focus:outline-none">
+                <div className="py-1 max-h-64 overflow-auto">
+                  {COUNTRY_OPTIONS.map((opt) => (
+                    <Menu.Item key={opt}>
+                      {({ active }) => (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setTravelCountry(prev => {
+                              const next = prev.map(arr => [...arr]);
+                              next[index][segIdx] = opt;
+                              return next;
+                            });
+                            if (errors.travelCountry?.[index]?.[segIdx]) {
+                              setErrors(p => {
+                                const n = { ...p };
+                                n.travelCountry = n.travelCountry.map((arr: string[]) => arr ? [...arr] : []);
+                                n.travelCountry[index][segIdx] = "";
+                                return n;
+                              });
+                            }
+                          }}
+                          className={`${active ? 'bg-red-100 text-red-800' : 'text-gray-900'} block w-full text-left px-4 py-2 text-base font-medium`}
+                        >
+                          {opt}
+                        </button>
+                      )}
+                    </Menu.Item>
+                  ))}
+                </div>
+              </Menu.Items>
+            </Transition>
+          </Menu>
+
+          {errors.travelCountry?.[index]?.[segIdx] && (
+            <p className="mt-1 text-sm text-red-600">{errors.travelCountry[index][segIdx]}</p>
+          )}
         </div>
-      </Menu.Items>
-    </Transition>
-  </Menu>
 
-  {errors.travelCountry?.[index] && (
-    <p className="mt-1 text-sm text-red-600">{errors.travelCountry[index]}</p>
-  )}
+ 
+        <div>
+          <label className="block mb-1 text-sm font-medium text-gray-700">Gidiş Tarihi</label>
+          <input
+            type="date"
+            value={travelStart[index]?.[segIdx] || ""}
+            onChange={(e) => {
+              const v = e.target.value;
+              setTravelStart(prev => {
+                const next = prev.map(arr => [...arr]);
+                next[index][segIdx] = v;
+                return next;
+              });
+              if (errors.travelStart?.[index]?.[segIdx]) {
+                setErrors(p => {
+                  const n = { ...p };
+                  n.travelStart = n.travelStart.map((arr: string[]) => [...arr]);
+                  n.travelStart[index][segIdx] = "";
+                  return n;
+                });
+              }
+            }}
+            className={`block w-full rounded-lg px-4 py-3 text-base text-gray-800 border shadow-sm ring-1 ring-inset mt-1
+              ${errors.travelStart?.[index]?.[segIdx]
+                ? 'border-red-500 ring-red-500 bg-red-50 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500'
+                : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500'}`}
+          />
+        </div>
+
+       
+        <div>
+          <label className="block mb-1 text-sm font-medium text-gray-700">Dönüş Tarihi</label>
+          <input
+            type="date"
+            value={travelEnd[index]?.[segIdx] || ""}
+            onChange={(e) => {
+              const v = e.target.value;
+              setTravelEnd(prev => {
+                const next = prev.map(arr => [...arr]);
+                next[index][segIdx] = v;
+                return next;
+              });
+              if (errors.travelEnd?.[index]?.[segIdx]) {
+                setErrors(p => {
+                  const n = { ...p };
+                  n.travelEnd = n.travelEnd.map((arr: string[]) => [...arr]);
+                  n.travelEnd[index][segIdx] = "";
+                  return n;
+                });
+              }
+            }}
+            className={`block w-full rounded-lg px-4 py-3 text-base text-gray-800 border shadow-sm ring-1 ring-inset mt-1
+              ${errors.travelEnd?.[index]?.[segIdx]
+                ? 'border-red-500 ring-red-500 bg-red-50 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500'
+                : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500'}`}
+          />
+        </div>
+      </div>
+    ))}
+
+
+<div className="mt-3 flex items-center gap-3">
+  <button
+    type="button"
+    onClick={() => {
+      setTravelSegmentCount(prev => {
+        const next = [...prev];
+        const cur = Math.max(1, next[index] ?? 1);
+        const newCount = Math.min(3, cur + 1);
+        next[index] = newCount;
+
+        setTravelCountry(tc => ensure2D(tc, index, newCount));
+        setTravelStart(ts => ensure2D(ts, index, newCount));
+        setTravelEnd(te => ensure2D(te, index, newCount));
+
+        return next;
+      });
+    }}
+    disabled={(travelSegmentCount[index] ?? 1) >= 3}
+   className="px-3 py-1 rounded bg-red-600 text-white disabled:opacity-40"
+  >
+    + Yeni ülke
+  </button>
+
+  <button
+    type="button"
+    onClick={() => {
+      setTravelSegmentCount(prev => {
+        const next = [...prev];
+        const cur = Math.max(1, next[index] ?? 1);
+        const newCount = Math.max(1, cur - 1);
+        next[index] = newCount;
+
+        setTravelCountry(tc => ensure2D(tc, index, newCount));
+        setTravelStart(ts => ensure2D(ts, index, newCount));
+        setTravelEnd(te => ensure2D(te, index, newCount));
+
+        return next;
+      });
+    }}
+    disabled={(travelSegmentCount[index] ?? 1) <= 1}
+    className="px-3 py-1 rounded bg-gray-200 text-gray-800 disabled:opacity-40"
+  >
+    − Kaldır
+  </button>
+
+  <span className="text-xs text-gray-500">
+    ({Math.max(1, travelSegmentCount[index] ?? 1)}/3)
+  </span>
 </div>
-      <div>
-        <label className="block  mb-1 text-sm font-medium text-gray-700">
-          Gidiş Tarihi
-        </label>
-        <input
-          type="date"
-          value={travelStart[index] || ""}
-          onChange={(e) => {
-            const next = [...travelStart];
-            next[index] = e.target.value;
-            setTravelStart(next);
-          }}
-          className={`block w-full rounded-lg px-4 pr-10 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset mt-1
-            ${errors.travelStart?.[index]
-              ? 'border-red-500 ring-red-500 bg-red-50 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500'
-              : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500'}`}
-        />
-      </div>
-
-   
-      <div>
-        <label className="block mb-1 text-sm font-medium text-gray-700">
-          Dönüş Tarihi
-        </label>
-        <input
-          type="date"
-          value={travelEnd[index] || ""}
-          onChange={(e) => {
-            const next = [...travelEnd];
-            next[index] = e.target.value;
-            setTravelEnd(next);
-          }}
-          className={`block w-full rounded-lg px-4 pr-10 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset mt-1
-            ${errors.travelEnd?.[index]
-              ? 'border-red-500 ring-red-500 bg-red-50 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500'
-              : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500'}`}
-        />
-      </div>
-    </div>
-  )}
+  </div>
+)}
 </div>
 <div>
   <legend className="text-m font-semibold text-gray-600 mb-1 mt-5">
-    Son 10 yıl içinde <span className="font-bold text-black">Avrupa</span> seyahatiniz oldu mu? <span className="text-red-500">*</span>
+    Son 10 yıl içinde <span className="font-bold text-black">Avrupa</span> seyahatiniz oldu mu?
+    <span className="text-red-500"> *</span>
   </legend>
 
   <div className="flex items-center gap-6 mt-2">
@@ -2045,7 +2257,17 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
         value="yes"
         checked={travelHistorySchengen[index] === "yes"}
         onChange={() => {
-          const next = [...travelHistorySchengen]; next[index] = "yes"; settravelHistorySchengen(next);
+          const next = [...travelHistorySchengen]; next[index] = "yes";
+          setTravelHistorySchengen(next);
+
+          // kişi için en az 1 segment hazırla
+          const newCountArr = ensureSegCount(travelSchengenSegmentCount, index, travelSchengenSegmentCount[index] ?? 1);
+          setTravelSchengenSegmentCount(newCountArr);
+          const segs = newCountArr[index] ?? 1;
+
+          setTravelSchengen(p => syncLen(p, index, segs, ""));
+          setTravelStartForSchengen(p => syncLen(p, index, segs, ""));
+          setTravelEndForSchengen(p   => syncLen(p, index, segs, ""));
         }}
         className="relative size-4 appearance-none rounded-full border border-gray-300 bg-white
                    checked:border-red-600 checked:bg-white
@@ -2064,8 +2286,8 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
         value="no"
         checked={travelHistorySchengen[index] === "no"}
         onChange={() => {
-          const next = [...travelHistorySchengen]; next[index] = "no"; settravelHistorySchengen(next);
-        
+          const next = [...travelHistorySchengen]; next[index] = "no";
+          setTravelHistorySchengen(next);
         }}
         className="relative size-4 appearance-none rounded-full border border-gray-300 bg-white
                    checked:border-red-600 checked:bg-white
@@ -2079,107 +2301,181 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
   </div>
 
   {travelHistorySchengen[index] === "yes" && (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
-     
-      <div>
-        <label className="block mb-1 text-sm font-medium text-gray-700">Ülke</label>
+    <>
+    
 
-        <Menu as="div" className="relative inline-block w-full">
-          <Menu.Button
-            className={[
-              "inline-flex w-full justify-between items-center rounded-lg px-4 py-3 text-base shadow-sm ring-1 ring-inset mt-1",
-              travelSchengenCountry[index]
-                ? "bg-white text-gray-800 border border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500"
-                : (errors.travelSchengenCountry?.[index]
-                    ? "bg-red-50 text-gray-800 border border-red-500 ring-red-500 focus:outline-none focus:ring-2 focus:ring-red-500"
-                    : "bg-white text-gray-500 border border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500")
-            ].join(" ")}
-          >
-            <span className={travelSchengenCountry[index] ? "text-gray-800" : "text-gray-500"}>
-              {travelSchengenCountry[index] || "— Ülke seçin —"}
-            </span>
-            <ChevronDownIcon className="w-5 h-5 text-gray-500" aria-hidden="true" />
-          </Menu.Button>
+      {/* Segmentler */}
+      {Array.from({ length: travelSchengenSegmentCount[index] ?? 1 }).map((_, segIdx) => (
+        <div key={segIdx} className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
+          
+          {/* Ülke */}
+          <div>
+            <label className="block mb-1 text-sm font-medium text-gray-700">Ülke</label>
 
-          <Transition
-            as={Fragment}
-            enter="transition ease-out duration-100"
-            enterFrom="transform opacity-0 scale-95"
-            enterTo="transform opacity-100 scale-100"
-            leave="transition ease-in duration-75"
-            leaveFrom="transform opacity-100 scale-100"
-            leaveTo="transform opacity-0 scale-95"
-          >
-            <Menu.Items className="absolute z-10 mt-2 w-full rounded-lg bg-white text-black shadow-lg ring-1 ring-black/10 focus:outline-none">
-              <div className="py-1 max-h-64 overflow-auto">
-                {COUNTRY_OPTIONS_SCHENGEN.map((opt) => (
-                  <Menu.Item key={opt}>
-                    {({ active }) => (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const next = [...travelSchengenCountry];
-                          next[index] = opt;
-                          setTravelSchengen(next);
-                          if (errors.travelSchengenCountry?.[index]) {
-                            setErrors((p) => {
-                              const n = { ...p, travelSchengenCountry: [...(p.travelSchengenCountry || [])] };
-                              n.travelSchengenCountry[index] = "";
-                              return n;
-                            });
-                          }
-                        }}
-                        className={`${
-                          active ? 'bg-red-100 text-red-800' : 'text-gray-900'
-                        } block w-full text-left px-4 py-2 text-base font-medium`}
-                      >
-                        {opt}
-                      </button>
-                    )}
-                  </Menu.Item>
-                ))}
-              </div>
-            </Menu.Items>
-          </Transition>
-        </Menu>
+            <Menu as="div" className="relative inline-block w-full">
+              <Menu.Button
+                className={[
+                  "inline-flex w-full justify-between items-center rounded-lg px-4 py-3 text-base shadow-sm ring-1 ring-inset mt-1",
+                  (travelSchengenCountry[index]?.[segIdx])
+                    ? "bg-white text-gray-800 border border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500"
+                    : (errors.travelSchengenCountry?.[index]?.[segIdx]
+                        ? "bg-red-50 text-gray-800 border border-red-500 ring-red-500 focus:outline-none focus:ring-2 focus:ring-red-500"
+                        : "bg-white text-gray-500 border border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500")
+                ].join(" ")}
+              >
+                <span className={travelSchengenCountry[index]?.[segIdx] ? "text-gray-800" : "text-gray-500"}>
+                  {travelSchengenCountry[index]?.[segIdx] || "— Ülke seçin —"}
+                </span>
+                <ChevronDownIcon className="w-5 h-5 text-gray-500" aria-hidden="true" />
+              </Menu.Button>
 
-        {errors.travelSchengenCountry?.[index] && (
-          <p className="mt-1 text-sm text-red-600">{errors.travelSchengenCountry[index]}</p>
-        )}
-      </div>
+              <Transition
+                as={Fragment}
+                enter="transition ease-out duration-100"
+                enterFrom="transform opacity-0 scale-95"
+                enterTo="transform opacity-100 scale-100"
+                leave="transition ease-in duration-75"
+                leaveFrom="transform opacity-100 scale-100"
+                leaveTo="transform opacity-0 scale-95"
+              >
+                <Menu.Items className="absolute z-10 mt-2 w-full rounded-lg bg-white text-black shadow-lg ring-1 ring-black/10 focus:outline-none">
+                  <div className="py-1 max-h-64 overflow-auto">
+                    {COUNTRY_OPTIONS_SCHENGEN.map((opt) => (
+                      <Menu.Item key={opt}>
+                        {({ active }) => (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setTravelSchengen(prev => {
+                                const n = prev.map(a => [...a]);
+                                while (n.length <= index) n.push([]);
+                                while (n[index].length <= segIdx) n[index].push("");
+                                n[index][segIdx] = opt;
+                                return n;
+                              });
 
-      {/* Gidiş */}
-      <div>
-        <label className="block mb-1 text-sm font-medium text-gray-700">Gidiş Tarihi</label>
-        <input
-          type="date"
-          value={travelStartForSchengen[index] || ""}
-          onChange={(e) => {
-            const next = [...travelStartForSchengen]; next[index] = e.target.value; setTravelStartForSchengen(next);
+                              if (errors.travelSchengenCountry?.[index]?.[segIdx]) {
+                                setErrors(p => {
+                                  const n = { ...p };
+                                  n.travelSchengenCountry = n.travelSchengenCountry.map((arr: string[]) => arr ? [...arr] : []);
+                                  n.travelSchengenCountry[index][segIdx] = "";
+                                  return n;
+                                });
+                              }
+                            
+
+                            }}
+                            className={`${active ? 'bg-red-100 text-red-800' : 'text-gray-900'} block w-full text-left px-4 py-2 text-base font-medium`}
+                          >
+                            {opt}
+                          </button>
+                        )}
+                      </Menu.Item>
+                    ))}
+                  </div>
+                </Menu.Items>
+              </Transition>
+            </Menu>
+
+            {errors.travelSchengenCountry?.[index]?.[segIdx] && (
+              <p className="mt-1 text-sm text-red-600">{errors.travelSchengenCountry[index][segIdx]}</p>
+            )}
+          </div>
+
+       
+          <div>
+            <label className="block mb-1 text-sm font-medium text-gray-700">Gidiş Tarihi</label>
+            <input
+              type="date"
+              value={travelStartForSchengen[index]?.[segIdx] || ""}
+              onChange={(e) => {
+                setTravelStartForSchengen(prev => {
+                  const n = prev.map(a => [...a]);
+                  while (n.length <= index) n.push([]);
+                  while (n[index].length <= segIdx) n[index].push("");
+                  n[index][segIdx] = e.target.value;
+                  return n;
+                });
+              }}
+              className={`block w-full rounded-lg px-4 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset mt-1
+                ${errors.travelStartForSchengen?.[index]?.[segIdx]
+                  ? 'border-red-500 ring-red-500 bg-red-50 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500'
+                  : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500'}`}
+            />
+          </div>
+
+        
+          <div>
+            <label className="block mb-1 text-sm font-medium text-gray-700">Dönüş Tarihi</label>
+            <input
+              type="date"
+              value={travelEndForSchengen[index]?.[segIdx] || ""}
+              onChange={(e) => {
+                setTravelEndForSchengen(prev => {
+                  const n = prev.map(a => [...a]);
+                  while (n.length <= index) n.push([]);
+                  while (n[index].length <= segIdx) n[index].push("");
+                  n[index][segIdx] = e.target.value;
+                  return n;
+                });
+              }}
+              className={`block w-full rounded-lg px-4 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset mt-1
+                ${errors.travelEndForSchengen?.[index]?.[segIdx]
+                  ? 'border-red-500 ring-red-500 bg-red-50 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500'
+                  : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500'}`}
+            />
+          </div>
+
+
+    
+           
+    
+        </div>
+        
+      ))}
+            
+            <div className="flex items-center gap-2 mt-3">
+        <button
+          type="button"
+          onClick={() => {
+            const cur = travelSchengenSegmentCount[index] ?? 1;
+            const nextCountArr = ensureSegCount(travelSchengenSegmentCount, index, cur + 1);
+            setTravelSchengenSegmentCount(nextCountArr);
+            const segs = nextCountArr[index];
+
+            setTravelSchengen(p => syncLen(p, index, segs, ""));
+            setTravelStartForSchengen(p => syncLen(p, index, segs, ""));
+            setTravelEndForSchengen(p   => syncLen(p, index, segs, ""));
           }}
-          className={`block w-full rounded-lg px-4 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset mt-1
-            ${errors.travelStartForSchengen?.[index]
-              ? 'border-red-500 ring-red-500 bg-red-50 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500'
-              : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500'}`}
-        />
-      </div>
+          disabled={(travelSchengenSegmentCount[index] ?? 1) >= MAX_SEG}
+         className="px-3 py-1 rounded bg-red-600 text-white disabled:opacity-40"
+        >
+          + Yeni ülke
+        </button>
 
-      {/* Dönüş */}
-      <div>
-        <label className="block mb-1 text-sm font-medium text-gray-700">Dönüş Tarihi</label>
-        <input
-          type="date"
-          value={travelEndForSchengen[index] || ""}
-          onChange={(e) => {
-            const next = [...travelEndForSchengen]; next[index] = e.target.value; setTravelEndForSchengen(next);
+        <button
+          type="button"
+          onClick={() => {
+            const cur = travelSchengenSegmentCount[index] ?? 1;
+            const nextCountArr = ensureSegCount(travelSchengenSegmentCount, index, cur - 1);
+            setTravelSchengenSegmentCount(nextCountArr);
+            const segs = nextCountArr[index];
+
+            setTravelSchengen(p => syncLen(p, index, segs, ""));
+            setTravelStartForSchengen(p => syncLen(p, index, segs, ""));
+            setTravelEndForSchengen(p   => syncLen(p, index, segs, ""));
           }}
-          className={`block w-full rounded-lg px-4 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset mt-1
-            ${errors.travelEndForSchengen?.[index]
-              ? 'border-red-500 ring-red-500 bg-red-50 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500'
-              : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500'}`}
-        />
+          disabled={(travelSchengenSegmentCount[index] ?? 1) <= 1}
+           className="px-3 py-1 rounded bg-gray-200 text-gray-800 disabled:opacity-40"
+        >
+          − Kaldır
+        </button>
+
+        <span className="text-xs text-gray-500">
+    ({Math.max(1, travelSchengenSegmentCount[index] ?? 1)}/3)
+  </span>
       </div>
-    </div>
+    </>
   )}
 </div>
 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
