@@ -39,6 +39,12 @@ const [schengenPaths, setSchengenPaths] = useState<string[][]>([]);
 const [passportFileName, setPassportFileName] = useState<string[]>([]);
 type UploadResult = { url: string; name: string; path: string };
 
+
+
+
+
+
+
 const isStringNonEmpty = (v: unknown): v is string =>
   typeof v === "string" && v.trim().length > 0;
 
@@ -340,15 +346,15 @@ const handlePassportUpload = (i: number, e: React.ChangeEvent<HTMLInputElement>)
     });
 
    
-    // 4) DB update (tek URL)
+
     const { error: dbErr } = await supabase
       .from('applications')
       .update({ passport_file_url: url })
-      .eq('id', props.app.id); // <-- bulunduğun yerde 'app' erişilebilir olmalı
+      .eq('id', props.app.id); 
 
     if (dbErr) throw dbErr;
 
-    // 5) Opsiyonel: başarı bildirimi
+   
     notifications?.show?.({
       title: 'Bilgi',
       message: (
@@ -377,6 +383,81 @@ const handlePassportUpload = (i: number, e: React.ChangeEvent<HTMLInputElement>)
 };
 
 
+const showMoney = (amount: any, currency?: string) => {
+  const txt = cleanText(amount);
+  if (txt === "-") return "-";
+  const sym = currency || "₺";
+  return `${txt} ${sym}`;
+};
+
+const showDate = (d: any) => {
+  const txt = cleanText(d);
+  return txt === "-" ? "-" : txt;
+};
+
+
+const cleanText = (val: any): string => {
+  if (val == null) return "-";
+
+  if (Array.isArray(val)) {
+    return val
+      .flat(Infinity)
+      .filter((x) => x && String(x).trim() !== "null")
+      .map(String)
+      .join(", ")
+      || "-";
+  }
+
+  if (typeof val === "string") {
+ 
+    try {
+      const parsed = JSON.parse(val);
+      return cleanText(parsed);
+    } catch {
+      
+      const s = val
+        .replace(/[\[\]"]+/g, "")
+        .replace(/\s*,\s*,+/g, ",")
+        .replace(/(^,|,$)/g, "")
+        .trim();
+      return s || "-";
+    }
+  }
+
+  return String(val);
+};
+
+
+
+const safeParse = (x: any) => {
+  if (typeof x !== "string") return x;
+  try { return JSON.parse(x); } catch { return x; }
+};
+
+
+
+
+
+const parse1D = (raw: unknown): string[] => {
+  if (!raw) return [];
+  let x = raw as any;
+  if (typeof x === "string") { try { x = JSON.parse(x); } catch {} }
+  if (Array.isArray(x)) return x.map(v => String(v ?? "").trim());
+  return [];
+};
+const fmt = (s?: string) => (s && s.trim()) ? s : "—";
+
+
+const C = parse1D(props.app.travelCountry);
+const S = parse1D(props.app.travelStart);
+const E = parse1D(props.app.travelEnd);
+
+
+
+const CS = parse1D(props.app.travelSchengenCountry);      
+const SS = parse1D(props.app.travelStartForSchengen);     
+const ES = parse1D(props.app.travelEndForSchengen);  
+
 const toUrlArray = (input: unknown): string[] => {
   if (!input) return [];
   if (Array.isArray(input)) return input.filter(isStringNonEmpty);
@@ -391,6 +472,8 @@ const toUrlArray = (input: unknown): string[] => {
   }
   return [];
 };
+
+
 
 
 function applyUrls(data: any) {
@@ -458,6 +541,12 @@ useEffect(() => {
     setSchengenIndex(Math.max(0, flatUrls.length - 1));
   }
 }, [flatUrls, schengenIndex]);
+
+
+
+
+
+
 
 
 const url = flatUrls[schengenIndex] ?? "";
@@ -600,11 +689,7 @@ function normalizeToUrls(raw: unknown): string[] {
       <Card shadow="xs" withBorder radius="md" padding="xs">
         <Text size="xs" c="dimmed">Pozisyon</Text>
         <Text fw={900} >{props.app.job_title}</Text>
-        {/* <Text fw={900}>
-    {typeof props.app.job_title === "string"
-      ? props.app.job_title.replace(/[\[\]"]+/g, "")
-      : props.app.job_title || "-"}
-  </Text> */}
+      
       </Card>
       <Card shadow="xs" withBorder radius="md" padding="xs">
         <Text size="xs" c="dimmed">Firma Adı</Text>
@@ -646,6 +731,205 @@ function normalizeToUrls(raw: unknown): string[] {
     </SimpleGrid>
   </div>
 )}
+
+{props.app.country === "İngiltere" && (
+  <>
+
+<div className="mt-6">
+  <Text size="sm" fw={600} c="dimmed" mb="xs">Finansal Bilgiler</Text>
+  <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
+
+    <Card shadow="xs" withBorder radius="md" padding="xs">
+      <Text size="xs" c="dimmed">Aylık Gelir</Text>
+      <Text fw={900}> {showMoney(
+    props.app.monthlyIncome,
+    props.app.currencyMonth && props.app.currencyMonth.trim() !== "" 
+      ? props.app.currencyMonth 
+      : "₺"
+  )}</Text>
+    </Card>
+    <Card shadow="xs" withBorder radius="md" padding="xs">
+      <Text size="xs" c="dimmed">İngiltere’de Planlanan Harcama</Text>
+      <Text fw={900}>{showMoney(props.app.plannedSpending, props.app.currencyForEngland && props.app.currencyForEngland.trim() !=="" ? props.app.currencyForEngland :"₺")}</Text>
+    </Card>
+    <Card shadow="xs" withBorder radius="md" padding="xs">
+      <Text size="xs" c="dimmed">Aylık Harcama Tutarı</Text>
+      <Text fw={900}>{showMoney(props.app.monthlyExpense, props.app.currencyMonthAmount && props.app.currencyMonthAmount.trim() !=="" ? props.app.currencyMonthAmount :"₺")}</Text>
+    </Card>
+    <Card shadow="xs" withBorder radius="md" padding="xs">
+      <Text size="xs" c="dimmed">Anlık Bakiyeniz</Text>
+      <Text fw={900}>{showMoney(props.app.currentBalance, props.app.currencyBalance && props.app.currencyBalance.trim() !=="" ? props.app.currencyBalance :"₺")}</Text>
+    </Card>
+  </SimpleGrid>
+</div>
+
+
+
+<div className="mt-6">
+  <Text size="sm" fw={600} c="dimmed" mb="xs">İkamet Bilgileri</Text>
+  <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+    <Card shadow="xs" withBorder radius="md" padding="xs">
+      <Text size="xs" c="dimmed">Ev Durumu</Text>
+      <Text fw={900}>{cleanText(props.app.homeStatus)}</Text>
+    </Card>
+    <Card shadow="xs" withBorder radius="md" padding="xs">
+      <Text size="xs" c="dimmed">Bu Evde İkamet Başlangıcı</Text>
+      <Text fw={900}>{showDate(props.app.homeSince)}</Text>
+    </Card>
+    {cleanText(props.app.previousAddress) !== "-" && (
+      <Card shadow="xs" withBorder radius="md" padding="xs">
+        <Text size="xs" c="dimmed">Son İkamet Adresi</Text>
+        <Text fw={900}>{cleanText(props.app.previousAddress)}</Text>
+      </Card>
+    )}
+  </SimpleGrid>
+</div>
+
+
+{/* Seyehat Planıo Bİlgiler İngiltere için */}
+{(props.app.tripStart || props.app.tripEnd) && (
+  <div className="mt-6">
+    <Text size="sm" fw={600} c="dimmed" mb="xs">Seyahat Planı</Text>
+    <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+      <Card shadow="xs" withBorder radius="md" padding="xs">
+        <Text size="xs" c="dimmed">Başlangıç</Text>
+        <Text fw={900}>{showDate(props.app.tripStart)}</Text>
+      </Card>
+      <Card shadow="xs" withBorder radius="md" padding="xs">
+        <Text size="xs" c="dimmed">Bitiş</Text>
+        <Text fw={900}>{showDate(props.app.tripEnd)}</Text>
+      </Card>
+    </SimpleGrid>
+  </div>
+)}
+
+{/* Seyehat Planıo Son 10 yıl yine İngiltere için */}
+
+{C.length > 0 && (
+  <div className="mt-6">
+    <Text size="sm" fw={600} c="dimmed" mb="xs">Seyahatler (Son 10 Yıl)</Text>
+    <Card shadow="xs" withBorder radius="md" padding="xs">
+      <div className="divide-y divide-gray-200">
+        {C.map((country, i) => (
+          <div key={i} className="grid grid-cols-3 gap-4 py-2">
+            <div>
+              <Text size="xs" c="dimmed">Ülke</Text>
+              <Text fw={700}>{fmt(country)}</Text>
+            </div>
+            <div>
+              <Text size="xs" c="dimmed">Gidiş</Text>
+              <Text fw={700}>{fmt(S[i])}</Text>
+            </div>
+            <div>
+              <Text size="xs" c="dimmed">Dönüş</Text>
+              <Text fw={700}>{fmt(E[i])}</Text>
+            </div>
+          </div>
+        ))}
+      </div>
+    </Card>
+  </div>
+)}
+
+
+{/* Avrupa Seyehat  Planıo Son 10 yıl yine İngiltere için */}
+{CS.length > 0 && (
+  <div className="mt-6">
+    <Text size="sm" fw={600} c="dimmed" mb="xs">
+      Avrupa Seyahatleri (Son 10 Yıl)
+    </Text>
+    <Card shadow="xs" withBorder radius="md" padding="xs">
+      <div className="divide-y divide-gray-200">
+        {CS.map((country, i) => (
+          <div key={i} className="grid grid-cols-3 gap-4 py-2">
+            <div>
+              <Text size="xs" c="dimmed">Ülke</Text>
+              <Text fw={700}>{fmt(country)}</Text>
+            </div>
+            <div>
+              <Text size="xs" c="dimmed">Gidiş</Text>
+              <Text fw={700}>{fmt(SS[i])}</Text>
+            </div>
+            <div>
+              <Text size="xs" c="dimmed">Dönüş</Text>
+              <Text fw={700}>{fmt(ES[i])}</Text>
+            </div>
+          </div>
+        ))}
+      </div>
+    </Card>
+  </div>
+)}
+
+{/* Aile bilgileri l yine İngiltere için */}
+{(() => {
+  const momName = cleanText(props.app.motherName);
+  const momDob  = showDate(props.app.motherDob);
+  const dadName = cleanText(props.app.fatherName);
+  const dadDob  = showDate(props.app.fatherDob);
+
+  const hasMother = momName !== "-" || momDob !== "-";
+  const hasFather = dadName !== "-" || dadDob !== "-";
+  const showSection = hasMother || hasFather;
+
+  if (!showSection) return null;
+
+  return (
+    <div className="mt-6">
+      <Text size="sm" fw={600} c="dimmed" mb="xs">Aile Bilgileri</Text>
+      <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+      
+        {hasMother && (
+          <>
+            <Card shadow="xs" withBorder radius="md" padding="xs">
+              <Text size="xs" c="dimmed">Anne Adı Soyadı</Text>
+              <Text fw={900}>{momName}</Text>
+            </Card>
+            <Card shadow="xs" withBorder radius="md" padding="xs">
+              <Text size="xs" c="dimmed">Anne Doğum Tarihi</Text>
+              <Text fw={900}>{momDob}</Text>
+            </Card>
+          </>
+        )}
+
+      
+        {hasFather && (
+          <>
+            <Card shadow="xs" withBorder radius="md" padding="xs">
+              <Text size="xs" c="dimmed">Baba Adı Soyadı</Text>
+              <Text fw={900}>{dadName}</Text>
+            </Card>
+            <Card shadow="xs" withBorder radius="md" padding="xs">
+              <Text size="xs" c="dimmed">Baba Doğum Tarihi</Text>
+              <Text fw={900}>{dadDob}</Text>
+            </Card>
+          </>
+        )}
+      </SimpleGrid>
+    </div>
+  );
+})()}
+
+{/* Vize Reddi yine İngiltere için */}
+
+{cleanText(props.app.visaRefusalCountry) !== "-" && (
+  <div className="mt-6">
+    <Text size="sm" fw={600} c="dimmed" mb="xs">Vize Reddi Bilgileri (Son 5 Yıl)</Text>
+    <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+      <Card shadow="xs" withBorder radius="md" padding="xs">
+        <Text size="xs" c="dimmed">Ülke</Text>
+        <Text fw={900}>{cleanText(props.app.visaRefusalCountry)}</Text>
+      </Card>
+      <Card shadow="xs" withBorder radius="md" padding="xs">
+        <Text size="xs" c="dimmed">Tarih</Text>
+        <Text fw={900}>{showDate(props.app.visaRefusalDate)}</Text>
+      </Card>
+    </SimpleGrid>
+  </div>
+)}
+</>
+)}
+
       <Text size="sm" fw={600} c="dimmed" mt="sm" mb="xs">
   Belgeler
 </Text>

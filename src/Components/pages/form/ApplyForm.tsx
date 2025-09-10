@@ -1014,7 +1014,7 @@ if (nextErrors.fatherName[i]) isValid = false;
         tripStart:pickAt(tripStart as any,i,''),
 
         monthlyIncome: pickAt(monthlyIncome as any ,i,''),
-
+        monthlyExpense: pickAt(monthlyExpense as any ,i,''),
         plannedSpending:pickAt(plannedSpending as any ,i,''),
 
         travelStart:pickAt(travelStart as any ,i,''),
@@ -1032,7 +1032,7 @@ if (nextErrors.fatherName[i]) isValid = false;
         fatherName:pickAt(fatherName as any ,i,''),
         fatherDob:pickAt(fatherDob as any ,i,''),
 
-        homeStatus:pickAt(fatherDob as any ,i,''),
+        homeStatus:pickAt(homeStatus as any ,i,''),
         homeSince:pickAt(homeSince as any ,i,''),
 
         visaRefusalCountry:pickAt(visaRefusalCountry as any ,i,''),
@@ -2513,7 +2513,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
         next[index] = e.target.value;
         setMotherDob(next);
       }}
-      className={`block w-full rounded-lg px-4 pr-10 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset mt-1
+      className={`block w-1/2 rounded-lg px-4 pr-10 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset mt-1
         ${errors.motherDob?.[index]
           ? 'border-red-500 ring-red-500 bg-red-50 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500'
           : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500'}`}
@@ -2555,7 +2555,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
         next[index] = e.target.value;
         setFatherDob(next);
       }}
-      className={`block w-full rounded-lg px-4 pr-10 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset mt-1
+      className={`block w-1/2 rounded-lg px-4 pr-10 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset mt-1
         ${errors.fatherDob?.[index]
           ? 'border-red-500 ring-red-500 bg-red-50 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500'
           : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500'}`}
@@ -2829,35 +2829,76 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
 
                       {visaRefusal[index] === 'Evet' && (
                         <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <legend className="text-m font-semibold text-gray-600 mb-1">
-                              Hangi Ülke <span className="text-red-500">*</span>
-                            </legend>
+                       <div>
+  <legend className="text-m font-semibold text-gray-600 mb-1">
+    Hangi Ülke <span className="text-red-500">*</span>
+  </legend>
 
-                            <input
-                              type="text"
-                              placeholder="Almanya"
-                              value={visaRefusalCountry[index] || ''}
-                              onChange={(e) => {
-                                const v = e.target.value;
-                                setVisaRefusalCountry(prev => { const n = [...prev]; n[index] = v; return n; });
-                                if (errors.visaRefusalCountry?.[index]) {
-                                  setErrors(prev => {
-                                    const n = { ...prev };
-                                    n.visaRefusalCountry = [...(n.visaRefusalCountry || [])];
-                                    n.visaRefusalCountry[index] = '';
-                                    return n;
-                                  });
-                                }
-                              } }
-                              className={`block w-full rounded-lg px-4 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset
-            ${errors.visaRefusalCountry?.[index]
-                                  ? 'border-red-500 ring-red-500 bg-red-50 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500'
-                                  : 'bg-white border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500'}`} />
-                            {errors.visaRefusalCountry?.[index] && (
-                              <p className="mt-1 text-sm text-red-600">{errors.visaRefusalCountry[index]}</p>
-                            )}
-                          </div>
+  <Menu as="div" className="relative inline-block w-full">
+    <Menu.Button
+      className={[
+        "inline-flex w-full justify-between items-center rounded-lg px-4 py-3 text-base shadow-sm ring-1 ring-inset mt-1",
+        visaRefusalCountry[index]
+          ? "bg-white text-gray-800 border border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500"
+          : (errors.visaRefusalCountry?.[index]
+              ? "bg-red-50 text-gray-800 border border-red-500 ring-red-500 focus:outline-none focus:ring-2 focus:ring-red-500"
+              : "bg-white text-gray-500 border border-gray-300 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500")
+      ].join(" ")}
+    >
+      <span className={visaRefusalCountry[index] ? "text-gray-800" : "text-gray-500"}>
+        {visaRefusalCountry[index] || "— Ülke seçin —"}
+      </span>
+      <ChevronDownIcon className="w-5 h-5 text-gray-500" aria-hidden="true" />
+    </Menu.Button>
+
+    <Transition
+      as={Fragment}
+      enter="transition ease-out duration-100"
+      enterFrom="transform opacity-0 scale-95"
+      enterTo="transform opacity-100 scale-100"
+      leave="transition ease-in duration-75"
+      leaveFrom="transform opacity-100 scale-100"
+      leaveTo="transform opacity-0 scale-95"
+    >
+      <Menu.Items className="absolute z-10 mt-2 w-full rounded-lg bg-white text-black shadow-lg ring-1 ring-black/10 focus:outline-none">
+        <div className="py-1 max-h-64 overflow-auto">
+          {COUNTRY_OPTIONS.map((opt) => (
+            <Menu.Item key={opt}>
+              {({ active }) => (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const next = [...visaRefusalCountry];
+                    next[index] = opt;
+                    setVisaRefusalCountry(next);
+
+                    if (errors.visaRefusalCountry?.[index]) {
+                      setErrors((p) => {
+                        const n = { ...p };
+                        n.visaRefusalCountry = [...(p.visaRefusalCountry || [])];
+                        n.visaRefusalCountry[index] = "";
+                        return n;
+                      });
+                    }
+                  }}
+                  className={`${
+                    active ? 'bg-red-100 text-red-800' : 'text-gray-900'
+                  } block w-full text-left px-4 py-2 text-base font-medium`}
+                >
+                  {opt}
+                </button>
+              )}
+            </Menu.Item>
+          ))}
+        </div>
+      </Menu.Items>
+    </Transition>
+  </Menu>
+
+  {errors.visaRefusalCountry?.[index] && (
+    <p className="mt-1 text-sm text-red-600">{errors.visaRefusalCountry[index]}</p>
+  )}
+</div>
 
                           <div>
                             <legend className="text-m font-semibold text-gray-600 mb-1">
