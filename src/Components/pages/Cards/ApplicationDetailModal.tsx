@@ -1,7 +1,7 @@
 import { notifications } from "@mantine/notifications";
 import { supabase } from "../../../services/supabase";
 import { Alert, Badge, Card, Divider, Group, Modal, SimpleGrid, Text, Title } from '@mantine/core';
-import { IconMapPin, IconMail, IconPhone, IconUser, IconCheck, IconEye, IconClock, IconUsers } from '@tabler/icons-react';
+import { IconMapPin, IconMail, IconPhone, IconUser, IconCheck, IconEye, IconClock, IconUsers, IconDownload } from '@tabler/icons-react';
 import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
@@ -36,7 +36,17 @@ const [passportImage, setPassportImage] = useState<string[]>([]);
 
 const [passportLoading, setPassportLoading] = useState<boolean[]>([]);
 const [schengenPaths, setSchengenPaths] = useState<string[][]>([]); 
+
 const [passportFileName, setPassportFileName] = useState<string[]>([]);
+
+
+const [hoveredBio, setHoveredBio] = useState(false);
+const [showBiometricModal, setShowBiometricModal] = useState(false);
+const [biometricUrl, setBiometricUrl]= useState<string | null>(null);
+const [uploadingBiometric, setUploadingBiometric] = useState(false);
+const [biometricLoading, setBiometricLoading] = useState<boolean[]>([]);
+
+const [biometricFileName,setBiometricFileName]= useState<string[]>([]);
 type UploadResult = { url: string; name: string; path: string };
 
 
@@ -306,7 +316,6 @@ const handleSchengenUpload = (idx: number, e: React.ChangeEvent<HTMLInputElement
 };
 
 
-
 const handlePassportUpload = (i: number, e: React.ChangeEvent<HTMLInputElement>) => async () => {
   const file = e.target.files?.[0];
   if (!file) return;
@@ -380,6 +389,95 @@ const handlePassportUpload = (i: number, e: React.ChangeEvent<HTMLInputElement>)
     });
     e.target.value = '';
   }
+};
+
+const downloadFile = async (url: string, filename?: string) => {
+  try {
+    const guess = filename || url.split('?')[0].split('/').pop() || 'download';
+    const res = await fetch(url, { credentials: 'omit' }); // CORS gerekli
+    if (!res.ok) throw new Error('fetch failed');
+    const blob = await res.blob();
+    const objectUrl = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = objectUrl;
+    a.download = guess;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(objectUrl);
+  } catch (e) {
+    // CORS yoksa fallback: yeni sekmede aç
+    window.open(url, '_blank', 'noopener,noreferrer');
+  }
+};
+
+const handleBiometricUpload = (i: number, e: React.ChangeEvent<HTMLInputElement>) => {
+  (async () => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+
+    setBiometricLoading(prev => {
+      const next = ensureIndex(prev, i, () => false);
+      next[i] = true;
+      return next;
+    });
+
+    try {
+      const ext = (file.name.split('.').pop() || 'dat').toLowerCase();
+      const fileName = `${Date.now()}.${ext}`;
+      const filePath = `biometric/${fileName}`;
+
+    
+      const { error: upErr } = await supabase.storage.from('biometric').upload(filePath, file);
+      if (upErr) throw upErr;
+
+      
+      const { data: pub } = supabase.storage.from('biometric').getPublicUrl(filePath);
+      const url = pub?.publicUrl;
+      if (!url) throw new Error('Public URL alınamadı');
+
+      setBiometricFileName(prev => {
+        const n = ensureIndex(prev, i, () => '');
+        n[i] = file.name;
+        return n;
+      });
+
+    
+
+      const { error: dbErr } = await supabase
+        .from('applications')
+        .update({ biometric_photo_url: url })
+        .eq('id', props.app.id);
+      if (dbErr) throw dbErr;
+
+      notifications?.show?.({
+        title: 'Bilgi',
+        message: (
+          <span>
+            <strong className="font-bold">{(props?.title ?? '') + ' '}</strong>
+            {props.app?.full_name} - {props.app?.surname}
+            <span className="ml-2 text-green-600 text-sm font-medium">
+              — Biyometrik fotoğraf yüklendi
+            </span>
+          </span>
+        ),
+        color: 'red',
+        autoClose: 3000,
+      });
+    } catch (err: any) {
+      console.error(err);
+      alert('❌ Biyometrik fotoğraf yüklenemedi: ' + (err?.message || 'Bilinmeyen hata'));
+    } finally {
+     
+      setBiometricLoading(prev => {
+        const n = ensureIndex(prev, i, () => false);
+        n[i] = false;
+        return n;
+      });
+      e.target.value = '';
+    }
+  })();
 };
 
 
@@ -935,6 +1033,128 @@ function normalizeToUrls(raw: unknown): string[] {
 </Text>
 
 <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+
+{props.app.country === 'İspanya' && (
+ 
+
+<Card
+    withBorder
+    radius="md"
+    padding="lg"
+    className={`relative transition-transform duration-300 ${hoveredBio ? 'scale-[1.03]' : ''}`}
+    onMouseEnter={() => setHoveredBio(true)}
+    onMouseLeave={() => setHoveredBio(false)}
+    style={{
+      minHeight: 160,
+      backgroundColor: (() => {
+        try {
+          const url = props.app.biometric_photo_url as string | undefined;
+          return url ? "#f9fca5" : "#FCA5A5";
+        } catch { return "#FCA5A5"; }
+      })(),
+    }}
+  >
+    <Group justify="space-between" mb="sm">
+      <Text fw={600} size="sm">Biyometrik Fotoğraf</Text>
+      <Badge color="gray" variant="light">
+        {props.app.biometric_photo_url ? "1 dosya" : "0 dosya"}
+      </Badge>
+    </Group>
+
+    <Text size="sm">
+      {props.app.biometric_photo_url ? "Görsel mevcut" : "Dosya mevcut değil"}
+    </Text>
+
+    {hoveredBio && (
+      <div
+        className="absolute inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center rounded-md"
+        onClick={(e) => {
+          e.stopPropagation();
+          setBiometricUrl(props.app.biometric_photo_url || null);
+          setShowBiometricModal(true);
+        }}
+      >
+        <IconEye size={32} className="text-white cursor-pointer" />
+      </div>
+    )}
+
+    <Modal
+      opened={showBiometricModal}
+      onClose={() => setShowBiometricModal(false)}
+      size="68%"
+      radius="md"
+      centered
+    >
+      <div className="max-h-[80vh] overflow-y-auto pr-2">
+        {biometricUrl ? (
+       
+          biometricUrl.endsWith(".pdf") ? (
+            <iframe src={biometricUrl} title="Biyometrik PDF" className="w-full h-[75vh] border-0" />
+          ) : (
+            <TransformWrapper initialScale={1} minScale={1} maxScale={10} wheel={{ step: 0.15 }} doubleClick={{ disabled: false, step: 1.3 }} pinch={{ step: 5 }} limitToBounds>
+              {({ zoomIn, zoomOut, resetTransform }) => (
+                <>
+                  <div className="flex gap-2 justify-end mb-2 sticky top-0 bg-white/80 backdrop-blur z-10 p-1 rounded">
+                  
+                    <label
+                      htmlFor="admin-biometric-upload"
+                      className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-red-600 text-white text-sm font-medium cursor-pointer hover:bg-red-700 transition"
+                    >
+                      
+                      {uploadingBiometric ? 'Yükleniyor…' : 'Yeni Görsel Ekle'}
+                    </label>
+                    <input
+                      id="admin-biometric-upload"
+                      type="file"
+                      accept=".jpg,.jpeg,.png,.pdf"
+                      className="hidden"
+                      onChange={(e) => handleBiometricUpload(props.personIndex,e)}
+                      disabled={uploadingBiometric}
+                    />
+                    {uploadingBiometric && <span className="text-sm text-gray-500">Lütfen bekleyin…</span>}
+
+                    <button
+  type="button"
+  onClick={() => downloadFile(biometricUrl)}
+  className="px-2 py-1 rounded bg-gray-200 hover:bg-gray-300 transition"
+  title="İndir"
+  aria-label="İndir"
+>
+  <IconDownload size={18} />
+</button>
+
+                    <button onClick={() => zoomOut()} className="px-3 py-1 rounded bg-gray-200">−</button>
+                    <button onClick={() => zoomIn()} className="px-3 py-1 rounded bg-gray-200">+</button>
+                    <button onClick={() => setRotation(r => r - 90)} className="px-3 py-1 rounded bg-gray-200">⟲</button>
+                    <button onClick={() => setRotation(r => r + 90)} className="px-3 py-1 rounded bg-gray-200">⟳</button>
+                    <button onClick={() => resetTransform()} className="px-3 py-1 rounded bg-gray-200">Sıfırla</button>
+                  </div>
+
+                  <TransformComponent
+                    wrapperStyle={{ width: '100%', height: '75vh', background: '#000' }}
+                    contentStyle={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'white' }}
+                  >
+                    <img
+                      src={biometricUrl}
+                      alt="Biyometrik Fotoğraf"
+                      className="max-w-full max-h-[70vh] mx-auto rounded-md shadow select-none"
+                      draggable={false}
+                      style={{ transform: `rotate(${rotation}deg)` }}
+                    />
+                  </TransformComponent>
+                </>
+              )}
+            </TransformWrapper>
+          )
+        ) : (
+          <Text c="dimmed">Biyometrik dosyası bulunamadı.</Text>
+        )}
+      </div>
+    </Modal>
+  </Card>
+
+) }
+
 <Card
   withBorder
   radius="md"
@@ -1054,7 +1274,23 @@ function normalizeToUrls(raw: unknown): string[] {
       <span className="text-sm text-gray-500">Lütfen bekleyin…</span>
     )}
 
-
+{/* <button
+          type="button"
+          onClick={() => downloadFile(passportUrl)}
+          className="px-3 py-1 rounded bg-gray-200"
+          title="Görseli indir"
+        >
+          İndir
+        </button> */}
+        <button
+  type="button"
+  onClick={() => downloadFile(passportUrl)}
+  className="px-2 py-1 rounded bg-gray-200 hover:bg-gray-300 transition"
+  title="İndir"
+  aria-label="İndir"
+>
+  <IconDownload size={18} />
+</button>
 
                 <button onClick={() => zoomOut()} className="px-3 py-1 rounded bg-gray-200">−</button>
                 <button onClick={() => zoomIn()} className="px-3 py-1 rounded bg-gray-200">+</button>
@@ -1212,7 +1448,7 @@ function normalizeToUrls(raw: unknown): string[] {
 >
 
   <Group justify="space-between" mb="sm">
-    <Text fw={600} size="sm">Schengen Vize Geçmişi</Text>
+    <Text fw={600} size="sm">Schengen Vize Görseli</Text>
     <Badge color="gray" variant="light">
   {(() => {
     try {
@@ -1352,7 +1588,18 @@ function normalizeToUrls(raw: unknown): string[] {
           <img src={u} alt={`thumb-${i}`} className="w-16 h-16 object-cover rounded" />
         )}
       </button>
-
+      
+       {selectedForDelete === i && (
+       <button
+       type="button"
+       onClick={() => downloadFile(schengenUrl[i])}
+      className="absolute top-1 right-10 bg-black text-white text-xs rounded px-1"
+       title="Görseli indir"
+     >
+       İndir
+     </button>
+        
+      )}
       {selectedForDelete === i && (
         <button
           onClick={() => handleDeleteSchengenFile(i)}
@@ -1360,6 +1607,7 @@ function normalizeToUrls(raw: unknown): string[] {
         >
           Sil
         </button>
+        
       )}
     </div>
   ))}
@@ -1387,6 +1635,7 @@ function normalizeToUrls(raw: unknown): string[] {
     {uploadingSchengen && (
       <span className="text-sm text-gray-500">Lütfen bekleyin…</span>
     )}
+
 
     <button
       onClick={() => zoomOut()}

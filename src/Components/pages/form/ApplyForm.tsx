@@ -139,10 +139,12 @@ const [motherDob, setMotherDob] = useState<string[]>([]);
 const [fatherName, setFatherName] = useState<string[]>([]);
 const [fatherDob, setFatherDob] = useState<string[]>([]);
 
+
+
+
 const maxChars = 250;
 
 
-// en üste (diğer state'lerin yanına)
 
 
 type FormErrors =  {
@@ -180,6 +182,7 @@ type FormErrors =  {
   travelSchengenCountry:string[][]
   travelStartForSchengen:string[]
   travelEndForSchengen:string[]
+  biometricPhoto:string[]
 }
 
 
@@ -223,6 +226,7 @@ type FormErrors =  {
     phone: string;
     maiden_surname:string
     passport_file_url: string | null;
+    biometric_photo_url: string | null;
     previous_schengen_url: any | null;   
     invitation_letter_url: any | null;   
    city:string
@@ -325,7 +329,8 @@ type FormErrors =  {
     travelCountry:[],
     travelSchengenCountry:[],
     travelStartForSchengen:[],
-    travelEndForSchengen:[]
+    travelEndForSchengen:[],
+    biometricPhoto:[]
   });
 
   const [travelSegmentCount, setTravelSegmentCount] = useState<number[]>(
@@ -341,6 +346,17 @@ type FormErrors =  {
   );
   const [travelEnd, setTravelEnd] = useState<string[][]>(
     Array(totalForms).fill(null).map(() => [''])
+  );
+
+  const [biometricLoading, setBiometricLoading] = useState<boolean[]>(
+    Array(totalForms).fill(false)
+  );
+
+  const [biometricFileName, setBiometricFileName] = useState<string[]>(
+    Array(totalForms).fill('')
+  );
+  const [biometricUrl, setBiometricUrl] = useState<string[]>(
+    Array(totalForms).fill('')
   );
 
   const handleInvitationUpload = async (formIndex: number, e: React.ChangeEvent<HTMLInputElement>) => {
@@ -480,6 +496,72 @@ type FormErrors =  {
       e.target.value = '';
     }
   };
+
+
+
+
+  const handleBiometricUpload = (i: number) => async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+  
+
+    setBiometricLoading(prev => { const next=[...prev]; next[i]=true; return next; });
+  
+    try {
+  
+      const ext = file.name.split('.').pop();
+
+      const fileName = `${Date.now()}-bio.${ext}`;
+
+
+
+
+      const filePath = `biometric/${fileName}`;
+  
+      const { error: upErr } = await supabase.storage.from('biometric').upload(filePath, file);
+
+
+      if (upErr) throw upErr;
+  
+      const { data: pub } = supabase.storage.from('biometric').getPublicUrl(filePath);
+      const url = pub?.publicUrl;
+
+
+
+
+      if (!url) throw new Error('Public URL alınamadı');
+  
+
+      setBiometricFileName(prev => { const next=[...prev]; next[i]=file.name; return next; });
+      setBiometricUrl(prev => { const next=[...prev]; next[i]=url; return next; });
+  
+      // hata temizle
+      setErrors(prev => {
+        const next = { ...prev, biometricPhoto: [...(prev.biometricPhoto || [])] };
+        next.biometricPhoto[i] = '';
+        return next;
+      });
+  
+   
+    } catch (err: any) {
+      console.error(err);
+      setErrors(prev => {
+        const next = { ...prev, biometricPhoto: [...(prev.biometricPhoto || [])] };
+        next.biometricPhoto[i] = err?.message || 'Biyometrik fotoğraf yüklenemedi';
+        return next;
+      });
+    } finally {
+
+      setBiometricLoading(prev => { const next=[...prev]; next[i]=false; return next; });
+      e.target.value = '';
+    }
+  };
+
+
+
+
+
+
   const hasInvitationFiles = (invitationFiles[0]?.length ?? 0) > 0;
 
 
@@ -539,7 +621,7 @@ type FormErrors =  {
           const filePath = `schengen/${fileName}`;
   
           const { error: upErr } = await supabase.storage
-            .from('schengen')  // bucket adın
+            .from('schengen')
             .upload(filePath, file);
   
           if (upErr) throw upErr;
@@ -691,7 +773,11 @@ type FormErrors =  {
       motherDob: Array<string>(totalForms).fill(''),
       fatherName: Array<string>(totalForms).fill(''),
       fatherDob: Array<string>(totalForms).fill(''),
-      
+      biometricLoading:Array<string>(totalForms).fill(''),
+      biometricFileName:Array<string>(totalForms).fill(''),
+
+      biometricUrl:Array<string>(totalForms).fill(''),
+
       currentBalance: Array<string>(totalForms).fill(''),
 
       travelCountry: make2D(totalForms),          
@@ -724,6 +810,13 @@ type FormErrors =  {
       nextErrors.workStatus[i] = get(workStatus as unknown as string[], i) ? '' : 'Çalışma durumu seçimi zorunludur.';
       if (nextErrors.workStatus[i]) isValid = false;
   
+
+      nextErrors.biometricPhoto = Array<string>(totalForms).fill('');
+
+if (selectedCountry === 'İspanya') {
+  nextErrors.biometricPhoto[i] = biometricUrl[i] ? '' : 'Biyometrik fotoğraf zorunludur.';
+  if (nextErrors.biometricPhoto[i]) isValid = false;
+}
     
       const isFemaleMarried =
         (genders?.[i] === 'Kadın') && (maritalStatuse?.[i] === 'Evli');
@@ -1057,6 +1150,12 @@ if (nextErrors.fatherName[i]) isValid = false;
           ? (passportImage[i] ?? null)
           : (passportImage ?? null),
   
+        
+          biometric_photo_url: Array.isArray(biometricUrl)
+          ? (biometricUrl[i] ?? null)
+          : (biometricUrl ?? null),
+
+
         form_note:note,
         ...(ws === 'Çalışıyor' && {
           job_title :pickAt(selectedJobTitle as any , i,''),
@@ -3048,7 +3147,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
     Belgeler
   </h2>
 </div>
-  {/* Schengen Sorusu */}
+ 
   {selectedVisaType === 'Turistik' && (
   <div className="mb-6">
     <label className="block text-m font-semibold text-gray-900 mb-2">
@@ -3181,42 +3280,55 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
 )}
   </div>
 
-{/* 
-  <div className="w-full md:w-1/2">
-  <label className="block text-sm font-semibold text-gray-900 mb-2">
-    <span className="text-white">*</span>
-    </label>
-  <label
-    htmlFor={`passportCam-${index}`}
-    className={`rounded-lg p-6 text-center cursor-pointer transition block border-2 border-dashed
-      ${passportLoading[index] ? 'pointer-events-none opacity-60' : 'border-green-400 hover:bg-green-50'}`}
-  >
-    <svg className="mx-auto mb-2 h-6 w-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-        d="M3 7h2l1-2h12l1 2h2v13H3V7z" />
-      <circle cx="12" cy="13" r="3" />
-    </svg>
-    <p className="text-sm text-gray-600">Kameradan çek </p>
-    <p className="text-xs text-gray-400 mt-1">JPG, PNG • 10MB'a kadar</p>
-    <input
-      type="file"
-      id={`passportCam-${index}`}
-      name={`passportCam-${index}`}
-      className="hidden"
-      accept="image/*"
-      capture="environment"
-      onChange={handleFileUpload(index)}
-      disabled={passportLoading[index]}
-    />
-  </label>
-  
-  {passportLoading[index] && (
-    <div className="absolute inset-0 rounded-lg bg-white/60 backdrop-blur-[2px] grid place-items-center">
-      <Loader size="sm" color="red" />
+ {selectedCountry === 'İspanya' && (
+    <div className="w-full">
+      <label className="block text-sm font-semibold text-gray-900 mb-2">
+        Son 6 Aylık Biyometrik Fotoğraf <span className="text-red-500">*</span>
+      </label>
+
+      <div className="relative">
+        <label
+          htmlFor={`biometric-${index}`}
+          className={`rounded-lg p-6 text-center cursor-pointer transition block border-2 border-dashed
+            ${biometricLoading[index] ? 'pointer-events-none opacity-60' : 'border-blue-400 hover:bg-blue-50'}`}
+        >
+          <svg className="mx-auto mb-2 h-6 w-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+              d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M12 12v9m0 0l-3-3m3 3l3-3M12 3v9" />
+          </svg>
+          <p className="text-sm text-gray-600">Biyometrik fotoğraf seçmek için tıklayın</p>
+          <p className="text-xs text-gray-400 mt-1">JPG, PNG • 10MB'a kadar</p>
+          <input
+            type="file"
+            id={`biometric-${index}`}
+            name={`biometric-${index}`}
+            className="hidden"
+            accept=".jpg,.jpeg,.png"
+            onChange={handleBiometricUpload(index)}
+            disabled={biometricLoading[index]}
+          />
+        </label>
+
+        {biometricLoading[index] && (
+          <div className="absolute inset-0 rounded-lg bg-white/60 backdrop-blur-[2px] grid place-items-center">
+            <Loader size="sm" color="red" />
+          </div>
+        )}
+      </div>
+
+      {biometricFileName[index] && !biometricLoading[index] && (
+        <div className="flex items-center justify-between mt-2 bg-gray-50 border rounded px-3 py-2">
+          <p className="text-sm text-gray-700 truncate">
+            Yüklenen Dosya: {biometricFileName[index]}
+          </p>
+        </div>
+      )}
+
+      {errors.biometricPhoto?.[index] && (
+        <p className="mt-2 text-sm text-red-600">{errors.biometricPhoto[index]}</p>
+      )}
     </div>
   )}
-</div> */}
-
 </div>
 <Transition
    show={!!hasSchengen?.[index]}
