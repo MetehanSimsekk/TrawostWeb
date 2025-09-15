@@ -679,6 +679,7 @@ type FormErrors =  {
   const countriesWithFlags = [
     { name: 'Almanya', code: 'DE' },
     { name: 'Avusturya', code: 'AT' },
+    { name: 'Amerika', code: 'US' },
     { name: 'Belçika', code: 'BE' },
     { name: 'Çekya', code: 'CZ' },
     { name: 'Danimarka', code: 'DK' },
@@ -842,7 +843,7 @@ if (selectedCountry === 'İspanya') {
       }
   
  
-      if (selectedCountry === 'İngiltere') {
+      if (selectedCountry === 'İngiltere' || selectedCountry === 'Amerika') {
    
         const incomeRaw = get(monthlyIncome, i).replace(/[^\d]/g, '');
         const incomeNum = Number(incomeRaw);
@@ -852,7 +853,7 @@ if (selectedCountry === 'İspanya') {
         if (nextErrors.monthlyIncome[i]) isValid = false;
     
         if (travelHistory?.[i] === 'yes') {
-          const segCount = Math.max(1, travelSegmentCount?.[i] ?? 1); // max 3 ise ekleme/çıkarma tarafında sınırla
+          const segCount = Math.max(1, travelSegmentCount?.[i] ?? 1); 
       
           ensure2D(nextErrors.travelCountry, i, segCount, '');
           ensure2D(nextErrors.travelStart,   i, segCount, '');
@@ -1803,10 +1804,12 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
   className="h-12 px-4 py-3 rounded-lg w-full border border-gray-300 bg-white text-gray-800 placeholder-gray-500 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
 />
 
-{selectedCountry === 'İngiltere' && (
+{(selectedCountry === 'İngiltere' || selectedCountry === 'Amerika') && (
+
  <div className="mt-0 overflow-hidden">
  <div
-   className={selectedCountry === 'İngiltere'
+   className={
+  selectedCountry === 'İngiltere' || selectedCountry === 'Amerika'
      ? 'opacity-100 max-h-40'
      : 'opacity-0 max-h-0 pointer-events-none'}
    style={{ transition: 'max-height .3s ease, opacity .2s ease' }}
@@ -1908,7 +1911,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
   </div>
 )}
 
-{selectedCountry === 'İngiltere' &&
+{(selectedCountry === 'İngiltere' || selectedCountry === 'Amerika') && 
    (
   <div className="mt-4">
     <div className="grid grid-cols-1 md:grid-cols-3 gap-x-3 gap-y-2">
@@ -1962,9 +1965,12 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
 )}
 
   <div>
-    <legend className="text-m font-semibold text-gray-600 mb-1">
-      İngiltere'de harcamayı düşündüğünüz tutar <span className="text-red-500">*</span>
-    </legend>
+  <legend className="text-m font-semibold text-gray-600 mb-1">
+  {selectedCountry === "Amerika"
+    ? "Amerika'da harcamayı düşündüğünüz tutar"
+    : "İngiltere'de harcamayı düşündüğünüz tutar"}{" "}
+  <span className="text-red-500">*</span>
+</legend>
 
     <div className="relative w-full max-w-[240px]">
       <input
@@ -2730,7 +2736,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
   </div>
 
 
-{selectedCountry === 'İngiltere' && (
+  {(selectedCountry === 'İngiltere' || selectedCountry === 'Amerika') &&  (
 
 
   <><div className="mt-6">

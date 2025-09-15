@@ -830,7 +830,7 @@ function normalizeToUrls(raw: unknown): string[] {
   </div>
 )}
 
-{props.app.country === "İngiltere" && (
+{props.app.country === "İngiltere" || props.app.country === "Amerika" && (
   <>
 
 <div className="mt-6">
