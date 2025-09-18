@@ -692,6 +692,7 @@ type FormErrors =  {
     { name: 'İspanya', code: 'ES' },
     { name: 'İsveç', code: 'SE' },
     { name: 'İtalya', code: 'IT' },
+    { name: 'Kanada', code: 'CA' },
     { name: 'Letonya', code: 'LV' },
     { name: 'Litvanya', code: 'LT' },
     { name: 'Lüksemburg', code: 'LU' },
@@ -843,7 +844,7 @@ if (selectedCountry === 'İspanya') {
       }
   
  
-      if (selectedCountry === 'İngiltere' || selectedCountry === 'Amerika') {
+      if (selectedCountry === 'İngiltere' || selectedCountry === 'Amerika'|| selectedCountry === 'Kanada') {
    
         const incomeRaw = get(monthlyIncome, i).replace(/[^\d]/g, '');
         const incomeNum = Number(incomeRaw);
@@ -1911,7 +1912,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
   </div>
 )}
 
-{(selectedCountry === 'İngiltere' || selectedCountry === 'Amerika') && 
+{(selectedCountry === 'İngiltere' || selectedCountry === 'Amerika'|| selectedCountry === 'Kanada') && 
    (
   <div className="mt-4">
     <div className="grid grid-cols-1 md:grid-cols-3 gap-x-3 gap-y-2">
@@ -1968,7 +1969,9 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
   <legend className="text-m font-semibold text-gray-600 mb-1">
   {selectedCountry === "Amerika"
     ? "Amerika'da harcamayı düşündüğünüz tutar"
-    : "İngiltere'de harcamayı düşündüğünüz tutar"}{" "}
+    : selectedCountry === "Kanada"
+    ? "Kanada'da harcamayı düşündüğünüz tutar"
+    : "İngiltere'de harcamayı düşündüğünüz tutar"}
   <span className="text-red-500">*</span>
 </legend>
 
@@ -2736,7 +2739,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
   </div>
 
 
-  {(selectedCountry === 'İngiltere' || selectedCountry === 'Amerika') &&  (
+  {(selectedCountry === 'İngiltere' || selectedCountry === 'Amerika'|| selectedCountry === 'Kanada') &&  (
 
 
   <><div className="mt-6">
