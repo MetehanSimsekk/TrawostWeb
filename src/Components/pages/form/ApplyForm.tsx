@@ -1804,12 +1804,12 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
   className="h-12 px-4 py-3 rounded-lg w-full border border-gray-300 bg-white text-gray-800 placeholder-gray-500 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
 />
 
-{(selectedCountry === 'İngiltere' || selectedCountry === 'Amerika') && (
+{(selectedCountry === 'İngiltere' || selectedCountry === 'Amerika'|| selectedCountry === 'Kanada') && (
 
  <div className="mt-0 overflow-hidden">
  <div
    className={
-  selectedCountry === 'İngiltere' || selectedCountry === 'Amerika'
+  selectedCountry === 'İngiltere' || selectedCountry === 'Amerika'|| selectedCountry === 'Kanada'
      ? 'opacity-100 max-h-40'
      : 'opacity-0 max-h-0 pointer-events-none'}
    style={{ transition: 'max-height .3s ease, opacity .2s ease' }}
