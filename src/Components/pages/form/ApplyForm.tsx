@@ -1196,14 +1196,11 @@ if (nextErrors.fatherName[i]) isValid = false;
   
   return (
     
-    <div className="min-h-screen text-white font-sans px-0 sm:px-4 py-8 safe-area"
+    <div className="min-h-screen text-white font-sans px-0 sm:px-4 py-8"
     style={{
       background:
-        "linear-gradient(to bottom, rgb(255, 255, 255), rgba(210, 210, 210, 0.9))",
-      paddingTop: "env(safe-area-inset-top)",  
-      paddingLeft: "env(safe-area-inset-left)",
-      paddingRight: "env(safe-area-inset-right)",
-      paddingBottom: "env(safe-area-inset-bottom)",
+        "linear-gradient(to bottom, rgb(255, 255, 255), rgba(210, 210, 210, 0.9))"
+    
     }}>
       <div className="max-w-4xl mx-auto bg-white text-black p-3 rounded-xl shadow-lg">
         <div className="relative flex items-center justify-center mb-6">
