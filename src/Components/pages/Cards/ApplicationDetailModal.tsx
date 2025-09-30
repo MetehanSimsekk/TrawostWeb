@@ -1435,13 +1435,35 @@ function normalizeToUrls(raw: unknown): string[] {
   style={{
     minHeight: 160,
     backgroundColor: (() => {
+      let count = 0;
       try {
-        const urls = Array.isArray(props.app.previous_schengen_url)
-          ? props.app.previous_schengen_url.filter(Boolean)
-          : JSON.parse(props.app.previous_schengen_url || "[]").filter(Boolean);
-        return urls.length > 0 ?   "#BBF7D0" : "#FCA5A5"; 
+        let raw = props.app.previous_schengen_url;
+        let urls: any = [];
+  
+        if (typeof raw === "string") {
+          try {
+            urls = JSON.parse(raw);
+          } catch {
+            urls = raw ? [raw] : [];
+          }
+        } else if (Array.isArray(raw)) {
+          urls = raw;
+        }
+  
+       
+        if (Array.isArray(urls) && Array.isArray(urls[0])) {
+  
+  
+  
+          count = (urls[urls.length-1 - props.personIndex] as string[]).filter(Boolean).length;
+        } else if (Array.isArray(urls)) {
+    
+          
+          count = (urls as string[]).filter(Boolean).length;
+        }
+        return count > 0 ?   "#BBF7D0" : "#FCA5A5"; 
       } catch {
-        return props.app.previous_schengen_url ? "#BBF7D0" : "#FCA5A5";
+        return count > 0 ? "#BBF7D0" : "#FCA5A5";
       }
     })(),
   }}
@@ -1546,10 +1568,6 @@ function normalizeToUrls(raw: unknown): string[] {
   </div>
 )}
 <Modal opened={showSchengenModal} onClose={() => setShowSchengenModal(false)} size="75%" radius="md" centered>
-
-
-
-
   <div className="max-h-[80vh] overflow-y-auto pr-2"> 
     {(() => {
       const url = schengenUrl[schengenIndex];
