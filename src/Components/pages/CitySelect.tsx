@@ -1,6 +1,7 @@
 import { useEffect, useState, Fragment } from "react";
 import { Menu, Transition } from "@headlessui/react";
 import { ChevronDownIcon, MagnifyingGlassIcon, MapPinIcon } from "@heroicons/react/24/outline";
+import provinces from "./provinces/provinces.json";
 
 export default function CitySelectRemote({ value, onChange, error, required }: {
   value?: string;
@@ -11,14 +12,9 @@ export default function CitySelectRemote({ value, onChange, error, required }: {
   const [all, setAll] = useState<string[]>([]);
   const [q, setQ] = useState("");
 
+
   useEffect(() => {
-    (async () => {
-      try {
-        const r = await fetch("https://turkiyeapi.dev/api/v1/provinces");
-        const j = await r.json();
-        setAll((j?.data ?? []).map((x: any) => x.name));
-      } catch { /* istersen local fallback koy */ }
-    })();
+    setAll(provinces);
   }, []);
 
   const filtered = q
