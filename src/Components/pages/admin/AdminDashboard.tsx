@@ -21,7 +21,6 @@ import { ApplicationCard } from '../Cards/ApplicationCard';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from "../../../services/supabase";
 import { Application } from '@/types/types';
-import App from '@/App';
 
 
 export default function AdminDashboard() {
@@ -149,7 +148,7 @@ export default function AdminDashboard() {
       if (ta !== tb) return ta - tb;        
       return String(a.id).localeCompare(String(b.id)); 
     });
-    leaderIdByGroup.set(code, sorted[0]?.id);
+    leaderIdByGroup.set(code, sorted[1]?.id);
   });
   
   const handleRemoveFromList = (id: string) => {

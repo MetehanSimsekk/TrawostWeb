@@ -637,18 +637,20 @@ type FormErrors =  {
   
   
         setSchengenImages(prev => {
-          const next = prev.map(arr => [...arr]);
-          next[idx] = [...(next[idx] || []), ...urls];
+          const next = [...prev]; 
+          if (!next[idx]) next[idx] = []; 
+          next[idx] = [...next[idx], ...urls]; 
           return next;
         });
-  
         setSchengenFileNames(prev => {
-          const next = prev.map(arr => [...arr]);
+          const next = [...prev];
+          if (!next[idx]) next[idx] = [];
           next[idx] = [...(next[idx] || []), ...names];
           return next;
         });
         setSchengenPaths(prev => {
-          const next = prev.map(a => [...a]);
+          const next =[...prev];
+          if (!next[idx]) next[idx] = []; 
           next[idx] = [...(next[idx] || []), ...paths];     
           return next;
         });
@@ -736,7 +738,10 @@ type FormErrors =  {
     next[i] = Math.min(Math.max(nextCount, 1), MAX_SEG);
     return next;
   };
-
+  const refs = {
+    tripStart: useRef<HTMLInputElement>(null),
+    tripEnd: useRef<HTMLInputElement>(null),
+  };
 
   const validateForm = () => {
     
@@ -988,6 +993,8 @@ if (nextErrors.fatherName[i]) isValid = false;
     
     if (!tripStart?.trim()) {
       nextErrors.tripStart = 'Başlangıç tarihi zorunludur.';
+      refs.tripStart.current?.focus();
+      refs.tripStart.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       isValid = false;
     } else {
       nextErrors.tripStart = '';
@@ -995,6 +1002,8 @@ if (nextErrors.fatherName[i]) isValid = false;
     
     if (!tripEnd?.trim()) {
       nextErrors.tripEnd = 'Bitiş tarihi zorunludur.';
+      refs.tripEnd.current?.focus();
+      refs.tripEnd.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       isValid = false;
     } else {
       nextErrors.tripEnd = '';
@@ -1005,6 +1014,8 @@ if (nextErrors.fatherName[i]) isValid = false;
       const start = new Date(tripStart);
       const end = new Date(tripEnd);
       if (isFinite(start.getTime()) && isFinite(end.getTime()) && start > end) {
+        refs.tripEnd.current?.focus();
+        refs.tripEnd.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         nextErrors.tripEnd = 'Bitiş tarihi başlangıç tarihinden önce olamaz.';
         isValid = false;
       }
@@ -1014,7 +1025,7 @@ if (nextErrors.fatherName[i]) isValid = false;
     setErrors(nextErrors);
     return isValid;
   };
-
+  
   const handleSubmit = async (e: React.FormEvent) => {
     setLoading(true);
     e.preventDefault();
@@ -1033,7 +1044,7 @@ if (nextErrors.fatherName[i]) isValid = false;
     }
      
     
-  
+    
   
     if (!validateForm()) {
      
@@ -1094,7 +1105,7 @@ if (nextErrors.fatherName[i]) isValid = false;
   
       const currentData: ApplicationData = {
         ...baseData,
-        
+        previous_schengen_url: schengenImages[i] || [], 
         full_name: pickAt(firstName as any, i, '').trim(),
         surname: pickAt(lastName as any, i, '').trim(),
         gender: pickAt(genders as any, i, '') as Gender,

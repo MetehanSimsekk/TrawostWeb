@@ -1455,7 +1455,7 @@ function normalizeToUrls(raw: unknown): string[] {
   
   
   
-          count = (urls[urls.length-1 - props.personIndex] as string[]).filter(Boolean).length;
+          count = urls.flat().filter(Boolean).length;
         } else if (Array.isArray(urls)) {
     
           
@@ -1492,7 +1492,7 @@ function normalizeToUrls(raw: unknown): string[] {
 
 
 
-        count = (urls[urls.length-1 - props.personIndex] as string[]).filter(Boolean).length;
+        count = urls.flat().filter(Boolean).length;
       } else if (Array.isArray(urls)) {
   
         
@@ -1534,7 +1534,8 @@ function normalizeToUrls(raw: unknown): string[] {
           const parsed = JSON.parse(raw);
           if (Array.isArray(parsed)) {
             if (Array.isArray(parsed[0])) {
-              urls = (parsed[parsed.length-1 - props.personIndex] || []).filter(Boolean);
+              // urls = (parsed[1] || []).filter(Boolean);
+              urls = parsed.flat().filter(Boolean);
             } else {
               urls = parsed.filter(Boolean);
             }
