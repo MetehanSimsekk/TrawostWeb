@@ -148,7 +148,7 @@ export default function AdminDashboard() {
       if (ta !== tb) return ta - tb;        
       return String(a.id).localeCompare(String(b.id)); 
     });
-    leaderIdByGroup.set(code, sorted[1]?.id);
+    leaderIdByGroup.set(code, sorted[0]?.id);
   });
   
   const handleRemoveFromList = (id: string) => {
