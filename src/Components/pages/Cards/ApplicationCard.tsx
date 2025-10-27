@@ -14,15 +14,17 @@ import {
     Radio,
     Modal,
     ActionIcon,
+    SegmentedControl,
   } from '@mantine/core';
-  import { IconUser, IconCalendar, IconCalendarCheck, IconGlobe, IconSearch, IconEye, IconTrash, IconClock, IconUsers, IconNote } from '@tabler/icons-react';
+  import { IconUser, IconCalendar, IconCalendarCheck, IconGlobe, IconSearch, IconEye, IconTrash, IconClock, IconUsers, IconNote, IconX } from '@tabler/icons-react';
   import { JSX, useEffect, useState } from 'react';
   import { IconCheck, IconPlaneTilt } from '@tabler/icons-react';
   import { DatePickerInput, DateTimePicker } from '@mantine/dates';
 import ApplicationDetailModal from './ApplicationDetailModal';
 import { supabase } from '../../../services/supabase';
-import { notifications } from '@mantine/notifications';
+import { notifications, showNotification } from '@mantine/notifications';
 import { modals } from '@mantine/modals';
+import { Switch } from '@mantine/core';
 export function ApplicationCard({
   app,
   onDelete,
@@ -43,7 +45,7 @@ export function ApplicationCard({
 {
     
     const [appointmentStatus, setAppointmentStatus] = useState(app.appointment_status);
-    const [ticketStatus, setTicketStatus] = useState<boolean>(app.flight_ticket ?? false);
+    const [salesStatus, setSalesStatus] = useState<boolean>(app.sales_status ?? false);
     const [kisiSayisi, setKisiSayisi] = useState<number>(0);
 
     
@@ -56,7 +58,6 @@ export function ApplicationCard({
 const [statusById, setStatusById] = useState<Record<string, string>>({});
 
 const [noteModalOpen, setNoteModalOpen] = useState(false);
-
 async function handleAppointmentStatusChange(newStatus: string | null) {
   if (!newStatus) return;
 
@@ -209,6 +210,43 @@ async function handleAppointmentStatusChange(newStatus: string | null) {
     }
   }
 
+
+  async function handleSalesStatusUpdate(newStatus: boolean) {
+   
+    const ok = await confirm(
+      newStatus ? 'Satış Onayı' : 'Satış Geri Al',
+      <Text size="sm">
+        {newStatus
+          ? 'Bu başvuruda satış yapıldığını onaylıyor musunuz?'
+          : 'Satış bilgisini geri almak istediğinize emin misiniz?'}
+      </Text>
+    );
+  
+    if (!ok) return; 
+    setSalesStatus(newStatus);
+  
+    const { error } = await supabase
+      .from('applications')
+      .update({ sales_status: newStatus })
+      .eq('id', app.id);
+  
+    if (error) {
+      console.error('Satış durumu güncellenemedi:', error.message);
+      showNotification({
+        title: 'Hata',
+        message: 'Satış durumu güncellenemedi.',
+        color: 'red',
+      });
+    } else {
+      showNotification({
+        title: 'Başarılı',
+        message: newStatus
+          ? 'Satış durumu "Yapıldı" olarak güncellendi.'
+          : 'Satış durumu "Yapılmadı" olarak güncellendi.',
+        color: 'green',
+      });
+    }
+  }
   // async function handleTicketToggle() {
   //   const newStatus = !ticketStatus;
   //   setTicketStatus(newStatus); 
@@ -514,7 +552,20 @@ async function handleAppointmentStatusChange(newStatus: string | null) {
 </Button> */}
   </>
 )}
-  
+  <Text size="m" c="blue" fw={600} className="flex items-center gap-2 mb-2 mt-4">
+  <span className="text-blue-500 text-xl">●</span> Satış Durumu
+</Text>
+
+<Switch
+  size="md"
+  color="green"
+  onLabel={<IconCheck size={14} />}
+  offLabel={<IconX size={14} />}
+  label={salesStatus ? 'Satış Yapıldı' : 'Satış Yapılmadı'}
+  checked={salesStatus}
+  onChange={(e) => handleSalesStatusUpdate(e.currentTarget.checked)}
+  radius="md"
+/>
            
   <Button
   variant="outline"
