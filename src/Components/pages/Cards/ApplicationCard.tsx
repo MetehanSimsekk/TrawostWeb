@@ -214,11 +214,11 @@ async function handleAppointmentStatusChange(newStatus: string | null) {
   async function handleSalesStatusUpdate(newStatus: boolean) {
    
     const ok = await confirm(
-      newStatus ? 'Satış Onayı' : 'Satış Geri Al',
+      newStatus ? 'Ödeme Onayı' : 'Ödeme Yapılmadı Geri Al',
       <Text size="sm">
         {newStatus
-          ? 'Bu başvuruda satış yapıldığını onaylıyor musunuz?'
-          : 'Satış bilgisini geri almak istediğinize emin misiniz?'}
+          ? 'Bu başvuruda ödeme yapıldığını onaylıyor musunuz?'
+          : 'Ödeme bilgisini geri almak istediğinize emin misiniz?'}
       </Text>
     );
   
@@ -234,15 +234,15 @@ async function handleAppointmentStatusChange(newStatus: string | null) {
       console.error('Satış durumu güncellenemedi:', error.message);
       showNotification({
         title: 'Hata',
-        message: 'Satış durumu güncellenemedi.',
+        message: 'Ödeme durumu güncellenemedi.',
         color: 'red',
       });
     } else {
       showNotification({
         title: 'Başarılı',
         message: newStatus
-          ? 'Satış durumu "Yapıldı" olarak güncellendi.'
-          : 'Satış durumu "Yapılmadı" olarak güncellendi.',
+          ? 'Ödeme durumu "Yapıldı" olarak güncellendi.'
+          : 'Ödeme durumu "Yapılmadı" olarak güncellendi.',
         color: 'green',
       });
     }
@@ -553,7 +553,7 @@ async function handleAppointmentStatusChange(newStatus: string | null) {
   </>
 )}
   <Text size="m" c="blue" fw={600} className="flex items-center gap-2 mb-2 mt-4">
-  <span className="text-blue-500 text-xl">●</span> Satış Durumu
+  <span className="text-blue-500 text-xl">●</span> Ödeme Durumu
 </Text>
 
 <Switch
@@ -561,7 +561,7 @@ async function handleAppointmentStatusChange(newStatus: string | null) {
   color="green"
   onLabel={<IconCheck size={14} />}
   offLabel={<IconX size={14} />}
-  label={salesStatus ? 'Satış Yapıldı' : 'Satış Yapılmadı'}
+  label={salesStatus ? 'Ödeme Yapıldı' : 'Ödeme Yapılmadı'}
   checked={salesStatus}
   onChange={(e) => handleSalesStatusUpdate(e.currentTarget.checked)}
   radius="md"
