@@ -1078,17 +1078,12 @@ if (nextErrors.fatherName[i]) isValid = false;
     const firstUrlLower = invitationUrls[0]?.toLowerCase(); 
 
 
-
-
   
     const pickAt = <T,>(val: T | T[] | undefined, i: number, fallback: T): T => {
       if (Array.isArray(val)) return (val[i] ?? fallback) as T;
       return (val ?? fallback) as T;
     };
   
-
-
-
     const baseData: Pick<ApplicationData, 'basvuru_grup_kodu' | 'country' | 'visa_type' | 'previous_schengen_url' | 'invitation_letter_url'> = {
       basvuru_grup_kodu: groupId,
       country: selectedCountry,

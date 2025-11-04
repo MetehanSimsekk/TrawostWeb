@@ -16,7 +16,7 @@ import {
     ActionIcon,
     SegmentedControl,
   } from '@mantine/core';
-  import { IconUser, IconCalendar, IconCalendarCheck, IconGlobe, IconSearch, IconEye, IconTrash, IconClock, IconUsers, IconNote, IconX } from '@tabler/icons-react';
+  import { IconUser, IconCalendar, IconCalendarCheck, IconGlobe, IconSearch, IconEye, IconTrash, IconClock, IconUsers, IconNote, IconX, IconEdit } from '@tabler/icons-react';
   import { JSX, useEffect, useState } from 'react';
   import { IconCheck, IconPlaneTilt } from '@tabler/icons-react';
   import { DatePickerInput, DateTimePicker } from '@mantine/dates';
@@ -298,7 +298,7 @@ async function handleAppointmentStatusChange(newStatus: string | null) {
   const handleSave = async () => {
     setIsEditing(false);
    
-console.log(".")
+
     try {
       const { error } = await supabase
         .from("applications")
@@ -351,24 +351,37 @@ console.log(".")
             </Group>
   
             <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md">
-            <Card withBorder radius="md" padding="md" bg="blue.0" onDoubleClick={() => setIsEditing(true)}>
-      <Group gap="xs">
-        <IconGlobe size={16} color="blue" />
-        <div>
-          <Text size="xs" c="dimmed">Ülke</Text>
+            <Card withBorder radius="md" padding="md" bg="blue.0">
+      <Group gap="xs" justify="space-between" align="center">
+        <Group gap="xs">
+          <IconGlobe size={16} color="blue" />
+          <div>
+            <Text size="xs" c="dimmed">Ülke</Text>
+            {isEditing ? (
+              <TextInput
+                value={country}
+                onChange={(e) => setCountry(e.currentTarget.value)}
+                onBlur={handleSave}
+                size="xs"
+                autoFocus
+              />
+            ) : (
+              <Text fw={500} c="blue">{country}</Text>
+            )}
+          </div>
+        </Group>
 
-          {isEditing ? (
-            <TextInput
-              value={country}
-              onChange={(e) => setCountry(e.currentTarget.value)}
-              onBlur={handleSave}
-              size="xs"
-              autoFocus
-            />
-          ) : (
-            <Text fw={500} c="blue">{country}</Text>
-          )}
-        </div>
+    
+        <ActionIcon
+          variant="subtle"
+          color={isEditing ? 'green' : 'blue'}
+          onClick={() => {
+            if (isEditing) handleSave();
+            else setIsEditing(true);
+          }}
+        >
+          {isEditing ? <IconCheck size={20} /> : <IconEdit size={20} />}
+        </ActionIcon>
       </Group>
     </Card>
   
@@ -413,6 +426,15 @@ console.log(".")
     <Text fw={500} c="blue">{app.tripEnd || "-"}</Text>
   </div>
 </Group>
+              </Card>
+              <Card withBorder radius="md" padding="md" bg="violet.0">
+                <Group gap="xs">
+                  <IconUser size={16} color="violet" />
+                  <div>
+                    <Text size="xs" c="dimmed">Başvuru Sayısı</Text>
+                    <Text fw={500} c="violet">{app.visa_type}</Text>
+                  </div>
+                </Group>
               </Card>
               <>
      
