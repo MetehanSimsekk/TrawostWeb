@@ -298,7 +298,7 @@ async function handleAppointmentStatusChange(newStatus: string | null) {
   const handleSave = async () => {
     setIsEditing(false);
    
-
+console.log(".")
     try {
       const { error } = await supabase
         .from("applications")
