@@ -32,12 +32,12 @@ const [uploadingSchengen, setUploadingSchengen] = useState(false);
 const [uploadingPasaport, setUploadingPasaport] = useState(false);
 const [selectedForDelete, setSelectedForDelete] = useState<number | null>(null);
 
-const [passportImage, setPassportImage] = useState<string[]>([]);
+const [passportImage, setPassportImages] = useState<string[][]>([]);
 
 const [passportLoading, setPassportLoading] = useState<boolean[]>([]);
 const [schengenPaths, setSchengenPaths] = useState<string[][]>([]); 
-
-const [passportFileName, setPassportFileName] = useState<string[]>([]);
+const [passportPaths, setPassportPaths] = useState<string[][]>([]); 
+const [passportFileName, setPassportFileNames] = useState<string[][]>([]);
 
 
 const [hoveredBio, setHoveredBio] = useState(false);
@@ -208,7 +208,7 @@ const handleDeleteSchengenFile = async (index: number) => {
 
 
 const handleSchengenUpload = (idx: number, e: React.ChangeEvent<HTMLInputElement>, mode: 'append' | 'replace' = 'append') => {
-  (async () => {
+  ( async () => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
@@ -316,81 +316,167 @@ const handleSchengenUpload = (idx: number, e: React.ChangeEvent<HTMLInputElement
 };
 
 
-const handlePassportUpload = (i: number, e: React.ChangeEvent<HTMLInputElement>) => async () => {
-  const file = e.target.files?.[0];
-  if (!file) return;
+// const handlePassportUpload = async (i: number, e: React.ChangeEvent<HTMLInputElement>) => {
 
-  setPassportLoading(prev => { 
-    const next = ensureIndex(prev, i, () => false);
-    next[i] = true; 
-    return next; 
-  });
+//   const file = e.target.files?.[0];
+//   if (!file) return;
 
-  try {
-    const ext = file.name.split('.').pop() || 'dat';
-    const fileName = `${Date.now()}.${ext}`;
-    const filePath = `passports/${fileName}`;
+//   setPassportLoading(prev => { 
+//     const next = ensureIndex(prev, i, () => false);
+//     next[i] = true; 
+//     return next; 
+//   });
 
-    // 1) Upload
-    const { error: upErr } = await supabase.storage.from('passports').upload(filePath, file);
-    if (upErr) throw upErr;
+//   try {
+//     const ext = file.name.split('.').pop() || 'dat';
+//     const fileName = `${Date.now()}.${ext}`;
+//     const filePath = `passports/${fileName}`;
 
-    // 2) Public URL
-    const { data: pub } = supabase.storage.from('passports').getPublicUrl(filePath);
-    const url = pub?.publicUrl;
-    if (!url) throw new Error('Public URL alınamadı');
+//     // 1) Upload
+//     const { error: upErr } = await supabase.storage.from('passports').upload(filePath, file);
+//     if (upErr) throw upErr;
 
-    // 3) Local state
-    setPassportFileName(prev => { 
-      const n = ensureIndex(prev, i, () => ''); 
-      n[i] = file.name; 
-      return [...n]; 
-    });
+//     // 2) Public URL
+//     const { data: pub } = supabase.storage.from('passports').getPublicUrl(filePath);
+//     const url = pub?.publicUrl;
+//     if (!url) throw new Error('Public URL alınamadı');
 
-    setPassportImage(prev => { 
-      const n = Array.isArray(prev) ? [...prev] : []; 
-      while (n.length <= i) n.push('');
-      n[i] = url; 
-      return n; 
-    });
+//     // 3) Local state
+//     setPassportFileName(prev => { 
+//       const n = ensureIndex(prev, i, () => ''); 
+//       n[i] = file.name; 
+//       return [...n]; 
+//     });
 
-   
-
-    const { error: dbErr } = await supabase
-      .from('applications')
-      .update({ passport_file_url: url })
-      .eq('id', props.app.id); 
-
-    if (dbErr) throw dbErr;
+//     setPassportImage(prev => { 
+//       const n = Array.isArray(prev) ? [...prev] : []; 
+//       while (n.length <= i) n.push('');
+//       n[i] = url; 
+//       return n; 
+//     });
 
    
-    notifications?.show?.({
-      title: 'Bilgi',
-      message: (
-        <span>
-          <strong className="font-bold">{(props?.title ?? '') + ' '}</strong>
-          {props.app?.full_name} - {props.app?.surname}
-          <span className="ml-2 text-green-600 text-sm font-medium"> — Pasaport görseli yüklendi</span>
-        </span>
-      ),
-      color: 'red',
-      autoClose: 3000,
-    });
 
-  } catch (err: any) {
-    console.error(err);
+//     const { error: dbErr } = await supabase
+//       .from('applications')
+//       .update({ passport_file_url: url })
+//       .eq('id', props.app.id); 
+
+//     if (dbErr) throw dbErr;
+
+   
+//     notifications?.show?.({
+//       title: 'Bilgi',
+//       message: (
+//         <span>
+//           <strong className="font-bold">{(props?.title ?? '') + ' '}</strong>
+//           {props.app?.full_name} - {props.app?.surname}
+//           <span className="ml-2 text-green-600 text-sm font-medium"> — Pasaport görseli yüklendi</span>
+//         </span>
+//       ),
+//       color: 'red',
+//       autoClose: 3000,
+//     });
+
+//   } catch (err: any) {
+//     console.error(err);
   
-    alert('❌ Pasaport yüklenemedi: ' + (err?.message || 'Bilinmeyen hata'));
-  } finally {
-    setPassportLoading(prev => { 
-      const n = ensureIndex(prev, i, () => false); 
-      n[i] = false; 
-      return n; 
-    });
-    e.target.value = '';
-  }
-};
+//     alert('❌ Pasaport yüklenemedi: ' + (err?.message || 'Bilinmeyen hata'));
+//   } finally {
+//     setPassportLoading(prev => { 
+//       const n = ensureIndex(prev, i, () => false); 
+//       n[i] = false; 
+//       return n; 
+//     });
+//     e.target.value = '';
+//   }
+// };
+const handlePassportUpload = (idx: number, e: React.ChangeEvent<HTMLInputElement>, mode: 'append' | 'replace' = 'append') => {
+  (async () => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
+    setPassportLoading(prev => {
+      const next = ensureIndex(prev, idx, () => false);
+      next[idx] = true;
+      return next;
+    });
+
+    try {
+      const results = await Promise.all(
+        Array.from(files).map(async (file) => {
+          const ext = file.name.split('.').pop() || 'dat';
+          const fileName = `${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+          const filePath = `passports/${fileName}`;
+
+          // 1️⃣ Upload
+          const { error: upErr } = await supabase.storage.from('passports').upload(filePath, file);
+          if (upErr) throw upErr;
+
+          // 2️⃣ Public URL
+          const { data: pub } = supabase.storage.from('passports').getPublicUrl(filePath);
+          if (!pub?.publicUrl) throw new Error('Public URL alınamadı');
+
+          return { url: pub.publicUrl, name: file.name, path: filePath };
+        })
+      );
+
+      const newUrls  = results.map(r => r.url);
+      const newNames = results.map(r => r.name);
+      const newPaths = results.map(r => r.path);
+
+      // 3️⃣ Local state
+      setPassportImages(prev => {
+        let next = ensureIndex(prev, idx, () => []);
+        next[idx] = (mode === 'replace') ? newUrls : [...(next[idx] || []), ...newUrls];
+        return [...next];
+      });
+
+      setPassportFileNames(prev => {
+        let next = ensureIndex(prev, idx, () => []);
+        next[idx] = (mode === 'replace') ? newNames : [...(next[idx] || []), ...newNames];
+        return [...next];
+      });
+
+      setPassportPaths(prev => {
+        let next = ensureIndex(prev, idx, () => []);
+        next[idx] = (mode === 'replace') ? newPaths : [...(next[idx] || []), ...newPaths];
+        return [...next];
+      });
+
+      
+      const { error: dbErr } = await supabase
+        .from('applications')
+        .update({ passport_file_url: JSON.stringify(newUrls) })
+        .eq('id', props.app.id);
+      if (dbErr) throw dbErr;
+
+      
+      notifications.show({
+        title: 'Bilgi',
+        message: (
+          <span>
+            <strong className="font-bold">{props.title + ' '}</strong>
+            {props.app.full_name} – {props.app.surname}
+            <span className="ml-2 text-green-600 text-sm font-medium"> — Pasaport görseli yüklendi</span>
+          </span>
+        ),
+        color: 'teal',
+        autoClose: 3000,
+      });
+    } catch (err: any) {
+      console.error(err);
+      alert('❌ Pasaport yüklenemedi: ' + (err?.message || 'Bilinmeyen hata'));
+    } finally {
+      setPassportLoading(prev => {
+        const next = ensureIndex(prev, idx, () => false);
+        next[idx] = false;
+        return next;
+      });
+      e.target.value = '';
+    }
+  })();
+};
 const downloadFile = async (url: string, filename?: string) => {
   try {
     const guess = filename || url.split('?')[0].split('/').pop() || 'download';
@@ -1270,6 +1356,7 @@ function normalizeToUrls(raw: unknown): string[] {
       onChange={(e) => handlePassportUpload(props.personIndex, e)}
       disabled={uploadingPasaport}
     />
+  
     {uploadingPasaport && (
       <span className="text-sm text-gray-500">Lütfen bekleyin…</span>
     )}

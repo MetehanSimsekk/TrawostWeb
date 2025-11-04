@@ -25,6 +25,7 @@ import { supabase } from '../../../services/supabase';
 import { notifications, showNotification } from '@mantine/notifications';
 import { modals } from '@mantine/modals';
 import { Switch } from '@mantine/core';
+import toast from 'react-hot-toast';
 export function ApplicationCard({
   app,
   onDelete,
@@ -291,7 +292,36 @@ async function handleAppointmentStatusChange(newStatus: string | null) {
   //     autoClose: 3000,
   //   });
   // }
+  const [isEditing, setIsEditing] = useState(false);
+  const [country, setCountry] = useState(app.country);
 
+  const handleSave = async () => {
+    setIsEditing(false);
+   
+
+    try {
+      const { error } = await supabase
+        .from("applications")
+        .update({ country })        // country alanını güncelle
+        .eq("id", app.id);          // id'ye göre filtrele
+
+      if (error) throw error;
+      showNotification({
+        title: 'Başarılı',
+        message: 'Ülke başarıyla güncellendi',
+        color: 'green',
+      });
+    
+    } catch (err) {
+      showNotification({
+        title: 'Hata',
+        message: 'Güncelleme Hatası',
+        color: 'red',
+      });
+    } finally {
+    
+    }
+  };
 
     return (
       <Card  className="transition-transform"
@@ -321,15 +351,26 @@ async function handleAppointmentStatusChange(newStatus: string | null) {
             </Group>
   
             <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md">
-              <Card withBorder radius="md" padding="md" bg="blue.0">
-                <Group gap="xs">
-                  <IconGlobe size={16} color="blue" />
-                  <div>
-                    <Text size="xs" c="dimmed">Ülke</Text>
-                    <Text fw={500} c="blue">{app.country}</Text>
-                  </div>
-                </Group>
-              </Card>
+            <Card withBorder radius="md" padding="md" bg="blue.0" onDoubleClick={() => setIsEditing(true)}>
+      <Group gap="xs">
+        <IconGlobe size={16} color="blue" />
+        <div>
+          <Text size="xs" c="dimmed">Ülke</Text>
+
+          {isEditing ? (
+            <TextInput
+              value={country}
+              onChange={(e) => setCountry(e.currentTarget.value)}
+              onBlur={handleSave}
+              size="xs"
+              autoFocus
+            />
+          ) : (
+            <Text fw={500} c="blue">{country}</Text>
+          )}
+        </div>
+      </Group>
+    </Card>
   
               <Card withBorder radius="md" padding="md" bg="green.0">
                 <Group gap="xs">
