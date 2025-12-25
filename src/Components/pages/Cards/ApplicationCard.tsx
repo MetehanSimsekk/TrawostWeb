@@ -15,6 +15,7 @@ import {
     Modal,
     ActionIcon,
     SegmentedControl,
+    Checkbox,
   } from '@mantine/core';
   import { IconUser, IconCalendar, IconCalendarCheck, IconGlobe, IconSearch, IconEye, IconTrash, IconClock, IconUsers, IconNote, IconX, IconEdit } from '@tabler/icons-react';
   import { JSX, useEffect, useState } from 'react';
@@ -49,13 +50,15 @@ export function ApplicationCard({
     const [salesStatus, setSalesStatus] = useState<boolean>(app.sales_status ?? false);
     const [kisiSayisi, setKisiSayisi] = useState<number>(0);
 
-    
+    const [selectedSeller, setSelectedSeller] = useState<string>();
     const [appointmentDate, setAppointmentDate] = useState<Date | any>(app.appointment_date);
 
     const [opened, setOpened] = useState(false);
-    const [selectedApp, setSelectedApp] = useState<any>(null);
+    const [selectedApp, setSelectedApp] =  useState<string | null>(null);
+   
 // const [selectedApp, setSelectedApp] = useState(null);
-
+const [isEditing, setIsEditing] = useState(false);
+const [country, setCountry] = useState(app.country);
 const [statusById, setStatusById] = useState<Record<string, string>>({});
 
 const [noteModalOpen, setNoteModalOpen] = useState(false);
@@ -121,7 +124,38 @@ async function handleAppointmentStatusChange(newStatus: string | null) {
   });
 }
 
+async function handleSellerChange(newSeller: string | null) {
+  if (!newSeller) return;
 
+  const prevSeller = selectedSeller;
+
+  setSelectedSeller(newSeller);
+
+  const dbUpdate = { sales_owner: newSeller }; 
+
+  const { error } = await supabase
+    .from("applications")
+    .update(dbUpdate)
+    .eq("id", app.id);
+
+  if (error) {
+    console.error("Güncelleme hatası:", error.message);
+  
+    setSelectedSeller(prevSeller);
+    return;
+  }
+
+  notifications.show({
+    title: "Bilgi",
+    message: (
+      <span className="text-lg">
+        Satış sorumlusu <strong className="font-bold">{newSeller}</strong> olarak güncellendi.
+      </span>
+    ),
+    color: "red",
+    autoClose: 3000,
+  });
+}
 
 
   useEffect(() => {
@@ -278,7 +312,11 @@ async function handleAppointmentStatusChange(newStatus: string | null) {
     
 
   //   const statusText = newStatus ? 'Alındı' : 'Alınmadı';
-
+  useEffect(() => {
+    if (app?.sales_owner) {
+      setSelectedSeller(app.sales_owner);
+    }
+  }, [app?.sales_owner]);
 
 
   //   notifications.show({
@@ -292,8 +330,7 @@ async function handleAppointmentStatusChange(newStatus: string | null) {
   //     autoClose: 3000,
   //   });
   // }
-  const [isEditing, setIsEditing] = useState(false);
-  const [country, setCountry] = useState(app.country);
+
 
   const handleSave = async () => {
     setIsEditing(false);
@@ -629,6 +666,22 @@ async function handleAppointmentStatusChange(newStatus: string | null) {
   onChange={(e) => handleSalesStatusUpdate(e.currentTarget.checked)}
   radius="md"
 />
+<Text size="m" c="black" fw={600} className="flex items-center gap-2 mb-2 mt-4">
+  <span className="text-black-500 text-xl">●</span> Satış Sorumlusu
+</Text>
+<Radio.Group
+  mt="sm"
+  value={selectedSeller ?? ""}
+  onChange={(val) => handleSellerChange(val || null)}
+>
+  <div className="flex flex-col gap-3 -mt-3 mb-2">
+    <Radio value="İbrahim Hatipoğlu" label="İbrahim Hatipoğlu" />
+    <Radio value="Seren Yakut" label="Seren Yakut" />
+    <Radio value="Melike Sözer" label="Melike" />
+  </div>
+</Radio.Group>
+
+
            
   <Button
   variant="outline"
