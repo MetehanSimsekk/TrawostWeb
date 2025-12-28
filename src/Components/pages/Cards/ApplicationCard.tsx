@@ -16,8 +16,9 @@ import {
     ActionIcon,
     SegmentedControl,
     Checkbox,
+    Textarea,
   } from '@mantine/core';
-  import { IconUser, IconCalendar, IconCalendarCheck, IconGlobe, IconSearch, IconEye, IconTrash, IconClock, IconUsers, IconNote, IconX, IconEdit } from '@tabler/icons-react';
+  import { IconUser, IconCalendar, IconCalendarCheck, IconGlobe, IconSearch, IconEye, IconTrash, IconClock, IconUsers, IconNote, IconX, IconEdit, IconPencil } from '@tabler/icons-react';
   import { JSX, useEffect, useState } from 'react';
   import { IconCheck, IconPlaneTilt } from '@tabler/icons-react';
   import { DatePickerInput, DateTimePicker } from '@mantine/dates';
@@ -52,16 +53,22 @@ export function ApplicationCard({
 
     const [selectedSeller, setSelectedSeller] = useState<string>();
     const [appointmentDate, setAppointmentDate] = useState<Date | any>(app.appointment_date);
-
+    const [sellerNote, setsellerNote] = useState("");
     const [opened, setOpened] = useState(false);
     const [selectedApp, setSelectedApp] =  useState<string | null>(null);
-   
+    const [operationStarted, setOperationStarted] = useState<boolean>(app.operation_started ?? false);
 // const [selectedApp, setSelectedApp] = useState(null);
 const [isEditing, setIsEditing] = useState(false);
 const [country, setCountry] = useState(app.country);
 const [statusById, setStatusById] = useState<Record<string, string>>({});
-
+const [saving, setSaving] = useState(false);
+const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
+const [highlighted, setHighlighted] = useState(false);
 const [noteModalOpen, setNoteModalOpen] = useState(false);
+const [sellerNoteModalOpen, setSellerNoteModalOpen] = useState(false);
+const [sellerNoteModalOpens, setSellerNoteModalOpens] = useState(false);
+const maxChars = 250;
+
 async function handleAppointmentStatusChange(newStatus: string | null) {
   if (!newStatus) return;
 
@@ -164,6 +171,60 @@ async function handleSellerChange(newSeller: string | null) {
   }, [isFamily, relatedApps]);
 
  
+
+
+
+
+  const handleSaveSellerNote = async () => {
+    if (!sellerNote.trim()) return;
+  
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from("applications")
+        .update({ seller_note: sellerNote })
+        .eq("id", app.id);
+  
+      if (error) throw error;
+  
+      const savedAt = new Date().toLocaleString("tr-TR");
+      setLastSavedAt(savedAt);
+  
+      // ✅ Modal kapat
+      setSellerNoteModalOpen(false);
+  
+      // ✅ Notification göster
+      notifications.show({
+        title: "Başarılı",
+        message: (
+          <span className="text-sm">
+            Satışçı notu başarıyla kaydedildi.
+          </span>
+        ),
+        color: "green",
+        autoClose: 3000,
+      });
+  
+    } catch (err) {
+      console.error("Satışçı notu kaydedilemedi", err);
+  
+      // ❌ Hata notification
+      notifications.show({
+        title: "Hata",
+        message: (
+          <span className="text-sm">
+            Satışçı notu kaydedilirken bir hata oluştu.
+          </span>
+        ),
+        color: "red",
+        autoClose: 4000,
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+
   
   async function handleAppointmentDateChange(newDate: any) {
     if (!newDate) return;
@@ -244,7 +305,39 @@ async function handleSellerChange(newSeller: string | null) {
       onDelete?.(id);
     }
   }
-
+  async function handleOperationStatusUpdate(newStatus: boolean) {
+ 
+  
+    // UI state
+    setOperationStarted(newStatus);
+  
+    // DB update
+    const { error } = await supabase
+      .from('applications')
+      .update({ operation_started: newStatus })
+      .eq('id', app.id);
+  
+    if (error) {
+      console.error('Operasyon durumu güncellenemedi:', error.message);
+  
+      // rollback
+      setOperationStarted(!newStatus);
+  
+      showNotification({
+        title: 'Hata',
+        message: 'Operasyon durumu güncellenemedi.',
+        color: 'red',
+      });
+    } else {
+      showNotification({
+        title: 'Başarılı',
+        message: newStatus
+          ? 'Operasyon süreci başlatıldı.'
+          : 'Operasyon süreci durduruldu.',
+        color: 'green',
+      });
+    }
+  }
 
   async function handleSalesStatusUpdate(newStatus: boolean) {
    
@@ -480,28 +573,130 @@ async function handleSellerChange(newSeller: string | null) {
 
           {/* Sağ taraf: Note ikonu */}
           {app.form_note && (
-             <Card  onClick={() => setNoteModalOpen(true)} withBorder radius="md" padding="md" bg="red.0"  className="w-1/4">
-        <Group gap="xs" justify="space-between">
-            <ActionIcon
-              variant="subtle"
-              color="red"
-             
-              title="Müşteri Notunu Gör"
-            >
-              <IconNote size={50} />
-            
-            </ActionIcon>
-            <div>
-              <Text fw={500} c="dimmed">Note !</Text>
-             </div>
-            </Group>
-            
-            </Card>
+  <Card
+    onClick={() => setNoteModalOpen(true)}
+    withBorder
+    radius="md"
+    padding="md"
+    bg="red.0"
+    style={{ gridColumn: "span 0" }}
+    // ✅ SimpleGrid item'inde width verme, grid zaten yönetiyor
+  >
+    <Group gap="xs" justify="space-between">
+      <ActionIcon variant="subtle" color="red" title="Müşteri Notunu Gör">
+        <IconNote size={50} />
+      </ActionIcon>
+     
+    <div style={{ flex: 1, textAlign: "left" }}>
+        <Text fw={500} c="dimmed">Note !</Text>
+      </div>
+    </Group>
+  </Card>
+)}
 
-            
-          )}
-      
+<Card
+   onClick={() => {
+    if (!app.seller_note) {
+      setSellerNoteModalOpen(true);
+    }
+    else
+    {
+      setSellerNoteModalOpens(true)
+    }
+  }}
+  withBorder
+  radius="md"
+  padding="md"
+  bg="orange.0"
+  style={{ gridColumn: "span 1" }}
+>
+  <Group gap="xs" justify="space-between">
+    <ActionIcon
+      variant="subtle"
+      color="orange"
+      title="Satışçı Notu"
+    >
+      <IconPencil size={50} />
+    </ActionIcon>
 
+    <div style={{ flex: 1, textAlign: "left" }}>
+      <Text fw={500} c="dimmed">Satışçı Notu</Text>
+
+      {app.seller_note?.trim() ? (
+        <Text size="sm" c="green" fw={500}>
+          Not Mevcut
+        </Text>
+      ) : (
+        <Text size="sm" c="gray">
+          Not bırakmak ister misiniz?
+        </Text>
+      )}
+    </div>
+  </Group>
+</Card>
+
+
+<Modal
+  opened={sellerNoteModalOpen}
+  onClose={() => setSellerNoteModalOpen(false)}
+  title="Satışçı Notu"
+  centered
+>
+
+
+  <div className="flex items-center gap-2">
+    {saving ? (
+      <Text size="xs" c="dimmed">Kaydediliyor…</Text>
+    ) : lastSavedAt ? (
+      <Text size="xs" c="dimmed">Kaydedildi: {lastSavedAt}</Text>
+    ) : null}
+  </div>
+
+  <div className="relative mt-2">
+    <Textarea
+      placeholder="Bu başvuruya özel satışçı notunuzu yazın…"
+      autosize
+      minRows={5}
+      value={sellerNote}
+      onChange={(e) =>
+        setsellerNote(e.currentTarget.value.slice(0, maxChars))
+      }
+      onFocus={() => setHighlighted(false)}
+      onBlur={() => {
+        if (sellerNote.trim()) setHighlighted(true);
+        // İstersen blur’da otomatik kaydet:
+        // handleSaveSellerNote();
+      }}
+      styles={{
+        input: {
+          fontSize: 14,
+          fontFamily: "sans-serif",
+          backgroundColor: highlighted ? "#d1fae5" : "white",
+          transition: "background-color 0.3s ease",
+        },
+      }}
+    />
+
+    <Text
+      size="xs"
+      c={sellerNote.length >= maxChars ? "red" : "dimmed"}
+      className="absolute bottom-2 right-3"
+    >
+      {maxChars - sellerNote.length}
+    </Text>
+  </div>
+
+  {/* Opsiyonel: Kaydet butonu */}
+  <Group justify="flex-end" mt="sm">
+    <Button
+      size="xs"
+      loading={saving}
+      onClick={handleSaveSellerNote}
+    >
+      Gönder
+    </Button>
+  </Group>
+</Modal>
       {/* Modal */}
       <Modal
         opened={noteModalOpen}
@@ -511,12 +706,20 @@ async function handleSellerChange(newSeller: string | null) {
       >
         <Text size="sm">{app.form_note || "Not bulunamadı."}</Text>
       </Modal>
+      <Modal
+        opened={sellerNoteModalOpens}
+        onClose={() => setSellerNoteModalOpens(false)}
+        title="Satışçı Notu"
+        centered
+      >
+        <Text size="sm">{app.seller_note || "Not bulunamadı."}</Text>
+      </Modal>
     </>
 
             </SimpleGrid>
+            
           </div>
   
-       
           <div className="min-w-[210px] flex flex-col gap-3 mt-16">
           <Button
   onClick={() => {
@@ -666,6 +869,41 @@ async function handleSellerChange(newSeller: string | null) {
   onChange={(e) => handleSalesStatusUpdate(e.currentTarget.checked)}
   radius="md"
 />
+<Text
+  size="m"
+  fw={600}
+  className="flex items-center gap-2 mb-2 mt-4"
+  c={operationStarted ? "yellow" : "yellow"}
+>
+  <span
+    className={`text-xl ${
+      operationStarted ? "text-green-500" : "text-yellow-500"
+    }`}
+  >
+    ●
+  </span>
+  Operasyon Ne Durumda
+</Text>
+<div
+  className={`p-3 rounded-lg transition-all duration-300 ${
+    operationStarted
+      ? "bg-green-500/15 border border-green-500/30"
+      : "bg-red-500/15 border border-red-500/30"
+  }`}
+>
+  <Switch
+    size="md"
+    color={operationStarted ? "green" : "red"}
+    onLabel={<IconCheck size={14} />}
+    offLabel={<IconX size={14} />}
+    label={operationStarted ? "Başladı" : "Başlamadı"}
+    checked={operationStarted}
+    onChange={(e) =>
+      handleOperationStatusUpdate(e.currentTarget.checked)
+    }
+    radius="md"
+  />
+</div>
 <Text size="m" c="black" fw={600} className="flex items-center gap-2 mb-2 mt-4">
   <span className="text-black-500 text-xl">●</span> Satış Sorumlusu
 </Text>
