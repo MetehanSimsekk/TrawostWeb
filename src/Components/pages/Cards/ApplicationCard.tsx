@@ -190,10 +190,10 @@ async function handleSellerChange(newSeller: string | null) {
       const savedAt = new Date().toLocaleString("tr-TR");
       setLastSavedAt(savedAt);
   
-      // ✅ Modal kapat
+    
       setSellerNoteModalOpen(false);
   
-      // ✅ Notification göster
+ 
       notifications.show({
         title: "Başarılı",
         message: (
@@ -208,7 +208,6 @@ async function handleSellerChange(newSeller: string | null) {
     } catch (err) {
       console.error("Satışçı notu kaydedilemedi", err);
   
-      // ❌ Hata notification
       notifications.show({
         title: "Hata",
         message: (
@@ -455,7 +454,9 @@ async function handleSellerChange(newSeller: string | null) {
 
     return (
       <Card  className="transition-transform"
-       withBorder shadow="sm" radius="md" mb="lg" p="lg">
+       withBorder shadow="sm" radius="md" mb="lg" p="lg"   style={{
+        backgroundColor: operationStarted ? "#dcfce7" : "white", 
+      }}>
         
         <Group justify="space-between" align="flex-start" wrap="nowrap">
          
