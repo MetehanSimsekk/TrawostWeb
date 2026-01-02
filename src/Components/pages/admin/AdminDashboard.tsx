@@ -21,6 +21,10 @@ import { ApplicationCard } from '../Cards/ApplicationCard';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from "../../../services/supabase";
 import { Application } from '@/types/types';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { deleteApplication, fetchApplications } from '../api/applications';
+import toast from 'react-hot-toast';
+import AdminRealtime from './AdminRealtime';
 
 
 export default function AdminDashboard() {
@@ -29,11 +33,19 @@ export default function AdminDashboard() {
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('Randevu Alınacak');
   const [country, setCountry] = useState('Tüm Ülkeler');
-  const [applications, setApplications] = useState<Application[]>([]);
+  // const [applications, setApplications] = useState<Application[]>([]);
   const navigate = useNavigate();
   const [statusById, setStatusById] = useState<Record<string, string>>({});
   const [opened, setOpened] = useState(false);
   const [selectedApp, setSelectedApp] = useState<any>(null);
+  const {
+    data: applications = [],
+    isPending,
+    error,
+  } = useQuery({
+    queryKey: ["applications"],
+    queryFn: fetchApplications,
+  });
 
   const stats = {
     total: applications.length, 
@@ -42,27 +54,30 @@ export default function AdminDashboard() {
     uniqueCountries: new Set(applications.map(a => a.country)).size
   };
   
+ const queryClient = useQueryClient();
 
-  useEffect(() => {
-    const fetchApplications = async () => {
+
+  // useEffect(() => {
+  //   const fetchApplications = async () => {
     
 
-      const { data, error } = await supabase
-        .from("applications")
-        .select("*")
-        .order("created_at", { ascending: false });
+  //     const { data, error } = await supabase
+  //       .from("applications")
+  //       .select("*")
+  //       .order("created_at", { ascending: false });
    
-      if (error) {
-        console.error("Veri çekme hatası:", error.message);
-      } else {
-        setApplications(data || []);
-      }
+  //     if (error) {
+  //       console.error("Veri çekme hatası:", error.message);
+  //     } else {
+  //       setApplications(data || []);
+  //     }
 
     
-    };
+  //   };
 
-    fetchApplications();
-  }, []);
+  //   fetchApplications();
+  // }, []);
+
 
 
 
@@ -151,13 +166,26 @@ export default function AdminDashboard() {
     leaderIdByGroup.set(code, sorted[0]?.id);
   });
   
+  // const handleRemoveFromList = (id: string) => {
+  //   setApplications((prev) => prev.filter((app) => app.id !== id));
+  // };
   const handleRemoveFromList = (id: string) => {
-    setApplications((prev) => prev.filter((app) => app.id !== id));
+    deleteApplicationMutation.mutate(id);
   };
-
-
+  const deleteApplicationMutation = useMutation({
+    mutationFn: deleteApplication,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["applications"],
+      });
+    },
+    onError: (error: any) => {
+      toast.error(error.message);
+    },
+  });
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-200">
+    <AdminRealtime /> 
     <Container   
     size="xl" py="xl"
 

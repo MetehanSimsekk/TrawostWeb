@@ -12,7 +12,7 @@ import PassportImageUpload from "../PassportImageUpload";
 import { UserCircleIcon } from '@heroicons/react/24/outline';
 import { DocumentTextIcon } from '@heroicons/react/24/outline';
 import { ChatBubbleBottomCenterTextIcon } from '@heroicons/react/24/outline';
-import { PaperAirplaneIcon } from '@heroicons/react/24/outline'; 
+import { PaperAirplaneIcon } from '@heroicons/react/24/outline';
 import { DocumentDuplicateIcon } from '@heroicons/react/24/outline';
 import { v4 as uuidv4 } from 'uuid';
 import toast from "react-hot-toast";
@@ -20,10 +20,10 @@ import ReactCountryFlag from "react-country-flag";
 import CitySelectRemote from "../CitySelect"
 import { DateInput, TimeInput } from '@mantine/dates';
 import { Button, Card, Group, Loader, Text, Textarea } from "@mantine/core";
-
-
-import { IconCurrencyDollar, IconMoneybag, IconMoneybagHeart } from "@tabler/icons-react"; 
-
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { IconCurrencyDollar, IconMoneybag, IconMoneybagHeart } from "@tabler/icons-react";
+import { insertApplications } from "../api/applications";
 
 export default function ApplyForm({ value, onChange }: { value: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void }) {
   const [selectedCountry, setSelectedCountry] = useState('Danimarka')
@@ -47,7 +47,7 @@ const [showTooltip, setShowTooltip] = useState(false);
 const [showScanner, setShowScanner] = useState(false);
 const [phone, setPhone] = useState<string[]>([]);
 const [travelHistory, setTravelHistory] = useState<string[]>([]);
-
+const queryClient = useQueryClient();
 // const [travelStart, setTravelStart] = useState<string[]>([]);
 
 // const [travelEnd, setTravelEnd] = useState<string[]>([]);
@@ -111,8 +111,8 @@ const [highlighted, setHighlighted] = useState(false);
 const [schoolName, setSchoolName]= useState<string[]>([]);
 const [schoolAddress, setSchoolAddress] = useState<string[]>([]);
 const [schoolPhone, setSchoolPhone] = useState<string[]>([]);
-const [schengenPaths, setSchengenPaths] = useState<string[][]>([]); 
-const [invitationPaths, setInvitationPaths] = useState<string[][]>([]); 
+const [schengenPaths, setSchengenPaths] = useState<string[][]>([]);
+const [invitationPaths, setInvitationPaths] = useState<string[][]>([]);
 const [monthlyIncome, setMonthlyIncome] = useState<string[]>([]);
 
 
@@ -128,7 +128,7 @@ const [tripStart, setTripStart] = useState<string>('');
 const [tripEnd, setTripEnd] = useState<string>('');
 
 
-const [visaRefusal, setVisaRefusal] = useState<string[]>([]);       
+const [visaRefusal, setVisaRefusal] = useState<string[]>([]);
 const [visaRefusalCountry, setVisaRefusalCountry] = useState<string[]>([]);
 const [visaRefusalDate, setVisaRefusalDate] = useState<string[]>([]);
 
@@ -186,7 +186,7 @@ type FormErrors =  {
 }
 
 
-  
+
 
   const navigate = useNavigate();
 
@@ -203,7 +203,7 @@ type FormErrors =  {
   //   'Mühendis',
   //   'Teknisyen',
   // ];
-  
+
 
 
 
@@ -227,8 +227,8 @@ type FormErrors =  {
     maiden_surname:string
     passport_file_url: string | null;
     biometric_photo_url: string | null;
-    previous_schengen_url: any | null;   
-    invitation_letter_url: any | null;   
+    previous_schengen_url: any | null;
+    invitation_letter_url: any | null;
    city:string
     appointment_status:string
     company_name?: string[];
@@ -275,7 +275,7 @@ type FormErrors =  {
   //   companyName?: string;
   //   companyAddress?: string;
   //   companyPhone?: string;
-  //   school_name?: string[];  
+  //   school_name?: string[];
   //   school_address?: string[];
   //   school_phone?: string[];
   // };
@@ -297,7 +297,7 @@ type FormErrors =  {
       return next;
     });
   }, [totalForms]);
-  
+
   const [errors, setErrors] = useState<FormErrors>({
     firstName: [],
     lastName: [],
@@ -336,10 +336,10 @@ type FormErrors =  {
   const [travelSegmentCount, setTravelSegmentCount] = useState<number[]>(
     Array(totalForms).fill(1)
   );
-  
+
 
   const [travelCountry, setTravelCountry] = useState<string[][]>(
-    Array(totalForms).fill(null).map(() => ['']) 
+    Array(totalForms).fill(null).map(() => [''])
   );
   const [travelStart, setTravelStart] = useState<string[][]>(
     Array(totalForms).fill(null).map(() => [''])
@@ -362,44 +362,44 @@ type FormErrors =  {
   const handleInvitationUpload = async (formIndex: number, e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);
     if (files.length === 0) return;
-  
+
     try {
       const uploaded = await Promise.all(files.map(async (file) => {
         const ext = file.name.split('.').pop()?.toLowerCase() || 'bin';
         const path = `invitations/${Date.now()}-${crypto.randomUUID()}.${ext}`;
-  
+
         const { error: upErr } = await supabase.storage.from('invitations').upload(path, file);
         if (upErr) throw upErr;
-  
+
         const { data: pub } = supabase.storage.from('invitations').getPublicUrl(path);
         if (!pub?.publicUrl) throw new Error('Public URL alınamadı');
-  
+
         return { name: file.name, url: pub.publicUrl, mime: file.type, path };
 
       }));
-  
+
       const urls  = uploaded.map(x => x.url);
       const names = uploaded.map(x => x.name);
-      const paths = uploaded.map(x => x.path); 
+      const paths = uploaded.map(x => x.path);
 
-      
+
       setInvitationFiles(prev => {
         const next = [...prev];
         const cur  = next[formIndex] ?? [];
-        next[formIndex] = [...cur, ...urls];  
+        next[formIndex] = [...cur, ...urls];
         return next;
       });
-  
+
       setInvitationFileNames(prev => {
         const next = [...prev];
         const cur  = next[formIndex] ?? [];
-        next[formIndex] = [...cur, ...names]; 
+        next[formIndex] = [...cur, ...names];
         return next;
       });
-  
+
       setInvitationPaths(prev => {
         const next = [...prev];
-        next[formIndex] = [...(next[formIndex] ?? []), ...paths]; 
+        next[formIndex] = [...(next[formIndex] ?? []), ...paths];
         return next;
       });
 
@@ -411,15 +411,15 @@ type FormErrors =  {
   };
 
   const handleDeleteInvitation = async (formIndex: number, fileIndex: number) => {
-    const path = invitationPaths[formIndex]?.[fileIndex]; 
-  
+    const path = invitationPaths[formIndex]?.[fileIndex];
+
     try {
       if (path) {
         const { error } = await supabase.storage.from('invitations').remove([path]);
         if (error) console.error('Remove error:', error);
       }
     } finally {
-     
+
       setInvitationFiles(prev => {
         const n = [...prev];
         n[formIndex] = (n[formIndex] ?? []).filter((_, i) => i !== fileIndex);
@@ -437,7 +437,18 @@ type FormErrors =  {
       });
     }
   };
-
+  const createApplicationMutation = useMutation({
+    mutationFn: insertApplications,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["applications"],
+      });
+      navigate("/thanks", { replace: true });
+    },
+    onError: (error: any) => {
+      toast.error("Hata: " + error.message);
+    },
+  });
 
   const toggleHasSchengen = (index: number, checked: boolean) => {
     setHasSchengen(prev => {
@@ -447,10 +458,10 @@ type FormErrors =  {
     });
   };
 
- 
+
   const hasFiles = (schengenImages[0]?.length ?? 0) > 0;
   const total = schengenImages[0]?.length ?? 0;
-  
+
   const toggleHasInvitation = (index: number, checked: boolean) => {
     setHasInvitation(prev => {
       const next = [...prev];
@@ -461,21 +472,21 @@ type FormErrors =  {
   const handleFileUpload = (i: number) => async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-  
+
     setPassportLoading(prev => { const next=[...prev]; next[i]=true; return next; });
-  
+
     try {
       const ext = file.name.split('.').pop();
       const fileName = `${Date.now()}.${ext}`;
       const filePath = `passports/${fileName}`;
-  
+
       const { error: upErr } = await supabase.storage.from('passports').upload(filePath, file);
       if (upErr) throw upErr;
-  
+
       const { data: pub } = supabase.storage.from('passports').getPublicUrl(filePath);
       const url = pub?.publicUrl;
       if (!url) throw new Error('Public URL alınamadı');
-  
+
       setPassportFileName(prev => { const n=[...prev]; n[i]=file.name; return n; });
       setPassportImage(prev => { const n=Array.isArray(prev)?[...prev]:[]; n[i]=url; return n; });
       setErrors(prev => {
@@ -492,7 +503,7 @@ type FormErrors =  {
       });
     } finally {
       setPassportLoading(prev => { const n=[...prev]; n[i]=false; return n; });
-   
+
       e.target.value = '';
     }
   };
@@ -503,12 +514,12 @@ type FormErrors =  {
   const handleBiometricUpload = (i: number) => async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-  
+
 
     setBiometricLoading(prev => { const next=[...prev]; next[i]=true; return next; });
-  
+
     try {
-  
+
       const ext = file.name.split('.').pop();
 
       const fileName = `${Date.now()}-bio.${ext}`;
@@ -517,12 +528,12 @@ type FormErrors =  {
 
 
       const filePath = `biometric/${fileName}`;
-  
+
       const { error: upErr } = await supabase.storage.from('biometric').upload(filePath, file);
 
 
       if (upErr) throw upErr;
-  
+
       const { data: pub } = supabase.storage.from('biometric').getPublicUrl(filePath);
       const url = pub?.publicUrl;
 
@@ -530,19 +541,19 @@ type FormErrors =  {
 
 
       if (!url) throw new Error('Public URL alınamadı');
-  
+
 
       setBiometricFileName(prev => { const next=[...prev]; next[i]=file.name; return next; });
       setBiometricUrl(prev => { const next=[...prev]; next[i]=url; return next; });
-  
+
       // hata temizle
       setErrors(prev => {
         const next = { ...prev, biometricPhoto: [...(prev.biometricPhoto || [])] };
         next.biometricPhoto[i] = '';
         return next;
       });
-  
-   
+
+
     } catch (err: any) {
       console.error(err);
       setErrors(prev => {
@@ -569,16 +580,16 @@ type FormErrors =  {
   const handleDeleteSchengen = async (formIndex: number, fileIndex: number) => {
     const path = schengenPaths[formIndex]?.[fileIndex];
     setSchengenLoading(p => { const n=[...p]; n[formIndex]=true; return n; });
-  
-  
+
+
     try {
       if (path) {
-        await supabase.storage.from('schengen').remove([path]); 
+        await supabase.storage.from('schengen').remove([path]);
       }
     } catch (e) {
       console.error('Silme hatası:', e);
     } finally {
-    
+
       setSchengenImages(prev => {
         const n = prev.map(a => [...(a||[])]);
         n[formIndex] = (n[formIndex] || []).filter((_, i) => i !== fileIndex);
@@ -603,14 +614,14 @@ type FormErrors =  {
     (async () => {
       const files = e.target.files;
       if (!files || files.length === 0) return;
-  
-     
+
+
       setSchengenLoading(prev => {
         const next = [...prev];
         next[idx] = true;
         return next;
       });
-  
+
       try {
         const urls: string[] = [];
         const names: string[] = [];
@@ -619,27 +630,27 @@ type FormErrors =  {
           const ext = file.name.split('.').pop();
           const fileName = `${crypto.randomUUID()}.${ext}`;
           const filePath = `schengen/${fileName}`;
-  
+
           const { error: upErr } = await supabase.storage
             .from('schengen')
             .upload(filePath, file);
-  
+
           if (upErr) throw upErr;
-  
+
           const { data: pub } = supabase.storage.from('schengen').getPublicUrl(filePath);
           const url = pub?.publicUrl;
           if (!url) throw new Error('Public URL alınamadı');
-  
+
           urls.push(url);
           names.push(file.name);
           paths.push(filePath);
         }
-  
-  
+
+
         setSchengenImages(prev => {
-          const next = [...prev]; 
-          if (!next[idx]) next[idx] = []; 
-          next[idx] = [...next[idx], ...urls]; 
+          const next = [...prev];
+          if (!next[idx]) next[idx] = [];
+          next[idx] = [...next[idx], ...urls];
           return next;
         });
         setSchengenFileNames(prev => {
@@ -650,22 +661,22 @@ type FormErrors =  {
         });
         setSchengenPaths(prev => {
           const next =[...prev];
-          if (!next[idx]) next[idx] = []; 
-          next[idx] = [...(next[idx] || []), ...paths];     
+          if (!next[idx]) next[idx] = [];
+          next[idx] = [...(next[idx] || []), ...paths];
           return next;
         });
-  
+
       } catch (err: any) {
         console.error(err);
         alert('❌ Schengen dosyası yüklenemedi: ' + (err?.message || 'Bilinmeyen hata'));
       } finally {
-       
+
         setSchengenLoading(prev => {
           const next = [...prev];
           next[idx] = false;
           return next;
         });
-      
+
         e.target.value = '';
       }
     })();
@@ -731,7 +742,7 @@ type FormErrors =  {
     if (next[i].length > len) next[i] = next[i].slice(0, len);
     return next;
   };
-  
+
   const ensureSegCount = (countArr: number[], i: number, nextCount: number) => {
     const next = [...countArr];
     while (next.length <= i) next.push(1);
@@ -744,16 +755,16 @@ type FormErrors =  {
   };
 
   const validateForm = () => {
-    
+
     const get = (arr: string[] | undefined, i: number) =>
       Array.isArray(arr) && typeof arr[i] === 'string' ? arr[i] : '';
-  
+
     const at = <T,>(arr: T[] | undefined, i: number, fallback: any = ''): T | any =>
       Array.isArray(arr) && i in arr ? arr[i] : fallback;
-  
+
     const make2D = (rows: number, cols = 1, fill = '') =>
       Array.from({ length: rows }, () => Array(cols).fill(fill));
-    
+
 
     const ensure2D = <T,>(arr: T[][], i: number, cols = 1, fill: T) => {
       while (arr.length <= i) arr.push(Array(cols).fill(fill));
@@ -773,9 +784,9 @@ type FormErrors =  {
       phone: Array<string>(totalForms).fill(''),
       passport: Array<string>(totalForms).fill(''),
       schengen: Array<string>(totalForms).fill(''),
-      monthlyIncome: Array<string>(totalForms).fill(''),  
-      plannedSpending: Array<string>(totalForms).fill(''),  
-      monthlyExpense: Array<string>(totalForms).fill(''),  
+      monthlyIncome: Array<string>(totalForms).fill(''),
+      plannedSpending: Array<string>(totalForms).fill(''),
+      monthlyExpense: Array<string>(totalForms).fill(''),
       motherName: Array<string>(totalForms).fill(''),
       motherDob: Array<string>(totalForms).fill(''),
       fatherName: Array<string>(totalForms).fill(''),
@@ -787,36 +798,36 @@ type FormErrors =  {
 
       currentBalance: Array<string>(totalForms).fill(''),
 
-      travelCountry: make2D(totalForms),          
+      travelCountry: make2D(totalForms),
       travelStart:   make2D(totalForms),
       travelEnd:     make2D(totalForms),
-    
-      travelSchengenCountry: make2D(totalForms),  
+
+      travelSchengenCountry: make2D(totalForms),
       travelStartForSchengen: make2D(totalForms),
       travelEndForSchengen:   make2D(totalForms),
     };
-  
+
     let isValid = true;
-  
+
     for (let i = 0; i < totalForms; i++) {
-      
+
 
       nextErrors.firstName[i] = get(firstName, i).trim() ? '' : 'Ad zorunludur.';
       if (nextErrors.firstName[i]) isValid = false;
-  
+
       nextErrors.lastName[i] = get(lastName, i).trim() ? '' : 'Soyad zorunludur.';
       if (nextErrors.lastName[i]) isValid = false;
-  
-  
+
+
       nextErrors.gender[i] = get(genders as unknown as string[], i) ? '' : 'Cinsiyet seçimi zorunludur.';
       if (nextErrors.gender[i]) isValid = false;
-  
+
       nextErrors.maritalStatus[i] = get(maritalStatuse as unknown as string[], i) ? '' : 'Medeni durum seçimi zorunludur.';
       if (nextErrors.maritalStatus[i]) isValid = false;
-  
+
       nextErrors.workStatus[i] = get(workStatus as unknown as string[], i) ? '' : 'Çalışma durumu seçimi zorunludur.';
       if (nextErrors.workStatus[i]) isValid = false;
-  
+
 
       nextErrors.biometricPhoto = Array<string>(totalForms).fill('');
 
@@ -824,19 +835,19 @@ if (selectedCountry === 'İspanya') {
   nextErrors.biometricPhoto[i] = biometricUrl[i] ? '' : 'Biyometrik fotoğraf zorunludur.';
   if (nextErrors.biometricPhoto[i]) isValid = false;
 }
-    
+
       const isFemaleMarried =
         (genders?.[i] === 'Kadın') && (maritalStatuse?.[i] === 'Evli');
       nextErrors.maidenName[i] = isFemaleMarried
         ? (get(maidenNames, i).trim() ? '' : 'Kızlık soyadı zorunludur.')
         : '';
       if (nextErrors.maidenName[i]) isValid = false;
-  
-   
+
+
       nextErrors.address[i] = get(address, i).trim() ? '' : 'Adres zorunludur.';
       if (nextErrors.address[i]) isValid = false;
-  
-   
+
+
       const em = get(email, i).trim();
       if (!em) {
         nextErrors.email[i] = 'E-posta zorunludur.';
@@ -847,38 +858,38 @@ if (selectedCountry === 'İspanya') {
       } else {
         nextErrors.email[i] = '';
       }
-  
- 
+
+
       if (selectedCountry === 'İngiltere' || selectedCountry === 'Amerika'|| selectedCountry === 'Kanada') {
-   
+
         const incomeRaw = get(monthlyIncome, i).replace(/[^\d]/g, '');
         const incomeNum = Number(incomeRaw);
-    
+
         nextErrors.monthlyIncome[i] =
           incomeNum > 0 ? '' : 'Aylık belgelendirilebilir maaş zorunludur.';
         if (nextErrors.monthlyIncome[i]) isValid = false;
-    
+
         if (travelHistory?.[i] === 'yes') {
-          const segCount = Math.max(1, travelSegmentCount?.[i] ?? 1); 
-      
+          const segCount = Math.max(1, travelSegmentCount?.[i] ?? 1);
+
           ensure2D(nextErrors.travelCountry, i, segCount, '');
           ensure2D(nextErrors.travelStart,   i, segCount, '');
           ensure2D(nextErrors.travelEnd,     i, segCount, '');
-      
+
           for (let seg = 0; seg < segCount; seg++) {
             const country = travelCountry?.[i]?.[seg]?.trim() ?? '';
             const start   = travelStart?.[i]?.[seg] ?? '';
             const end     = travelEnd?.[i]?.[seg] ?? '';
-      
+
             // ülke zorunlu
             nextErrors.travelCountry[i][seg] = country ? '' : 'Ülke zorunludur.';
             if (!country) isValid = false;
-      
+
             // tarihler zorunlu
             nextErrors.travelStart[i][seg] = start ? '' : 'Gidiş tarihi zorunludur.';
             nextErrors.travelEnd[i][seg]   = end   ? '' : 'Dönüş tarihi zorunludur.';
             if (!start || !end) isValid = false;
-      
+
             // start <= end
             if (start && end && new Date(start) > new Date(end)) {
               nextErrors.travelEnd[i][seg] = 'Dönüş tarihi gidişten önce olamaz.';
@@ -891,27 +902,27 @@ if (selectedCountry === 'İspanya') {
           nextErrors.travelStart[i]   = [''];
           nextErrors.travelEnd[i]     = [''];
         }
-      
+
         // ====== 2) Avrupa/Schengen seyahati (travelHistorySchengen[i] === 'yes') ======
         if (travelHistorySchengen?.[i] === 'yes') {
           const segCountSch = Math.max(1, travelSegmentCount?.[i] ?? 1);
-      
+
           ensure2D(nextErrors.travelSchengenCountry,  i, segCountSch, '');
           ensure2D(nextErrors.travelStartForSchengen, i, segCountSch, '');
           ensure2D(nextErrors.travelEndForSchengen,   i, segCountSch, '');
-      
+
           for (let seg = 0; seg < segCountSch; seg++) {
             const country = travelSchengenCountry?.[i]?.[seg]?.trim() ?? '';
             const start   = travelStartForSchengen?.[i]?.[seg] ?? '';
             const end     = travelEndForSchengen?.[i]?.[seg] ?? '';
-      
+
             nextErrors.travelSchengenCountry[i][seg] = country ? '' : 'Ülke zorunludur.';
             if (!country) isValid = false;
-      
+
             nextErrors.travelStartForSchengen[i][seg] = start ? '' : 'Gidiş tarihi zorunludur.';
             nextErrors.travelEndForSchengen[i][seg]   = end   ? '' : 'Dönüş tarihi zorunludur.';
             if (!start || !end) isValid = false;
-      
+
             if (start && end && new Date(start) > new Date(end)) {
               nextErrors.travelEndForSchengen[i][seg] = 'Dönüş tarihi gidişten önce olamaz.';
               isValid = false;
@@ -922,17 +933,17 @@ if (selectedCountry === 'İspanya') {
           nextErrors.travelStartForSchengen[i] = [''];
           nextErrors.travelEndForSchengen[i]   = [''];
         }
-    
 
 
 
 
-      
+
+
         nextErrors.currentBalance[i] = currentBalance[i]?.trim() ?  '' : 'Anlık bakiyeniz zorunludur.';
         if (nextErrors.currentBalance[i]) isValid = false;
         nextErrors.monthlyIncome[i] = monthlyIncome[i]?.trim() ? '' : 'Aylık gelir zorunludur.';
         if (nextErrors.monthlyIncome[i]) isValid = false;
-      
+
         nextErrors.plannedSpending[i] = plannedSpending[i]?.trim() ? '' : 'Planlanan harcama zorunludur.';
         if (nextErrors.plannedSpending[i]) isValid = false;
 
@@ -960,7 +971,7 @@ if (nextErrors.fatherName[i]) isValid = false;
   nextErrors.fatherDob[i] = dob ? '' : 'Baba doğum tarihi zorunludur.';
   if (nextErrors.fatherDob[i]) isValid = false;
 }
-  
+
       }
 
       const ph = get(phone, i);
@@ -974,23 +985,23 @@ if (nextErrors.fatherName[i]) isValid = false;
       } else {
         nextErrors.phone[i] = '';
       }
-  
-   
+
+
       const wantsSchengen = Boolean(at(hasSchengen as boolean[] | undefined, i, false));
       const imgs = at(schengenImages as string[][] | undefined, i, []) as string[];
       nextErrors.schengen[i] = wantsSchengen
         ? (imgs.length > 0 ? '' : 'Schengen vizesi dosyası zorunludur.')
         : '';
       if (nextErrors.schengen[i]) isValid = false;
-  
-   
+
+
       const hasPassport = Array.isArray(passportImage)
         ? Boolean(passportImage[i])
         : Boolean(passportImage);
       nextErrors.passport[i] = hasPassport ? '' : 'Pasaport görseli zorunludur.';
       if (nextErrors.passport[i]) isValid = false;
     }
-    
+
     if (!tripStart?.trim()) {
       nextErrors.tripStart = 'Başlangıç tarihi zorunludur.';
       refs.tripStart.current?.focus();
@@ -999,7 +1010,7 @@ if (nextErrors.fatherName[i]) isValid = false;
     } else {
       nextErrors.tripStart = '';
     }
-    
+
     if (!tripEnd?.trim()) {
       nextErrors.tripEnd = 'Bitiş tarihi zorunludur.';
       refs.tripEnd.current?.focus();
@@ -1008,8 +1019,8 @@ if (nextErrors.fatherName[i]) isValid = false;
     } else {
       nextErrors.tripEnd = '';
     }
-   
-  
+
+
     if (tripStart && tripEnd) {
       const start = new Date(tripStart);
       const end = new Date(tripEnd);
@@ -1020,20 +1031,20 @@ if (nextErrors.fatherName[i]) isValid = false;
         isValid = false;
       }
     }
-  
+
 
     setErrors(nextErrors);
     return isValid;
   };
-  
+
   const handleSubmit = async (e: React.FormEvent) => {
     setLoading(true);
     e.preventDefault();
     if (isSubmitting) return;
     setIsSubmitting(true);
     const groupId = uuidv4();
-  
-    
+
+
     if (!selectedVisaType) {
       setVisaError('Lütfen bir vize tipi seçin.');
       document.getElementById('visa-type-wrap')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -1042,65 +1053,65 @@ if (nextErrors.fatherName[i]) isValid = false;
       setLoading(false);
       return;
     }
-     
-    
-    
-  
+
+
+
+
     if (!validateForm()) {
-     
+
       setIsSubmitting(false);
       setLoading(false);
       return;
     }
     if (!passportImage || (Array.isArray(passportImage) && passportImage.length === 0)) {
-      
+
       setIsSubmitting(false);
       setLoading(false);
       return;
     }
-    
+
     const schengenUrls = Array.isArray(schengenImages) && schengenImages.length
       ? (schengenImages.filter(Boolean) as unknown as string[])
       : null;
-  
-    
+
+
 
     const raw: unknown = invitationFiles;
 
     const invitationUrls: string[] = Array.isArray(raw)
       ? raw
           .flat()
-          .filter((v): v is string => typeof v === "string") 
+          .filter((v): v is string => typeof v === "string")
           .map(s => s.trim())
           .filter(s => s.length > 0)
       : [];
-    
-    const firstUrlLower = invitationUrls[0]?.toLowerCase(); 
+
+    const firstUrlLower = invitationUrls[0]?.toLowerCase();
 
 
-  
+
     const pickAt = <T,>(val: T | T[] | undefined, i: number, fallback: T): T => {
       if (Array.isArray(val)) return (val[i] ?? fallback) as T;
       return (val ?? fallback) as T;
     };
-  
+
     const baseData: Pick<ApplicationData, 'basvuru_grup_kodu' | 'country' | 'visa_type' | 'previous_schengen_url' | 'invitation_letter_url'> = {
       basvuru_grup_kodu: groupId,
       country: selectedCountry,
       visa_type: selectedVisaType as VisaType,
-      previous_schengen_url: schengenUrls,     
-      invitation_letter_url: firstUrlLower,   
+      previous_schengen_url: schengenUrls,
+      invitation_letter_url: firstUrlLower,
     };
-  
+
     const kisiSayisi = parseInt(selectedPeople.split(' ')[0] || '1', 10);
     const applications: ApplicationData[] = [];
-  
+
     for (let i = 0; i < kisiSayisi; i++) {
       const ws = pickAt(workStatus as any, i, '') as WorkStatus;
-  
+
       const currentData: ApplicationData = {
         ...baseData,
-        previous_schengen_url: schengenImages[i] || [], 
+        previous_schengen_url: schengenImages[i] || [],
         full_name: pickAt(firstName as any, i, '').trim(),
         surname: pickAt(lastName as any, i, '').trim(),
         gender: pickAt(genders as any, i, '') as Gender,
@@ -1112,7 +1123,7 @@ if (nextErrors.fatherName[i]) isValid = false;
         phone: pickAt(phone as any, i, ''),
         city:pickAt(city as any , i,'') ,
         tripEnd:pickAt(tripEnd as any,i,''),
-      
+
         tripStart:pickAt(tripStart as any,i,''),
 
         monthlyIncome: pickAt(monthlyIncome as any ,i,''),
@@ -1139,7 +1150,7 @@ if (nextErrors.fatherName[i]) isValid = false;
 
         visaRefusalCountry:pickAt(visaRefusalCountry as any ,i,''),
         visaRefusalDate:pickAt(visaRefusalDate as any ,i,''),
-        
+
         previousAddress:pickAt(previousAddress as any ,i,''),
 
 
@@ -1148,7 +1159,7 @@ if (nextErrors.fatherName[i]) isValid = false;
         currencyForEngland:pickAt(currencyForEngland as any ,i,''),
 
         currencyBalance:pickAt(currencyBalance as any ,i,''),
-        
+
         currencyMonthAmount:pickAt(currencyMonthAmount as any ,i,''),
         travelCountry:pickAt(travelCountry as any ,i,''),
         travelSchengenCountry:pickAt(travelSchengenCountry as any ,i,''),
@@ -1158,8 +1169,8 @@ if (nextErrors.fatherName[i]) isValid = false;
         passport_file_url: Array.isArray(passportImage)
           ? (passportImage[i] ?? null)
           : (passportImage ?? null),
-  
-        
+
+
           biometric_photo_url: Array.isArray(biometricUrl)
           ? (biometricUrl[i] ?? null)
           : (biometricUrl ?? null),
@@ -1170,7 +1181,7 @@ if (nextErrors.fatherName[i]) isValid = false;
           job_title :pickAt(selectedJobTitle as any , i,''),
           company_name: pickAt(companyName as any , i,'') ,
           company_address: pickAt(companyAddress as any , i,'') ,
-          company_phone:pickAt(companyPhone as any , i,'') 
+          company_phone:pickAt(companyPhone as any , i,'')
         }),
         ...(ws === 'Öğrenci' && {
           school_name:pickAt(schoolName as any , i,''),
@@ -1179,36 +1190,37 @@ if (nextErrors.fatherName[i]) isValid = false;
         }),
 
       };
-     
+
       applications.push(currentData);
       setLoading(false);
     }
-  
-    try {
-      const { error } = await supabase.from('applications').insert(applications);
-      if (error) {
-        toast.error('Hata: ' + error.message);
-        return;
-      }
-      navigate('/thanks', { replace: true });
-    } catch (err: any) {
-      toast.error('Beklenmeyen hata: ' + (err?.message || String(err)));
-    } finally {
-      setIsSubmitting(false);
-      setLoading(false);
-    }
+    createApplicationMutation.mutate(applications);
+    // try {
+    //   const { error } = await supabase.from('applications').insert(applications);
+    //   if (error) {
+    //     toast.error('Hata: ' + error.message);
+    //     return;
+    //   }
+    //   navigate('/thanks', { replace: true });
+    // } catch (err: any) {
+    //   toast.error('Beklenmeyen hata: ' + (err?.message || String(err)));
+    // }
+    //  finally {
+    //   setIsSubmitting(false);
+    //   setLoading(false);
+    // }
   };
 
 
 
-  
+
   return (
-    
+
     <div className="min-h-screen text-white font-sans px-0 sm:px-4 py-8"
     style={{
       background:
         "linear-gradient(to bottom, rgb(255, 255, 255), rgba(210, 210, 210, 0.9))"
-    
+
     }}>
       <div className="max-w-4xl mx-auto bg-white text-black p-3 rounded-xl shadow-lg">
         <div className="relative flex items-center justify-center mb-6">
@@ -1223,7 +1235,7 @@ if (nextErrors.fatherName[i]) isValid = false;
 Schengen vize başvurunuzu kolayca tamamlayın</p>
           </div>
         </div>
-       
+
         <div className="mt-10 max-w-4xl mx-auto bg-white p-4 rounded-xl border-2 border-gray-100">
   <div className="flex items-center gap-3 mb-6">
     <DocumentTextIcon className="w-8 h-8 text-gray-400" />
@@ -1237,7 +1249,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
 
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-   
+
       <div>
       <label className="block mb-2 text-m font-semibold text-gray-600">
           Başvuru Yapılacak Ülke <span className="text-red-500">*</span>
@@ -1321,7 +1333,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
                 <button
                   onClick={() => {
                     setSelectedVisaType(type);
-                    setVisaError(''); 
+                    setVisaError('');
                   }}
                   className={`${active ? 'bg-red-100 text-red-800' : 'text-gray-900'} block w-full text-left px-4 py-2 text-base font-medium`}
                 >
@@ -1339,7 +1351,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
     <p className="mt-2 text-sm text-red-600">{visaError}</p>
   )}
 </div>
-    
+
       <div>
       <label className="block mb-2 text-m font-semibold text-gray-600">
           Kaç Kişi Başvuruyor? <span className="text-red-600">*</span>
@@ -1386,7 +1398,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
   <label className="block mb-2 text-m font-semibold text-gray-600">
     Seyahat Planlaması <span className="text-red-600">*</span>
   </label>
- 
+
 
 
   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1444,14 +1456,14 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
     </div>
     </div>
 
-  
+
 
         {Array.from({ length: totalForms }).map((_, index) => (
   <div key={index} className="mt-10 max-w-4xl mx-auto bg-white p-4 rounded-xl border-2 border-gray-100" >
    <h2 className="text-2xl font-bold bg-gradient-to-r from-[#E50914] to-black text-transparent bg-clip-text text-[#E50914] sm:truncate sm:text-3xl sm:tracking-tight mb-6 flex items-center gap-2">
 
    <PaperAirplaneIcon className="w-9 h-9 text-gray-400 rotate-45" />
-  {totalForms > 1 ? `${index + 1}.` : ''} Başvuru 
+  {totalForms > 1 ? `${index + 1}.` : ''} Başvuru
 </h2>
 
 <div   className="mt-8 rounded-xl bg-white p-0 shadow-sm"
@@ -1459,7 +1471,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
 >
         <div className="flex items-center gap-3 mb-6" >
     <UserCircleIcon className="w-8 h-8 text-gray-400" />
-    
+
     <h2 className="text-2xl font-bold bg-gradient-to-r from-[#E50914] to-black text-transparent bg-clip-text text-[#E50914] sm:truncate sm:text-2xl sm:tracking-tight"  style={{ backgroundSize: '500% 100%', backgroundPosition: 'left center' }}>
     Başvuru Sahibi
     </h2>
@@ -1471,7 +1483,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
     Ad <span className="text-red-500">*</span>
   </label>
   <div className="mt-2">
-    
+
   <input
   id={`first-name-${index}`}
   value={firstName[index] ?? ''}
@@ -1510,7 +1522,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
     <div className="mt-2">
     <input
   id={`last-name-${index}`}
-  value={lastName[index] || ''} 
+  value={lastName[index] || ''}
   onChange={(e) => {
     const value = e.target.value;
     setLastName((prev) => {
@@ -1556,13 +1568,13 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
           value={genderOption}
           checked={genders[index] === genderOption}
           onChange={() => {
-           
+
             setGenders(prev => {
               const next = [...prev];
               next[index] = genderOption as Gender;
               return next;
             });
-           
+
             if (errors.gender?.[index]) {
               setErrors(prev => {
                 const arr = [...(prev.gender || [])];
@@ -1606,7 +1618,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
       <label key={status} className="inline-flex items-center gap-2 text-sm text-gray-700">
         <input
           type="radio"
-          name={`maritalStatus-${index}`}       
+          name={`maritalStatus-${index}`}
           value={status}
           checked={maritalStatuse[index] === status}
           onChange={() => {
@@ -1625,19 +1637,19 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
             }
           }}
           className={`relative size-4 appearance-none rounded-full border border-gray-300 bg-white
-          
+
             checked:border-red-600 checked:bg-white
             before:absolute before:inset-1 before:rounded-full
             before:bg-red-600 before:scale-0 checked:before:scale-100
             transition-all duration-200 ease-in-out
             focus:outline-none focus:ring-2 focus:ring-red-600`}
         />
-          
-           
-           
-         
-           
-        
+
+
+
+
+
+
         {status}
       </label>
     ))}
@@ -1694,9 +1706,9 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
     {(['Çalışıyor', 'Emekli', 'Öğrenci', 'Çalışmıyor'] as WorkStatus[]).map((status) => (
       <div key={status} className="flex items-center gap-x-3">
         <input
-          id={`work-${status}-${index}`}              
+          id={`work-${status}-${index}`}
           type="radio"
-          name={`work-status-${index}`}                
+          name={`work-status-${index}`}
           value={status}
           checked={workStatus[index] === status}
           onChange={() => {
@@ -1715,7 +1727,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
             }
           }}
           className={`relative size-4 appearance-none rounded-full border border-gray-300 bg-white
-          
+
             checked:border-red-600 checked:bg-white
             before:absolute before:inset-1 before:rounded-full
             before:bg-red-600 before:scale-0 checked:before:scale-100
@@ -1757,7 +1769,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
   placeholder="Lütfen çalıştığınız pozisyonu girin"
   className="h-12 w-full rounded-lg bg-white px-4 text-base text-gray-800 border border-red-500 shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500"
 />
- 
+
 <input
   id={`company-name-${index}`}
   value={companyName[index] || ""}
@@ -1788,18 +1800,18 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
   id={`company-phone-${index}`}
   value={companyPhone[index] || ""}
   onChange={(e) => {
-    let v = e.target.value.replace(/\D/g, ""); 
+    let v = e.target.value.replace(/\D/g, "");
 
-  
+
     if (v && v[0] !== "0") {
       v = "0" + v;
     }
 
     let formatted = v;
     if (v.length > 1) {
-      const first = v[0];      
-      const area = v.slice(1, 4); 
-      const rest = v.slice(4);   
+      const first = v[0];
+      const area = v.slice(1, 4);
+      const rest = v.slice(4);
       formatted = rest
         ? `${first} (${area}) ${rest}`
         : `${first} (${area})`;
@@ -1845,7 +1857,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
     className="h-12 px-4 pr-10 py-3 rounded-lg w-full border border-gray-300 bg-white text-gray-800 placeholder-gray-500 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
   />
 
- 
+
   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 font-semibold">
     ₺
   </span>
@@ -1873,7 +1885,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
   >
     <h3 className="text-white font-semibold mb-4">Eğitim Bilgileri</h3>
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      
+
       <input
         id={`school-name-${index}`}
         value={schoolName[index] || ""}
@@ -1922,18 +1934,18 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
   </div>
 )}
 
-{(selectedCountry === 'İngiltere' || selectedCountry === 'Amerika'|| selectedCountry === 'Kanada') && 
+{(selectedCountry === 'İngiltere' || selectedCountry === 'Amerika'|| selectedCountry === 'Kanada') &&
    (
   <div className="mt-4">
     <div className="grid grid-cols-1 md:grid-cols-3 gap-x-3 gap-y-2">
     {workStatus[index] !== 'Çalışıyor' && (
   <div>
-    
+
   <legend className="text-m font-semibold text-gray-600 mb-1 flex items-center gap-1 flex-wrap">
   <span>Aylık Geliriniz</span>
   <span className="text-red-500">*</span>
 </legend>
-    
+
 
     <div className="relative w-full max-w-[240px] mt-7">
       <input
@@ -1962,7 +1974,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
     }}
     className="absolute right-2 top-1/2 -translate-y-1/2 bg-transparent border-none text-gray-600 font-semibold focus:outline-none"
   >
-   <option value="₺">₺</option>    
+   <option value="₺">₺</option>
     <option value="£">£ </option>
     <option value="$">$</option>
   </select>
@@ -2012,7 +2024,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
     }}
     className="absolute right-2 top-1/2 -translate-y-1/2 bg-transparent border-none text-gray-600 font-semibold focus:outline-none"
   >
-    <option value="₺">₺</option>    
+    <option value="₺">₺</option>
     <option value="£">£ </option>
     <option value="$">$</option>
   </select>
@@ -2030,16 +2042,16 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
 
   <div className="relative w-full max-w-[240px] mt-7">
     <input
-      id={`monthly-expense-${index}`}   
+      id={`monthly-expense-${index}`}
       inputMode="numeric"
       placeholder="1,500"
-      value={monthlyExpense[index] || ''}   
+      value={monthlyExpense[index] || ''}
       onChange={(e) => {
         const raw = e.target.value.replace(/[^\d]/g, '');
         const withThousands = raw.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
         const next = [...monthlyExpense];
         next[index] = withThousands;
-        setMonthlyExpense(next);  
+        setMonthlyExpense(next);
       }}
       className={`block w-full rounded-lg px-4 pr-10 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset mt-1
         ${errors.monthlyExpense?.[index]
@@ -2055,7 +2067,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
     }}
     className="absolute right-2 top-1/2 -translate-y-1/2 bg-transparent border-none text-gray-600 font-semibold focus:outline-none"
   >
-    <option value="₺">₺</option>    
+    <option value="₺">₺</option>
     <option value="£">£ </option>
     <option value="$">$</option>
   </select>
@@ -2072,16 +2084,16 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
 
 <div className="relative w-full max-w-[240px] mt-1">
   <input
-    id={`current-balance-${index}`}   
+    id={`current-balance-${index}`}
     inputMode="numeric"
     placeholder="1,500"
-    value={currentBalance[index] || ''}   
+    value={currentBalance[index] || ''}
     onChange={(e) => {
       const raw = e.target.value.replace(/[^\d]/g, '');
       const withThousands = raw.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
       const next = [...currentBalance];
       next[index] = withThousands;
-      setCurrentBalance(next);  
+      setCurrentBalance(next);
     }}
     className={`block w-full rounded-lg px-4 pr-16 py-3 text-base text-gray-800 placeholder:text-gray-400 border shadow-sm ring-1 ring-inset mt-1
       ${errors.currentBalance?.[index]
@@ -2098,7 +2110,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
     }}
     className="absolute right-2 top-1/2 -translate-y-1/2 bg-transparent border-none text-gray-600 font-semibold focus:outline-none"
   >
-    <option value="₺">₺</option>    
+    <option value="₺">₺</option>
     <option value="£">£ </option>
     <option value="$">$</option>
   </select>
@@ -2116,10 +2128,10 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
 </div>
 <div>
   <legend className="text-m font-semibold text-gray-600 mb-1 mt-5">
-    Son 10 yıl içinde 
-    <span className="font-bold text-black"> Amerika</span>&nbsp;, 
-    <span className="font-bold text-black"> Kanada</span> , 
-    <span className="font-bold text-black"> İngiltere</span> 
+    Son 10 yıl içinde
+    <span className="font-bold text-black"> Amerika</span>&nbsp;,
+    <span className="font-bold text-black"> Kanada</span> ,
+    <span className="font-bold text-black"> İngiltere</span>
     &nbsp; seyahatleriniz oldu mu? <span className="text-red-500">*</span>
   </legend>
 
@@ -2137,7 +2149,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
           setTravelHistory(next);
         }}
         className={`relative size-4 appearance-none rounded-full border border-gray-300 bg-white
-          
+
           checked:border-red-600 checked:bg-white
           before:absolute before:inset-1 before:rounded-full
           before:bg-red-600 before:scale-0 checked:before:scale-100
@@ -2159,7 +2171,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
           setTravelHistory(next);
         }}
         className={`relative size-4 appearance-none rounded-full border border-gray-300 bg-white
-          
+
           checked:border-red-600 checked:bg-white
           before:absolute before:inset-1 before:rounded-full
           before:bg-red-600 before:scale-0 checked:before:scale-100
@@ -2177,7 +2189,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
     {Array.from({ length: travelSegmentCount[index] }).map((_, segIdx) => (
       <div key={`seg-${index}-${segIdx}`} className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
 
-  
+
         <div>
           <label className="block mb-1 text-sm font-medium text-gray-700">
             Ülke ({segIdx + 1})
@@ -2248,7 +2260,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
           )}
         </div>
 
- 
+
         <div>
           <label className="block mb-1 text-sm font-medium text-gray-700">Gidiş Tarihi</label>
           <input
@@ -2277,7 +2289,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
           />
         </div>
 
-       
+
         <div>
           <label className="block mb-1 text-sm font-medium text-gray-700">Dönüş Tarihi</label>
           <input
@@ -2420,12 +2432,12 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
 
   {travelHistorySchengen[index] === "yes" && (
     <>
-    
+
 
       {/* Segmentler */}
       {Array.from({ length: travelSchengenSegmentCount[index] ?? 1 }).map((_, segIdx) => (
         <div key={segIdx} className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
-          
+
           {/* Ülke */}
           <div>
             <label className="block mb-1 text-sm font-medium text-gray-700">Ülke</label>
@@ -2480,7 +2492,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
                                   return n;
                                 });
                               }
-                            
+
 
                             }}
                             className={`${active ? 'bg-red-100 text-red-800' : 'text-gray-900'} block w-full text-left px-4 py-2 text-base font-medium`}
@@ -2500,7 +2512,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
             )}
           </div>
 
-       
+
           <div>
             <label className="block mb-1 text-sm font-medium text-gray-700">Gidiş Tarihi</label>
             <input
@@ -2522,7 +2534,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
             />
           </div>
 
-        
+
           <div>
             <label className="block mb-1 text-sm font-medium text-gray-700">Dönüş Tarihi</label>
             <input
@@ -2545,13 +2557,13 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
           </div>
 
 
-    
-           
-    
+
+
+
         </div>
-        
+
       ))}
-            
+
             <div className="flex items-center gap-2 mt-3">
         <button
           type="button"
@@ -2604,7 +2616,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
     <input
       type="text"
       placeholder="Anne Adı Soyadı"
-      value={motherName[index] || ""}   
+      value={motherName[index] || ""}
       onChange={(e) => {
         const next = [...motherName];
         next[index] = e.target.value;
@@ -2625,7 +2637,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
     </legend>
     <input
       type="date"
-      value={motherDob[index] || ""}    
+      value={motherDob[index] || ""}
       onChange={(e) => {
         const next = [...motherDob];
         next[index] = e.target.value;
@@ -2648,7 +2660,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
     <input
       type="text"
       placeholder="Baba Adı Soyadı"
-      value={fatherName[index] || ""}   
+      value={fatherName[index] || ""}
       onChange={(e) => {
         const next = [...fatherName];
         next[index] = e.target.value;
@@ -2667,7 +2679,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
     </legend>
     <input
       type="date"
-      value={fatherDob[index] || ""}    
+      value={fatherDob[index] || ""}
       onChange={(e) => {
         const next = [...fatherDob];
         next[index] = e.target.value;
@@ -2702,7 +2714,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
     setCity(prev => { const n = [...prev]; n[index] = c; return n; });
     if (errors.city?.[index]) {
       setErrors(p => { const arr = [...(p.city || [])]; arr[index] = ""; return { ...p, city: arr }; });
-      
+
     }
   }}
   error={errors.city?.[index]}
@@ -2758,11 +2770,11 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
                     </legend>
 
                     <div className="flex items-center gap-6">
-               
+
                       <label className="flex items-center gap-2">
                         <input
                           type="radio"
-                          name={`home-${index}`} 
+                          name={`home-${index}`}
                           value="kira"
                           checked={homeStatus[index] === 'kira'}
                           onChange={() => setHomeStatus(prev => {
@@ -2771,7 +2783,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
                             return next;
                           })}
                           className={`relative size-4 appearance-none rounded-full border border-gray-300 bg-white
-          
+
           checked:border-red-600 checked:bg-white
           before:absolute before:inset-1 before:rounded-full
           before:bg-red-600 before:scale-0 checked:before:scale-100
@@ -2780,7 +2792,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
                         <span className="text-gray-700">Kira</span>
                       </label>
 
-               
+
                       <label className="flex items-center gap-2">
                         <input
                           type="radio"
@@ -2793,7 +2805,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
                             return next;
                           })}
                           className={`relative size-4 appearance-none rounded-full border border-gray-300 bg-white
-          
+
           checked:border-red-600 checked:bg-white
           before:absolute before:inset-1 before:rounded-full
           before:bg-red-600 before:scale-0 checked:before:scale-100
@@ -2929,7 +2941,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
                                 }
                               } }
                               className={`relative size-4 appearance-none rounded-full border border-gray-300 bg-white
-          
+
                                 checked:border-red-600 checked:bg-white
                                 before:absolute before:inset-1 before:rounded-full
                                 before:bg-red-600 before:scale-0 checked:before:scale-100
@@ -3093,7 +3105,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
       </div>
     </div>
 
-    
+
     <div className="sm:col-span-1">
       <label htmlFor={`phone-${index}`} className="block text-m font-semibold text-gray-600">
         Telefon <span className="text-red-500">*</span>
@@ -3106,17 +3118,17 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
   onChange={(e: any) => {
     let v = (e.target as HTMLInputElement).value;
 
- 
+
     if (v === '0') {
       v = '0 ';
     }
 
-   
+
     if (v.length === 1 && v === '5') {
       v = '05';
     }
 
-   
+
     if (!v.startsWith('0')) {
       v = '0' + v;
     }
@@ -3166,7 +3178,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
     Belgeler
   </h2>
 </div>
- 
+
   {selectedVisaType === 'Turistik' && (
   <div className="mb-6">
     <label className="block text-m font-semibold text-gray-900 mb-2">
@@ -3290,7 +3302,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
     <p className="text-sm text-gray-700 truncate">
       Yüklenen Dosya: {passportFileName[index]}
     </p>
-   
+
   </div>
 )}
 
@@ -3358,7 +3370,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
   leaveFrom="opacity-100 translate-y-0 scale-y-100"
   leaveTo="opacity-0 -translate-y-2 scale-y-95"
 >
-    
+
  <div className="mb-6">
  <label htmlFor={`schengen-${index}`} className="block text-sm font-semibold text-gray-900 mb-2">
    Son Schengen Vizesi <span className="text-red-500">*</span>
@@ -3373,7 +3385,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
        `}
    >
   {hasFiles ? (
- 
+
     <svg
       className="mx-auto mb-2 h-6 w-6 text-red-500"
       fill="none"
@@ -3389,7 +3401,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
       />
     </svg>
   ) : (
-    
+
     <svg
       className="mx-auto mb-2 h-6 w-6 text-red-500"
       fill="none"
@@ -3405,8 +3417,8 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
       />
     </svg>
   )}
-     
-   
+
+
   <p className="text-sm font-medium">
     {hasFiles ? 'Yeni dosya ekle' : 'Dosya(lar) seçmek için tıklayın'}
   </p>
@@ -3450,19 +3462,19 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
           {schengenFileNames[index]?.[i]}
         </p>
 
-     
+
         {img.endsWith('.pdf') ? (
           <iframe src={img} className="rounded w-full h-48" />
         ) : (
           <img src={img} alt={`Schengen ${i}`} className="rounded w-full max-h-48 object-contain" />
         )}
 
-     
+
         <button
           type="button"
           onClick={() => handleDeleteSchengen(index, i)}
           className="absolute top-2 right-2 inline-flex items-center justify-center
-          w-7 h-7 rounded-md border border-red-600 bg-red-600 text-white 
+          w-7 h-7 rounded-md border border-red-600 bg-red-600 text-white
           hover:bg-red-700 text-xs"
           disabled={schengenLoading[index]}
           aria-label="Dosyayı sil"
@@ -3499,7 +3511,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
     `}
   >
     {hasInvitationFiles ? (
-    
+
       <svg
         className="mx-auto mb-2 h-6 w-6 text-red-500"
         fill="none"
@@ -3507,10 +3519,10 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
         viewBox="0 0 24 24"
       >
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-        
+
       </svg>
     ) : (
-     
+
       <svg
         className="mx-auto mb-2 h-6 w-6 text-red-500"
         fill="none"
@@ -3556,7 +3568,7 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
         >
           <p className="text-xs text-gray-600 mb-1">{invitationFileNames[index][i]}</p>
           <iframe src={img} className="rounded w-full" />
-          
+
           <button
           type="button"
           onClick={() => handleDeleteInvitation(index, i)}
@@ -3566,22 +3578,22 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
         >
           Sil
         </button>
-      
+
         </div>
       ))}
-      
+
     </div>
   )}
-  
+
 </div>
 
 </Transition>
 
 <Text size="sm" fw={800} c="black" mt="sm" mb="xs">
-  Müşteri Notu 
+  Müşteri Notu
 </Text>
 
-    
+
     <div className="flex items-center gap-2">
       {saving ? (
         <Text size="xs" c="dimmed">Kaydediliyor…</Text>
@@ -3597,16 +3609,16 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
       autosize
       minRows={5}
       value={note}
-      onChange={(e) => setNote(e.currentTarget.value.slice(0, maxChars))} 
-      onFocus={() => setHighlighted(false)}  
+      onChange={(e) => setNote(e.currentTarget.value.slice(0, maxChars))}
+      onFocus={() => setHighlighted(false)}
       onBlur={() => {
-        if (note.trim()) setHighlighted(true); 
+        if (note.trim()) setHighlighted(true);
       }}
-     
+
       styles={{
         input: {
           fontSize: 14,
-         
+
           fontFamily:'sans-serif',
           backgroundColor: highlighted ? "#d1fae5" : "white",
           transition: "background-color 0.3s ease",
@@ -3625,9 +3637,9 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
 </div>
 
 
-      
+
       </div>
-      
+
       ))}
         <form onSubmit={handleSubmit}>
   <div className="mt-4 text-center">
@@ -3662,6 +3674,6 @@ Schengen vize başvurunuzu kolayca tamamlayın</p>
 
     </div>
   );
-  
+
 }
 

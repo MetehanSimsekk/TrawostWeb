@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import {  Routes, Route } from "react-router-dom";
 import ApplyForm from "./Components/pages/form/ApplyForm";
 import AdminDashboard from "./Components/pages/admin/AdminDashboard";
 import Login from "./Components/pages/admin/Login";
@@ -12,10 +12,10 @@ import '@mantine/dates/styles.css';
 import '@mantine/notifications/styles.css';
 import ProtectedRoute from "./Components/pages/routes/ProtectedRoute";
 import { ModalsProvider } from "@mantine/modals";
+import { QueryClient } from "@tanstack/react-query";
 
 function App() {
   const [phone, setPhone] = useState('');
-
 
   const theme = createTheme({
     primaryColor: 'red',
@@ -26,25 +26,37 @@ function App() {
   });
 
   return (
-    <MantineProvider theme={theme}>
-        <ModalsProvider>
-  <Notifications position="bottom-left" />
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<ApplyForm value={phone} onChange={(e) => setPhone(e.target.value)}  />} />
-        <Route
-    path="/admin"
-    element={
-      <ProtectedRoute>
-        <AdminDashboard />
-      </ProtectedRoute>
-    }/>
-        <Route path="/login" element={<Login />} />
-        <Route path="/thanks" element={<ThanksPage />} />
-      </Routes>
-    </BrowserRouter>
-    </ModalsProvider>
-    </MantineProvider>
+    <Routes>
+    <Route path="/" element={<ApplyForm value={phone} onChange={(e) => setPhone(e.target.value)}  />} />
+    <Route
+path="/admin"
+element={
+  <ProtectedRoute>
+    <AdminDashboard />
+  </ProtectedRoute>
+}/>
+    <Route path="/login" element={<Login />} />
+    <Route path="/thanks" element={<ThanksPage />} />
+  </Routes>
+  //   <MantineProvider theme={theme}>
+  //       <ModalsProvider>
+  // <Notifications position="bottom-left" />
+  //   <BrowserRouter>
+  //     <Routes>
+  //       <Route path="/" element={<ApplyForm value={phone} onChange={(e) => setPhone(e.target.value)}  />} />
+  //       <Route
+  //   path="/admin"
+  //   element={
+  //     <ProtectedRoute>
+  //       <AdminDashboard />
+  //     </ProtectedRoute>
+  //   }/>
+  //       <Route path="/login" element={<Login />} />
+  //       <Route path="/thanks" element={<ThanksPage />} />
+  //     </Routes>
+  //   </BrowserRouter>
+  //   </ModalsProvider>
+  //   </MantineProvider>
   );
 }
 
